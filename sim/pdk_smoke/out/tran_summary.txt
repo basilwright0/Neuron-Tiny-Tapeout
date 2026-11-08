@@ -1,0 +1,6 @@
+C from 1 nA ideal discharge: 200.07 fF
+Vg=0 hold: V(10 s)=0.2788 V, droop=0.7212 V over 10 s -> I_leak ~ 1.44e-14 A (C*dV/dt)
+vg035 : t(1V->0.5V)=1.377e-03 s  t(1V->1/e)=1.753e-03 s  I(early)=7.287e-11 A  tail tau(fit)=8.214e-05 s  C*Ut/I=7.101e-05 s
+vg045 : t(1V->0.5V)=9.196e-05 s  t(1V->1/e)=1.171e-04 s  I(early)=1.091e-09 A  tail tau(fit)=5.505e-06 s  C*Ut/I=4.741e-06 s
+vg12  : t(1V->0.5V)=6.269e-09 s  t(1V->1/e)=7.985e-09 s  I(early)=1.611e-05 A  tail tau(fit)=3.736e-09 s  C*Ut/I=3.213e-10 s
+rpoly : t(1V->0.5V)=1.549e-07 s  t(1V->1/e)=2.234e-07 s  I(early)=6.791e-07 A  tail tau(fit)=2.234e-07 s  C*Ut/I=7.619e-09 s

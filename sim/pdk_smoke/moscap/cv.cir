@@ -1,0 +1,26 @@
+* GF180 MOS-capacitor C-V: nfet_03v3 gate cap (S/D/B=0) and pfet_03v3 in nwell (S/D/B=VDD)
+.include /foss/pdks/gf180mcuD/libs.tech/ngspice/design.ngspice
+.lib /foss/pdks/gf180mcuD/libs.tech/ngspice/sm141064.ngspice typical
+.lib /foss/pdks/gf180mcuD/libs.tech/ngspice/sm141064.ngspice moscap_typical
+.param W=10u L=10u
+Vg g 0 dc 0 ac 1
+* (a) nfet gate cap, 10x10 um
+XN 0 g 0 0 nfet_03v3 W={W} L={L}
+* (b) pfet gate cap referenced to VDD=3.3
+Vdd vdd 0 3.3
+Vg2 g2 0 dc 0 ac 1
+XP vdd g2 vdd vdd pfet_03v3 W={W} L={L}
+.control
+let area = 100
+foreach v 0 0.25 0.5 0.75 1.0 1.25 1.5 2.0 2.5 3.0 3.3
+  alter vg dc = $v
+  alter vg2 dc = $v
+  op
+  ac lin 1 1k 1k
+  let cn = -imag(i(vg))/(2*pi*1k)
+  let cp = -imag(i(vg2))/(2*pi*1k)
+  echo "Vg=$v  nfet_cap_fF_per_um2=$&cn" 
+  print cn/area*1e15 cp/area*1e15
+end
+.endc
+.end

@@ -1,0 +1,28 @@
+* nfet_03v3 Id-Vgs smoke test, corner=@CORNER@ temp=@TEMP@
+.include /foss/pdks/gf180mcuD/libs.tech/ngspice/design.ngspice
+.lib /foss/pdks/gf180mcuD/libs.tech/ngspice/sm141064.ngspice @CORNER@
+.temp @TEMP@
+.option gmin=1e-18 abstol=1e-18 reltol=1e-4
+Vg g 0 0
+Vd01 d01 0 0.1
+Vd1  d1  0 1.0
+* W/L = 1/1 um
+XA01 d01 g 0 0 nfet_03v3 W=1u L=1u
+XA1  d1  g 0 0 nfet_03v3 W=1u L=1u
+* W/L = 0.5/2 um
+Vd01b d01b 0 0.1
+Vd1b  d1b  0 1.0
+XB01 d01b g 0 0 nfet_03v3 W=0.5u L=2u
+XB1  d1b  g 0 0 nfet_03v3 W=0.5u L=2u
+.control
+dc Vg 0 1.2 0.005
+let ia01=-i(vd01)
+let ia1=-i(vd1)
+let ib01=-i(vd01b)
+let ib1=-i(vd1b)
+set wr_singlescale
+set wr_vecnames
+wrdata out/idvg_@CORNER@_@TEMP@.dat ia01 ia1 ib01 ib1
+quit
+.endc
+.end

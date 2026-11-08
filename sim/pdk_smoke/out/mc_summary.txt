@@ -1,0 +1,16 @@
+out/mc_statistical_g1_m1_s11.log         W1/L1    n=30 mean=1.735e-11 A  sigma=2.586e-12 A  sigma/mean=14.9%  sigma(lnI)=0.147  min=1.252e-11 max=2.388e-11
+out/mc_statistical_g1_m1_s11.log         W0.5/L2  n=30 mean=9.084e-12 A  sigma=1.012e-12 A  sigma/mean=11.1%  sigma(lnI)=0.110  min=7.299e-12 max=1.154e-11
+out/mc_statistical_g1_m1_s12.log         W1/L1    n=30 mean=5.836e-11 A  sigma=1.014e-11 A  sigma/mean=17.4%  sigma(lnI)=0.159  min=4.573e-11 max=9.136e-11
+out/mc_statistical_g1_m1_s12.log         W0.5/L2  n=30 mean=2.829e-11 A  sigma=3.736e-12 A  sigma/mean=13.2%  sigma(lnI)=0.134  min=1.945e-11 max=3.856e-11
+out/mc_statistical_g1_m1_s13.log         W1/L1    n=30 mean=1.390e-10 A  sigma=2.140e-11 A  sigma/mean=15.4%  sigma(lnI)=0.149  min=1.081e-10 max=1.980e-10
+out/mc_statistical_g1_m1_s13.log         W0.5/L2  n=30 mean=7.016e-11 A  sigma=1.060e-11 A  sigma/mean=15.1%  sigma(lnI)=0.152  min=5.258e-11 max=8.800e-11
+out/mc_statistical_g1_m1_s14.log         W1/L1    n=30 mean=1.099e-10 A  sigma=1.283e-11 A  sigma/mean=11.7%  sigma(lnI)=0.121  min=7.768e-11 max=1.362e-10
+out/mc_statistical_g1_m1_s14.log         W0.5/L2  n=30 mean=5.617e-11 A  sigma=6.596e-12 A  sigma/mean=11.7%  sigma(lnI)=0.119  min=4.172e-11 max=6.786e-11
+out/mc_statistical_g1_m1_s15.log         W1/L1    n=30 mean=7.099e-11 A  sigma=1.163e-11 A  sigma/mean=16.4%  sigma(lnI)=0.165  min=4.734e-11 max=9.608e-11
+out/mc_statistical_g1_m1_s15.log         W0.5/L2  n=30 mean=3.568e-11 A  sigma=4.058e-12 A  sigma/mean=11.4%  sigma(lnI)=0.106  min=2.874e-11 max=5.098e-11
+out/mc_typical_g0_m0_s1.log              W1/L1    n=30 mean=7.570e-11 A  sigma=1.315e-26 A  sigma/mean=0.0%  sigma(lnI)=0.000  min=7.570e-11 max=7.570e-11
+out/mc_typical_g0_m0_s1.log              W0.5/L2  n=30 mean=3.790e-11 A  sigma=1.315e-26 A  sigma/mean=0.0%  sigma(lnI)=0.000  min=3.790e-11 max=3.790e-11
+out/mc_typical_g0_m1_s1.log              W1/L1    n=30 mean=7.703e-11 A  sigma=1.144e-11 A  sigma/mean=14.9%  sigma(lnI)=0.150  min=5.595e-11 max=9.545e-11
+out/mc_typical_g0_m1_s1.log              W0.5/L2  n=30 mean=3.742e-11 A  sigma=5.308e-12 A  sigma/mean=14.2%  sigma(lnI)=0.147  min=2.514e-11 max=4.773e-11
+out/mc_typical_g0_m1_s2.log              W1/L1    n=30 mean=7.818e-11 A  sigma=1.105e-11 A  sigma/mean=14.1%  sigma(lnI)=0.145  min=5.748e-11 max=9.841e-11
+out/mc_typical_g0_m1_s2.log              W0.5/L2  n=30 mean=3.781e-11 A  sigma=4.543e-12 A  sigma/mean=12.0%  sigma(lnI)=0.121  min=2.831e-11 max=4.775e-11
