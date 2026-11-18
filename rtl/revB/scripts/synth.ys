@@ -1,0 +1,14 @@
+# Area estimate for neuron_ctrl (+ digital_lif) on gf180mcu_fd_sc_mcu7t5v0, tt 25C 3.3V.
+# Run: scripts/eda.sh "cd rtl && yosys -q -l synth/yosys.log scripts/synth.ys"
+read_liberty -lib synth/sc7t_tt_3v30.lib
+read_verilog -DNC_GF180_CELLS -I. nc_sync.v nc_spi.v nc_spk_chan.v digital_lif.v neuron_ctrl.v
+hierarchy -check -top neuron_ctrl
+synth -top neuron_ctrl
+dfflibmap -liberty synth/sc7t_tt_3v30.lib
+abc -D 20000 -liberty synth/sc7t_tt_3v30.lib
+opt_clean -purge
+tee -o synth/area.txt stat -liberty synth/sc7t_tt_3v30.lib
+flatten
+opt_clean -purge
+tee -a synth/area.txt stat -liberty synth/sc7t_tt_3v30.lib
+write_verilog -noattr synth/neuron_ctrl_syn.v

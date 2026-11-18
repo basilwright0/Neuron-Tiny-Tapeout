@@ -1,0 +1,5 @@
+* local copy of the iic-osic-tools ngspice init (reproducible regardless of $HOME)
+set num_threads=1
+set ngbehavior=hsa
+set ng_nomodcheck
+set enable_noisy_r

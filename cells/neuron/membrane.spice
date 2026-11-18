@@ -1,0 +1,42 @@
+* Membrane primitives for the analog neuron family (gf180mcuD, 3.3 V devices)
+* Conventions: VDD = 3.3 V, VSS = 0. Membrane window 1.0-2.0 V (NMOS-cap flat region).
+* Bias inputs are gate voltages from diode-connected mirror masters (vbn_* = nfet sink gate,
+* vbp_* = pfet source gate), so every current tracks process like the bias generator.
+
+* ------------------------------------------------------------------ mcap ---
+* Membrane capacitor: thick-oxide nfet gate cap (S/D/B = VSS), ~4.0 fF/um^2 for Vg>=1.0 V.
+* C ~= 4.0e-3 * W*L (W, L in um) -> 50 fF: 3.54u, 200 fF: 7.07u, 800 fF: 14.1u (square)
+.subckt mcap top vss wl=7.07u
+XC vss top vss vss nfet_03v3 W={wl} L={wl}
+.ends mcap
+
+* ------------------------------------------------------------- leak_ota ---
+* Follower-integrator leak: subthreshold 5T OTA, + input = el, output = vm (also - input).
+* I(into vm) ~= Ib * tanh((el - vm)/VL).  Optional diode degeneration (deg=1) widens VL.
+* Tail current Ib mirrored from vbn (nfet master W/L = wt/lt).
+.subckt leak_ota vm el vbn vdd vss wi=2u li=2u wt=2u lt=4u wl=2u ll=4u
+XMT  t   vbn vss vss nfet_03v3 W={wt} L={lt}
+XM1  a   el  t   vss nfet_03v3 W={wi} L={li}
+XM2  vm  vm  t   vss nfet_03v3 W={wi} L={li}
+XP1  a   a   vdd vdd pfet_03v3 W={wl} L={ll}
+XP2  vm  a   vdd vdd pfet_03v3 W={wl} L={ll}
+.ends leak_ota
+
+.subckt leak_ota_deg vm el vbn vdd vss wi=2u li=2u wt=2u lt=4u wl=2u ll=4u wd=2u ld=2u
+XMT  t   vbn vss vss nfet_03v3 W={wt} L={lt}
+XM1  a   el  s1  vss nfet_03v3 W={wi} L={li}
+XD1  s1  s1  t   vss nfet_03v3 W={wd} L={ld}
+XM2  vm  vm  s2  vss nfet_03v3 W={wi} L={li}
+XD2  s2  s2  t   vss nfet_03v3 W={wd} L={ld}
+XP1  a   a   vdd vdd pfet_03v3 W={wl} L={ll}
+XP2  vm  a   vdd vdd pfet_03v3 W={wl} L={ll}
+.ends leak_ota_deg
+
+* --------------------------------------------------------------- nmaster ---
+* Diode-connected nfet that turns a bias current into a gate voltage (testbench / bias tree)
+.subckt nmaster vb vss w=2u l=4u
+XM vb vb vss vss nfet_03v3 W={w} L={l}
+.ends nmaster
+.subckt pmaster vb vdd w=2u l=4u
+XM vb vb vdd vdd pfet_03v3 W={w} L={l}
+.ends pmaster

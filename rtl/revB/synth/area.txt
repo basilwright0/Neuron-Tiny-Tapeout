@@ -1,0 +1,433 @@
+
+12. Printing statistics.
+
+=== $paramod$fd41ccc369756cc6e44367220c77484a9bb19938\nc_spk_chan ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+       13        - wires
+       14        - wire bits
+       10        - public wires
+       11        - public wire bits
+        8        - ports
+        8        - port bits
+        7  298.547 cells
+        1    8.781   gf180mcu_fd_sc_mcu7t5v0__clkinv_1
+        3   223.91   gf180mcu_fd_sc_mcu7t5v0__dffrnq_1
+        1   13.171   gf180mcu_fd_sc_mcu7t5v0__nor2_1
+        2   52.685   gf180mcu_fd_sc_mcu7t5v0__xor2_1
+
+   Chip area for module '$paramod$fd41ccc369756cc6e44367220c77484a9bb19938\nc_spk_chan': 298.547200
+     of which used for sequential elements: 223.910400 (75.00%)
+
+=== $paramod\nc_sync2\W=s32'00000000000000000000000000000001 ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+        5        - wires
+        5        - wire bits
+        5        - public wires
+        5        - public wire bits
+        4        - ports
+        4        - port bits
+        2  149.274 cells
+        2  149.274   gf180mcu_fd_sc_mcu7t5v0__dffrnq_1
+
+   Chip area for module '$paramod\nc_sync2\W=s32'00000000000000000000000000000001': 149.273600
+     of which used for sequential elements: 149.273600 (100.00%)
+
+=== $paramod$2ced4e8e9f8777cffed5ec24be00bd53088e15e5\nc_sync2 ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+        5        - wires
+        8        - wire bits
+        5        - public wires
+        8        - public wire bits
+        4        - ports
+        6        - port bits
+        4  298.547 cells
+        4  298.547   gf180mcu_fd_sc_mcu7t5v0__dffrnq_1
+
+   Chip area for module '$paramod$2ced4e8e9f8777cffed5ec24be00bd53088e15e5\nc_sync2': 298.547200
+     of which used for sequential elements: 298.547200 (100.00%)
+
+=== $paramod$09b938b3132a6e7bf57bcfc25c72a7b06ddd4f4f\nc_sync2 ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+        5        - wires
+        5        - wire bits
+        5        - public wires
+        5        - public wire bits
+        4        - ports
+        4        - port bits
+        2  158.054 cells
+        2  158.054   gf180mcu_fd_sc_mcu7t5v0__dffsnq_1
+
+   Chip area for module '$paramod$09b938b3132a6e7bf57bcfc25c72a7b06ddd4f4f\nc_sync2': 158.054400
+     of which used for sequential elements: 158.054400 (100.00%)
+
+=== neuron_ctrl ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+      567        - wires
+      948        - wire bits
+       75        - public wires
+      426        - public wire bits
+       12        - ports
+      271        - port bits
+      636 1.61E+04 cells
+       12  210.739   gf180mcu_fd_sc_mcu7t5v0__and2_1
+        5   109.76   gf180mcu_fd_sc_mcu7t5v0__and3_1
+        5  120.736   gf180mcu_fd_sc_mcu7t5v0__and4_1
+        5   109.76   gf180mcu_fd_sc_mcu7t5v0__aoi211_1
+       29  509.286   gf180mcu_fd_sc_mcu7t5v0__aoi21_1
+        4   96.589   gf180mcu_fd_sc_mcu7t5v0__aoi221_1
+       18   553.19   gf180mcu_fd_sc_mcu7t5v0__aoi222_1
+       65 1.28E+03   gf180mcu_fd_sc_mcu7t5v0__aoi22_1
+       47  412.698   gf180mcu_fd_sc_mcu7t5v0__clkinv_1
+       57 4.25E+03   gf180mcu_fd_sc_mcu7t5v0__dffrnq_1
+       18  513.677   gf180mcu_fd_sc_mcu7t5v0__mux2_1
+       33 2.32E+03   gf180mcu_fd_sc_mcu7t5v0__mux4_1
+       69  757.344   gf180mcu_fd_sc_mcu7t5v0__nand2_1
+       26  399.526   gf180mcu_fd_sc_mcu7t5v0__nand3_1
+       24  474.163   gf180mcu_fd_sc_mcu7t5v0__nand4_1
+       78 1.03E+03   gf180mcu_fd_sc_mcu7t5v0__nor2_1
+       39  684.902   gf180mcu_fd_sc_mcu7t5v0__nor3_1
+        3   65.856   gf180mcu_fd_sc_mcu7t5v0__nor4_1
+        9  197.568   gf180mcu_fd_sc_mcu7t5v0__oai211_1
+       30  526.848   gf180mcu_fd_sc_mcu7t5v0__oai21_1
+        1   26.342   gf180mcu_fd_sc_mcu7t5v0__oai221_1
+        2   43.904   gf180mcu_fd_sc_mcu7t5v0__oai22_1
+        5  120.736   gf180mcu_fd_sc_mcu7t5v0__oai31_1
+        3   79.027   gf180mcu_fd_sc_mcu7t5v0__oai32_1
+        5   87.808   gf180mcu_fd_sc_mcu7t5v0__or2_1
+       10   219.52   gf180mcu_fd_sc_mcu7t5v0__or3_1
+       11  289.766   gf180mcu_fd_sc_mcu7t5v0__or4_1
+        8  228.301   gf180mcu_fd_sc_mcu7t5v0__xnor2_1
+       15  395.136   gf180mcu_fd_sc_mcu7t5v0__xor2_1
+      148        - submodules
+        1        -   $paramod$00ede51ae5707bd3b4be28f2cd74ce0ac43f399d\digital_lif
+        5        -   $paramod$cdf0e79adbd64430be238cf3cd43b1315de02b8b\nc_spk_chan
+        1        -   $paramod$fd41ccc369756cc6e44367220c77484a9bb19938\nc_spk_chan
+        1        -   $paramod\nc_sync2\W=s32'00000000000000000000000000000011
+      138        -   nc_latch
+        1        -   nc_rst_sync
+        1        -   nc_spi
+
+   Chip area for module '\neuron_ctrl': 16117.158400
+     of which used for sequential elements: 4254.297600 (26.40%)
+
+=== $paramod\nc_sync2\W=s32'00000000000000000000000000000011 ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+        5        - wires
+       11        - wire bits
+        5        - public wires
+       11        - public wire bits
+        4        - ports
+        8        - port bits
+        6  447.821 cells
+        6  447.821   gf180mcu_fd_sc_mcu7t5v0__dffrnq_1
+
+   Chip area for module '$paramod\nc_sync2\W=s32'00000000000000000000000000000011': 447.820800
+     of which used for sequential elements: 447.820800 (100.00%)
+
+=== $paramod$00ede51ae5707bd3b4be28f2cd74ce0ac43f399d\digital_lif ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+      276        - wires
+      358        - wire bits
+       28        - public wires
+      110        - public wire bits
+       17        - ports
+       81        - port bits
+      295 7.33E+03 cells
+        3   52.685   gf180mcu_fd_sc_mcu7t5v0__and2_1
+        1   21.952   gf180mcu_fd_sc_mcu7t5v0__and3_1
+        1   24.147   gf180mcu_fd_sc_mcu7t5v0__and4_1
+        4   87.808   gf180mcu_fd_sc_mcu7t5v0__aoi211_1
+       11  193.178   gf180mcu_fd_sc_mcu7t5v0__aoi21_1
+        2   48.294   gf180mcu_fd_sc_mcu7t5v0__aoi221_1
+        1   30.733   gf180mcu_fd_sc_mcu7t5v0__aoi222_1
+       13  256.838   gf180mcu_fd_sc_mcu7t5v0__aoi22_1
+       26  228.301   gf180mcu_fd_sc_mcu7t5v0__clkinv_1
+       14  891.251   gf180mcu_fd_sc_mcu7t5v0__dffq_1
+       31 2.31E+03   gf180mcu_fd_sc_mcu7t5v0__dffrnq_1
+        9  256.838   gf180mcu_fd_sc_mcu7t5v0__mux2_1
+        2  140.493   gf180mcu_fd_sc_mcu7t5v0__mux4_1
+       69  757.344   gf180mcu_fd_sc_mcu7t5v0__nand2_1
+       15  230.496   gf180mcu_fd_sc_mcu7t5v0__nand3_1
+        4   79.027   gf180mcu_fd_sc_mcu7t5v0__nand4_1
+       15  197.568   gf180mcu_fd_sc_mcu7t5v0__nor2_1
+        6   105.37   gf180mcu_fd_sc_mcu7t5v0__nor3_1
+        2   43.904   gf180mcu_fd_sc_mcu7t5v0__nor4_1
+       12  263.424   gf180mcu_fd_sc_mcu7t5v0__oai211_1
+       35  614.656   gf180mcu_fd_sc_mcu7t5v0__oai21_1
+        4   105.37   gf180mcu_fd_sc_mcu7t5v0__oai221_1
+        1   21.952   gf180mcu_fd_sc_mcu7t5v0__oai22_1
+        2   48.294   gf180mcu_fd_sc_mcu7t5v0__oai31_1
+        1   26.342   gf180mcu_fd_sc_mcu7t5v0__oai32_1
+        3   52.685   gf180mcu_fd_sc_mcu7t5v0__or2_1
+        1   26.342   gf180mcu_fd_sc_mcu7t5v0__or4_1
+        2   57.075   gf180mcu_fd_sc_mcu7t5v0__xnor2_1
+        4   105.37   gf180mcu_fd_sc_mcu7t5v0__xor2_1
+        1    50.49   gf180mcu_fd_sc_mcu7t5v0__xor3_1
+        1        - submodules
+        1        -   nc_cg
+
+   Chip area for module '$paramod$00ede51ae5707bd3b4be28f2cd74ce0ac43f399d\digital_lif': 7331.968000
+     of which used for sequential elements: 3204.992000 (43.71%)
+
+=== nc_spi ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+       90        - wires
+      127        - wire bits
+       19        - public wires
+       56        - public wire bits
+       12        - ports
+       38        - port bits
+      105 3.58E+03 cells
+        3   52.685   gf180mcu_fd_sc_mcu7t5v0__and2_1
+        2   43.904   gf180mcu_fd_sc_mcu7t5v0__and3_1
+        2   48.294   gf180mcu_fd_sc_mcu7t5v0__and4_1
+        1   21.952   gf180mcu_fd_sc_mcu7t5v0__aoi211_1
+        4   70.246   gf180mcu_fd_sc_mcu7t5v0__aoi21_1
+       11   96.589   gf180mcu_fd_sc_mcu7t5v0__clkinv_1
+       15  954.912   gf180mcu_fd_sc_mcu7t5v0__dffq_1
+       16 1.19E+03   gf180mcu_fd_sc_mcu7t5v0__dffrnq_1
+        1   79.027   gf180mcu_fd_sc_mcu7t5v0__dffsnq_1
+       15  428.064   gf180mcu_fd_sc_mcu7t5v0__mux2_1
+        8   87.808   gf180mcu_fd_sc_mcu7t5v0__nand2_1
+       10  153.664   gf180mcu_fd_sc_mcu7t5v0__nand3_1
+        3   39.514   gf180mcu_fd_sc_mcu7t5v0__nor2_1
+        3   52.685   gf180mcu_fd_sc_mcu7t5v0__nor3_1
+        3   52.685   gf180mcu_fd_sc_mcu7t5v0__oai21_1
+        7  184.397   gf180mcu_fd_sc_mcu7t5v0__oai221_1
+        1   17.562   gf180mcu_fd_sc_mcu7t5v0__or2_1
+        2        - submodules
+        1        -   $paramod$09b938b3132a6e7bf57bcfc25c72a7b06ddd4f4f\nc_sync2
+        1        -   $paramod$2ced4e8e9f8777cffed5ec24be00bd53088e15e5\nc_sync2
+
+   Chip area for module '\nc_spi': 3578.176000
+     of which used for sequential elements: 2228.128000 (62.27%)
+
+=== nc_cg ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+        3        - wires
+        3        - wire bits
+        3        - public wires
+        3        - public wire bits
+        3        - ports
+        3        - port bits
+        1   61.466 cells
+        1   61.466   gf180mcu_fd_sc_mcu7t5v0__icgtp_1
+
+   Chip area for module '\nc_cg': 61.465600
+     of which used for sequential elements: 0.000000 (0.00%)
+
+=== nc_latch ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+        4        - wires
+        4        - wire bits
+        4        - public wires
+        4        - public wire bits
+        4        - ports
+        4        - port bits
+        1   48.294 cells
+        1   48.294   gf180mcu_fd_sc_mcu7t5v0__latrnq_1
+
+   Chip area for module '\nc_latch': 48.294400
+     of which used for sequential elements: 0.000000 (0.00%)
+
+=== nc_rst_sync ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+        4        - wires
+        4        - wire bits
+        4        - public wires
+        4        - public wire bits
+        3        - ports
+        3        - port bits
+        2  149.274 cells
+        2  149.274   gf180mcu_fd_sc_mcu7t5v0__dffrnq_1
+
+   Chip area for module '\nc_rst_sync': 149.273600
+     of which used for sequential elements: 149.273600 (100.00%)
+
+=== $paramod$cdf0e79adbd64430be238cf3cd43b1315de02b8b\nc_spk_chan ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+       14        - wires
+       15        - wire bits
+       11        - public wires
+       12        - public wire bits
+        8        - ports
+        8        - port bits
+        8   329.28 cells
+        1    8.781   gf180mcu_fd_sc_mcu7t5v0__clkinv_1
+        3   223.91   gf180mcu_fd_sc_mcu7t5v0__dffrnq_1
+        1   28.538   gf180mcu_fd_sc_mcu7t5v0__mux2_1
+        1   13.171   gf180mcu_fd_sc_mcu7t5v0__nor2_1
+        1   28.538   gf180mcu_fd_sc_mcu7t5v0__xnor2_1
+        1   26.342   gf180mcu_fd_sc_mcu7t5v0__xor2_1
+        1        - submodules
+        1        -   $paramod\nc_sync2\W=s32'00000000000000000000000000000001
+
+   Chip area for module '$paramod$cdf0e79adbd64430be238cf3cd43b1315de02b8b\nc_spk_chan': 329.280000
+     of which used for sequential elements: 223.910400 (68.00%)
+
+=== design hierarchy ===
+
+        +----------Count including submodules.
+        |        +-Area including submodules.
+        |        | 
+     1246 3.75E+04 neuron_ctrl
+      295 7.33E+03 $paramod$00ede51ae5707bd3b4be28f2cd74ce0ac43f399d\digital_lif
+        1   61.466   nc_cg
+        8   329.28 $paramod$cdf0e79adbd64430be238cf3cd43b1315de02b8b\nc_spk_chan
+        2  149.274   $paramod\nc_sync2\W=s32'00000000000000000000000000000001
+        7  298.547 $paramod$fd41ccc369756cc6e44367220c77484a9bb19938\nc_spk_chan
+        6  447.821 $paramod\nc_sync2\W=s32'00000000000000000000000000000011
+        1   48.294 nc_latch
+        2  149.274 nc_rst_sync
+      105 3.58E+03 nc_spi
+        2  158.054   $paramod$09b938b3132a6e7bf57bcfc25c72a7b06ddd4f4f\nc_sync2
+        4  298.547   $paramod$2ced4e8e9f8777cffed5ec24be00bd53088e15e5\nc_sync2
+
+        +----------Count including submodules.
+        |        +-Area including submodules.
+        |        | 
+     1615        - wires
+     2130        - wire bits
+      786        - public wires
+     1271        - public wire bits
+      679        - ports
+     1034        - port bits
+        -        - memories
+        -        - memory bits
+        -        - processes
+     1246 3.75E+04 cells
+       18  316.109   gf180mcu_fd_sc_mcu7t5v0__and2_1
+        8  175.616   gf180mcu_fd_sc_mcu7t5v0__and3_1
+        8  193.178   gf180mcu_fd_sc_mcu7t5v0__and4_1
+       10   219.52   gf180mcu_fd_sc_mcu7t5v0__aoi211_1
+       44   772.71   gf180mcu_fd_sc_mcu7t5v0__aoi21_1
+        6  144.883   gf180mcu_fd_sc_mcu7t5v0__aoi221_1
+       19  583.923   gf180mcu_fd_sc_mcu7t5v0__aoi222_1
+       78  1541.03   gf180mcu_fd_sc_mcu7t5v0__aoi22_1
+       90  790.272   gf180mcu_fd_sc_mcu7t5v0__clkinv_1
+       29 1.85E+03   gf180mcu_fd_sc_mcu7t5v0__dffq_1
+      144 1.07E+04   gf180mcu_fd_sc_mcu7t5v0__dffrnq_1
+        3  237.082   gf180mcu_fd_sc_mcu7t5v0__dffsnq_1
+        1   61.466   gf180mcu_fd_sc_mcu7t5v0__icgtp_1
+      138 6.66E+03   gf180mcu_fd_sc_mcu7t5v0__latrnq_1
+       47 1.34E+03   gf180mcu_fd_sc_mcu7t5v0__mux2_1
+       35 2.46E+03   gf180mcu_fd_sc_mcu7t5v0__mux4_1
+      146  1.6E+03   gf180mcu_fd_sc_mcu7t5v0__nand2_1
+       51  783.686   gf180mcu_fd_sc_mcu7t5v0__nand3_1
+       28   553.19   gf180mcu_fd_sc_mcu7t5v0__nand4_1
+      102 1.34E+03   gf180mcu_fd_sc_mcu7t5v0__nor2_1
+       48  842.957   gf180mcu_fd_sc_mcu7t5v0__nor3_1
+        5   109.76   gf180mcu_fd_sc_mcu7t5v0__nor4_1
+       21  460.992   gf180mcu_fd_sc_mcu7t5v0__oai211_1
+       68 1.19E+03   gf180mcu_fd_sc_mcu7t5v0__oai21_1
+       12  316.109   gf180mcu_fd_sc_mcu7t5v0__oai221_1
+        3   65.856   gf180mcu_fd_sc_mcu7t5v0__oai22_1
+        7   169.03   gf180mcu_fd_sc_mcu7t5v0__oai31_1
+        4   105.37   gf180mcu_fd_sc_mcu7t5v0__oai32_1
+        9  158.054   gf180mcu_fd_sc_mcu7t5v0__or2_1
+       10   219.52   gf180mcu_fd_sc_mcu7t5v0__or3_1
+       12  316.109   gf180mcu_fd_sc_mcu7t5v0__or4_1
+       15  428.064   gf180mcu_fd_sc_mcu7t5v0__xnor2_1
+       26  684.902   gf180mcu_fd_sc_mcu7t5v0__xor2_1
+        1    50.49   gf180mcu_fd_sc_mcu7t5v0__xor3_1
+      148 2.14E+04 submodules
+        1 7.39E+03   $paramod$00ede51ae5707bd3b4be28f2cd74ce0ac43f399d\digital_lif
+        5 2.39E+03   $paramod$cdf0e79adbd64430be238cf3cd43b1315de02b8b\nc_spk_chan
+        1  298.547   $paramod$fd41ccc369756cc6e44367220c77484a9bb19938\nc_spk_chan
+        1  447.821   $paramod\nc_sync2\W=s32'00000000000000000000000000000011
+      138 6.66E+03   nc_latch
+        1  149.274   nc_rst_sync
+        1 4.03E+03   nc_spi
+
+   Chip area for top module '\neuron_ctrl': 37498.406400
+     of which used for sequential elements: 12830.944000 (34.22%)
+
+
+15. Printing statistics.
+
+=== neuron_ctrl ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+     1093        - wires
+     1496        - wire bits
+      268        - public wires
+      641        - public wire bits
+       12        - ports
+      271        - port bits
+     1240 3.74E+04 cells
+       18  316.109   gf180mcu_fd_sc_mcu7t5v0__and2_1
+        8  175.616   gf180mcu_fd_sc_mcu7t5v0__and3_1
+        8  193.178   gf180mcu_fd_sc_mcu7t5v0__and4_1
+       10   219.52   gf180mcu_fd_sc_mcu7t5v0__aoi211_1
+       44   772.71   gf180mcu_fd_sc_mcu7t5v0__aoi21_1
+        6  144.883   gf180mcu_fd_sc_mcu7t5v0__aoi221_1
+       19  583.923   gf180mcu_fd_sc_mcu7t5v0__aoi222_1
+       78  1541.03   gf180mcu_fd_sc_mcu7t5v0__aoi22_1
+       90  790.272   gf180mcu_fd_sc_mcu7t5v0__clkinv_1
+       29 1.85E+03   gf180mcu_fd_sc_mcu7t5v0__dffq_1
+      144 1.07E+04   gf180mcu_fd_sc_mcu7t5v0__dffrnq_1
+        3  237.082   gf180mcu_fd_sc_mcu7t5v0__dffsnq_1
+        1   61.466   gf180mcu_fd_sc_mcu7t5v0__icgtp_1
+      138 6.66E+03   gf180mcu_fd_sc_mcu7t5v0__latrnq_1
+       47 1.34E+03   gf180mcu_fd_sc_mcu7t5v0__mux2_1
+       35 2.46E+03   gf180mcu_fd_sc_mcu7t5v0__mux4_1
+      146  1.6E+03   gf180mcu_fd_sc_mcu7t5v0__nand2_1
+       51  783.686   gf180mcu_fd_sc_mcu7t5v0__nand3_1
+       28   553.19   gf180mcu_fd_sc_mcu7t5v0__nand4_1
+       99  1.3E+03   gf180mcu_fd_sc_mcu7t5v0__nor2_1
+       48  842.957   gf180mcu_fd_sc_mcu7t5v0__nor3_1
+        5   109.76   gf180mcu_fd_sc_mcu7t5v0__nor4_1
+       21  460.992   gf180mcu_fd_sc_mcu7t5v0__oai211_1
+       68 1.19E+03   gf180mcu_fd_sc_mcu7t5v0__oai21_1
+       12  316.109   gf180mcu_fd_sc_mcu7t5v0__oai221_1
+        3   65.856   gf180mcu_fd_sc_mcu7t5v0__oai22_1
+        7   169.03   gf180mcu_fd_sc_mcu7t5v0__oai31_1
+        4   105.37   gf180mcu_fd_sc_mcu7t5v0__oai32_1
+        9  158.054   gf180mcu_fd_sc_mcu7t5v0__or2_1
+       10   219.52   gf180mcu_fd_sc_mcu7t5v0__or3_1
+       12  316.109   gf180mcu_fd_sc_mcu7t5v0__or4_1
+       12  342.451   gf180mcu_fd_sc_mcu7t5v0__xnor2_1
+       26  684.902   gf180mcu_fd_sc_mcu7t5v0__xor2_1
+        1    50.49   gf180mcu_fd_sc_mcu7t5v0__xor3_1
+
+   Chip area for module '\neuron_ctrl': 37373.280000
+     of which used for sequential elements: 12830.944000 (34.33%)
+

@@ -1,0 +1,105 @@
+* LIF neurons: shared membrane (mcap + leak_ota_deg) + shared reset/refractory,
+* differing ONLY in the threshold detector (conversation turn 2: swap the spike block only).
+* Requires membrane.spice. Input current is injected into vm by the caller (synapse/stimulus).
+*
+* Nominal S=100 operating point (200 fF): Ib_leak ~ 320 pA -> g ~ 2 nS -> tau ~ 100 us,
+* EL = 1.20 V, Vth = 1.28 V (comparator variant), Vreset = 1.20 V, t_ref set by I_ref.
+
+* ---------------------------------------------------------------- inv3 ---
+.subckt inv3 a y vdd vss wn=0.5u wp=1u l=0.28u
+XN y a vss vss nfet_03v3 W={wn} L={l}
+XP y a vdd vdd pfet_03v3 W={wp} L={l}
+.ends inv3
+
+* --------------------------------------------------------------- inv3s ---
+* Current-starved inverter: pull-up limited by a pfet source biased from vbp (~100 nA).
+* Used where the input can sit mid-rail for a long time (slow membrane approach), which
+* would otherwise cause uA of crowbar current.
+.subckt inv3s a y vbp vdd vss wn=0.5u lnn=0.28u
+XS s  vbp vdd vdd pfet_03v3 W=1u L=2u
+XP y  a   s   vdd pfet_03v3 W=1u L=0.28u
+XN y  a   vss vss nfet_03v3 W={wn} L={lnn}
+.ends inv3s
+
+* -------------------------------------------------------------- refrac ---
+* spk high -> vr charged to VDD -> reset nfet holds vm at vreset; vr then discharges with
+* I_ref (from vbn_ref) and the reset switch fades out as vr falls below vreset + Vt.
+* t_ref ~ Cr * (3.3 - (vreset+~0.75)) / I_ref.  Cr = 50 fF NMOS cap (flat for vr > 1 V).
+.subckt refrac spk vm vr vreset vbn_ref vdd vss wcr=3.54u
+Xi  spk spkb vdd vss inv3
+XPC vr  spkb vdd vdd pfet_03v3 W=1u L=0.28u
+XNR vr  vbn_ref vss vss nfet_03v3 W=2u L=4u
+XCR vr  vss mcap wl={wcr}
+XSW vm  vr  vreset vss nfet_03v3 W=0.5u L=0.5u
+.ends refrac
+
+* ------------------------------------------------------------- det_cmp ---
+* 5T OTA comparator, PMOS input pair (output swings ~0 V .. tail node), so the following
+* starved inverter sees a true low. Tail, hysteresis and inverter starve all hang off one
+* pfet bias line vbp (100 nA master W/L=1/2): tail 100 nA, hysteresis ~33 nA (L=6u).
+.subckt det_cmp vm vth spk vbp vdd vss
+XPT t   vbp vdd vdd pfet_03v3 W=1u L=2u
+XM1 x   vm  t   vdd pfet_03v3 W=2u L=1u
+XM2 o   vth t   vdd pfet_03v3 W=2u L=1u
+XN1 x   x   vss vss nfet_03v3 W=1u L=2u
+XN2 o   x   vss vss nfet_03v3 W=1u L=2u
+XH2 h   vbp vdd vdd pfet_03v3 W=1u L=6u
+XH1 o   ob  h   vdd pfet_03v3 W=1u L=0.28u
+Xi1 o   ob  vbp vdd vss inv3s
+Xi2 ob  spk vdd vss inv3
+.ends det_cmp
+
+* -------------------------------------------------------------- det_ah ---
+* Axon-hillock regenerative detector: current-starved inverter on vm whose nfet source sits
+* on vsrc, so the trip point ~= vsrc + Vgs(I_starve). vsrc is the AH "threshold knob"
+* (threshold coupled to bias, as expected for regenerative designs). Second inverter, then
+* Cfb positive feedback spk -> vm. Cfb ideal here; MOM (M1-M4 fingers) cap in layout.
+.subckt det_ah vm spk vsrc vbp_st vdd vss cfb=8f
+XPS s   vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XPI n1  vm  s   vdd pfet_03v3 W=1u L=0.5u
+XNI n1  vm  vsrc vss nfet_03v3 W=1u L=0.5u
+XS2 s2  vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XP2 p   n1  s2  vdd pfet_03v3 W=1u L=0.28u
+XN2 p   n1  vsrc vss nfet_03v3 W=0.22u L=2u
+* p swings vsrc..VDD, so the next stage is also vsrc-referenced (no static current when idle);
+* pb swings VDD (idle) .. vsrc (spiking); the output inverter only conducts during a spike.
+XP3 pb  p   vdd vdd pfet_03v3 W=1u L=0.28u
+XN3 pb  p   vsrc vss nfet_03v3 W=0.5u L=0.28u
+Xi4 pb  spk vdd vss inv3
+CFB spk vm {cfb}
+.ends det_ah
+
+* ----------------------------------------------------------- lif_cmp ---
+.subckt lif_cmp vm spk el vth vreset vbn_leak vbp_cmp vbn_ref vdd vss wl=7.07u
+XC  vm vss mcap wl={wl}
+XL  vm el vbn_leak vdd vss leak_ota_deg
+XD  vm vth spk vbp_cmp vdd vss det_cmp
+XR  spk vm vr vreset vbn_ref vdd vss refrac
+.ends lif_cmp
+
+* ------------------------------------------------------------ lif_ah ---
+.subckt lif_ah vm spk el vsrc vreset vbn_leak vbp_st vbn_ref vdd vss wl=7.07u cfb=8f
+XC  vm vss mcap wl={wl}
+XL  vm el vbn_leak vdd vss leak_ota_deg
+XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr vreset vbn_ref vdd vss refrac
+.ends lif_ah
+
+* ---------------------------------------------------------- ah_replica ---
+* Shared replica bias for all axon-hillock neurons. A replica of both AH stages (starved
+* input stage with gate = vth_ref, and the vsrc-referenced second stage) drives a source
+* follower onto vsrc. High loop gain holds the replica exactly at its switching point, so
+* every AH neuron trips at vm ~= vth_ref across process/temperature (global compensation;
+* per-neuron mismatch remains). Loop polarity: vsrc up -> XR weaker -> d up -> e down ->
+* follower lowers vsrc. vsrc is the dominant pole (1.6 pF decoupling).
+.subckt ah_replica vsrc vth_ref vbp_st vbn_sink vdd vss
+XPS s   vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XPI d   vth_ref s  vdd pfet_03v3 W=1u L=0.5u
+XR  d   vth_ref vsrc vss nfet_03v3 W=1u L=0.5u
+XS2 s2  vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XP2 e   d   s2  vdd pfet_03v3 W=1u L=0.28u
+XN2 e   d   vsrc vss nfet_03v3 W=0.22u L=2u
+XFO vdd e   vsrc vss nfet_03v3 W=4u L=1u
+XSK vsrc vbn_sink vss vss nfet_03v3 W=4u L=2u
+XCD vsrc vss mcap wl=20u
+.ends ah_replica

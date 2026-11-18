@@ -1,0 +1,35 @@
+* Analog readout path (block R1): membrane -> in-cell NMOS follower -> NMOS pass mux ->
+* shared bus -> PMOS pad follower -> ua[1].  No feedback loop anywhere: nothing to oscillate
+* or fail to bias at a corner (NH pitfall P-09). Gain (~0.75-0.85 end to end) and DC offset
+* are calibrated via a reference channel through an identical in-cell follower.
+*
+* Levels: vm 1.0-2.0 V -> prb ~0.15-1.1 V -> pad ~0.9-2.0 V.
+
+* -------------------------------------------------------------- prb_nsf ---
+* In-cell probe follower + its mux switch. en/sel are 3.3 V logic (from the control plane).
+* When en=0 the bias sink is off (follower draws nothing); the gate load on vm is always the
+* same whether enabled or not (so 'probe-ready, disabled' vs 'enabled' differ only in bias).
+.subckt prb_nsf vm abus en sel vbn_prb vdd vss wf=1u lf=0.5u
+XMF vdd vm  prb vss nfet_03v3 W={wf} L={lf}
+XME prb en  s   vss nfet_03v3 W=1u L=0.28u
+XMB s   vbn_prb vss vss nfet_03v3 W=2u L=2u
+XSW prb sel abus vss nfet_03v3 W=1u L=0.28u
+.ends prb_nsf
+
+* -------------------------------------------------------------- refchan ---
+* Calibration channel: identical follower driven by a DC reference (e.g. EL DAC output).
+.subckt refchan vref abus en sel vbn_prb vdd vss
+XF vref abus en sel vbn_prb vdd vss prb_nsf
+.ends refchan
+
+* -------------------------------------------------------------- pad_psf ---
+* Pad driver: PMOS source follower in its own n-well (body = source), bias ~200 uA from
+* vbp_pad (enabled by en_b low). Drives ua[1] through the TT analog switch (~500 ohm, 5 pF)
+* plus board/probe capacitance (design load 25 pF total).
+* A weak always-on pull-down keeps abus defined when no channel is selected.
+.subckt pad_psf abus pad en_b vbp_pad vdd vss
+XPF vss abus pad pad pfet_03v3 W=40u L=0.5u
+XPE s   en_b vdd vdd pfet_03v3 W=10u L=0.28u
+XPB pad vbp_pad s vdd pfet_03v3 W=20u L=1u
+XPD abus vdd vss vss nfet_03v3 W=0.22u L=20u
+.ends pad_psf

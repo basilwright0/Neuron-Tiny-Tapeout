@@ -1,0 +1,190 @@
+* idac_n / idac_p: 3-bit range (one-hot r0..r5, x8 steps) + 5-bit binary fine code
+* current-steering DAC on the shared shifted-source gate lines (block B1).
+* I_out = code * LSB_r ,  LSB_r = I_in/128/8^r  (I_in = Iref*m/16 from bias_master)
+* Nominal Iref=8 uA, m=1: ideal LSB 3.9n,488p,61p,7.6p,0.95p,0.12p; simulated (tt 27C,
+* ladder step ~7.1-7.7 instead of 8) 3.5n, 480p, 68p, 9.2p, 1.2p, 0.16p ; FS = 31 LSB
+* Units: 31 x (2/2 um) devices (4 um^2), sources on the shifted rail; unselected
+* bits are steered to 'dump', so the gate node never moves on a fine-code change.
+* Ports (idac_n, SINKS current from out):
+*  out   : output, compliance 0.5-2.5 V
+*  dump  : tie to vdd (idac_n) / vss (idac_p)
+*  r0..r5: range select, one-hot, active high;  roff: 1 = no range (gate to rail)
+*  b0..b4: fine code (b4 = MSB), active high, 3.3 V logic
+*  g0..g5: gate lines vgn0..5 (idac_n) or vgp0..5 (idac_p) from bias_rangegen
+*  vsn / vsp : shifted-source rail
+*  vcas  : cascode level for the output switch gates: vglp (~1.2 V) for idac_n,
+*          vgln (~1.8 V) for idac_p (both from bias_rails);  vdd vss
+.subckt idac_n out dump r0 r1 r2 r3 r4 r5 roff b0 b1 b2 b3 b4 g0 g1 g2 g3 g4 g5 vsn vcas vdd vss
+XIB0p bb0 b0 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB0n bb0 b0 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIB1p bb1 b1 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB1n bb1 b1 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIB2p bb2 b2 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB2n bb2 b2 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIB3p bb3 b3 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB3n bb3 b3 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIB4p bb4 b4 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB4n bb4 b4 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX0 g0 r0 gl vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX1 g1 r1 gl vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX2 g2 r2 gl vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX3 g3 r3 gl vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX4 g4 r4 gl vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX5 g5 r5 gl vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMXOFF vsn roff gl vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XU0_0 d0 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XIC0p bc0 bb0 vcas vcas pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIC0n bc0 bb0 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XID0p bd0 bc0 vcas vcas pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XID0n bd0 bc0 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSO0 out bc0 d0 vss nfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSD0 dump bd0 d0 vss nfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XU1_0 d1 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU1_1 d1 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XIC1p bc1 bb1 vcas vcas pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIC1n bc1 bb1 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XID1p bd1 bc1 vcas vcas pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XID1n bd1 bc1 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSO1 out bc1 d1 vss nfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSD1 dump bd1 d1 vss nfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XU2_0 d2 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU2_1 d2 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU2_2 d2 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU2_3 d2 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XIC2p bc2 bb2 vcas vcas pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIC2n bc2 bb2 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XID2p bd2 bc2 vcas vcas pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XID2n bd2 bc2 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSO2 out bc2 d2 vss nfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSD2 dump bd2 d2 vss nfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XU3_0 d3 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_1 d3 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_2 d3 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_3 d3 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_4 d3 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_5 d3 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_6 d3 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_7 d3 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XIC3p bc3 bb3 vcas vcas pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIC3n bc3 bb3 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XID3p bd3 bc3 vcas vcas pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XID3n bd3 bc3 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSO3 out bc3 d3 vss nfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSD3 dump bd3 d3 vss nfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XU4_0 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_1 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_2 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_3 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_4 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_5 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_6 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_7 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_8 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_9 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_10 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_11 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_12 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_13 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_14 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_15 d4 gl vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XIC4p bc4 bb4 vcas vcas pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIC4n bc4 bb4 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XID4p bd4 bc4 vcas vcas pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XID4n bd4 bc4 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSO4 out bc4 d4 vss nfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSD4 dump bd4 d4 vss nfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+.ends idac_n
+.subckt idac_p out dump r0 r1 r2 r3 r4 r5 roff b0 b1 b2 b3 b4 g0 g1 g2 g3 g4 g5 vsp vcas vdd vss
+XIB0p bb0 b0 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB0n bb0 b0 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIB1p bb1 b1 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB1n bb1 b1 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIB2p bb2 b2 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB2n bb2 b2 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIB3p bb3 b3 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB3n bb3 b3 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIB4p bb4 b4 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB4n bb4 b4 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIR0p rb0 r0 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIR0n rb0 r0 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIR1p rb1 r1 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIR1n rb1 r1 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIR2p rb2 r2 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIR2n rb2 r2 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIR3p rb3 r3 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIR3n rb3 r3 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIR4p rb4 r4 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIR4n rb4 r4 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIR5p rb5 r5 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIR5n rb5 r5 vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIROp rboff roff vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIROn rboff roff vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX0 g0 rb0 gl vdd pfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX1 g1 rb1 gl vdd pfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX2 g2 rb2 gl vdd pfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX3 g3 rb3 gl vdd pfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX4 g4 rb4 gl vdd pfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMX5 g5 rb5 gl vdd pfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMXOFF vsp rboff gl vdd pfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XU0_0 d0 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XIC0p bc0 b0 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIC0n bc0 b0 vcas vcas nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XID0p bd0 bc0 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XID0n bd0 bc0 vcas vcas nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSO0 out bc0 d0 vdd pfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSD0 dump bd0 d0 vdd pfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XU1_0 d1 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU1_1 d1 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XIC1p bc1 b1 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIC1n bc1 b1 vcas vcas nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XID1p bd1 bc1 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XID1n bd1 bc1 vcas vcas nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSO1 out bc1 d1 vdd pfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSD1 dump bd1 d1 vdd pfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XU2_0 d2 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU2_1 d2 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU2_2 d2 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU2_3 d2 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XIC2p bc2 b2 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIC2n bc2 b2 vcas vcas nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XID2p bd2 bc2 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XID2n bd2 bc2 vcas vcas nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSO2 out bc2 d2 vdd pfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSD2 dump bd2 d2 vdd pfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XU3_0 d3 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_1 d3 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_2 d3 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_3 d3 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_4 d3 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_5 d3 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_6 d3 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU3_7 d3 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XIC3p bc3 b3 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIC3n bc3 b3 vcas vcas nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XID3p bd3 bc3 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XID3n bd3 bc3 vcas vcas nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSO3 out bc3 d3 vdd pfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSD3 dump bd3 d3 vdd pfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XU4_0 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_1 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_2 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_3 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_4 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_5 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_6 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_7 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_8 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_9 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_10 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_11 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_12 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_13 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_14 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XU4_15 d4 gl vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XIC4p bc4 b4 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIC4n bc4 b4 vcas vcas nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XID4p bd4 bc4 vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XID4n bd4 bc4 vcas vcas nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSO4 out bc4 d4 vdd pfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSD4 dump bd4 d4 vdd pfet_03v3 W=0.5u L=0.5u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+.ends idac_p
