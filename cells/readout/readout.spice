@@ -23,13 +23,15 @@ XF vref abus en sel vbn_prb vdd vss prb_nsf
 .ends refchan
 
 * -------------------------------------------------------------- pad_psf ---
-* Pad driver: PMOS source follower in its own n-well (body = source), bias ~200 uA from
-* vbp_pad (enabled by en_b low). Drives ua[1] through the TT analog switch (~500 ohm, 5 pF)
+* Pad driver: PMOS source follower in its own n-well (body = source), bias ~400 uA from
+* vbp_pad (enabled by en_b low). vbp_pad comes from the R1 bias receiver (r1_corner.spice):
+* a W0.4/L1 pfet diode fed ib_r1 = 4 uA -> XPB (W40/L1, 10 x 4/1 fingers) = 100x = 400 uA
+* (sized for a 100-200 pF board on ua[1]: GF chip-on-board). Drives ua[1] through the TT analog switch (~500 ohm, 5 pF)
 * plus board/probe capacitance (design load 25 pF total).
 * A weak always-on pull-down keeps abus defined when no channel is selected.
 .subckt pad_psf abus pad en_b vbp_pad vdd vss
 XPF vss abus pad pad pfet_03v3 W=40u L=0.5u
 XPE s   en_b vdd vdd pfet_03v3 W=10u L=0.28u
-XPB pad vbp_pad s vdd pfet_03v3 W=20u L=1u
+XPB pad vbp_pad s vdd pfet_03v3 W=40u L=1u
 XPD abus vdd vss vss nfet_03v3 W=0.22u L=20u
 .ends pad_psf

@@ -1,0 +1,6 @@
+764 parasitic capacitors in adex_a1_pex.spice
+C(spk-vm) = 7.95 fF
+vm   total =  21.13 fF; largest: spk 7.95, vss 6.28, a_480_5974# 1.09, vdd 0.95, vsrc 0.54, vbn_prb 0.41, a_7000_3738# 0.40, vbn_ref 0.34, vbp_syn 0.33, vw 0.27, m1_3872_1730# 0.25, a_8356_5974# 0.25, m1_4392_1730# 0.23, m1_2772_1784
+vw   total =  14.72 fF; largest: vss 4.68, vdd 2.64, mreset 0.83, vbn_leak 0.81, vbp_st 0.73, m1_3408_5970# 0.66, en 0.46, el 0.38, a_480_5974# 0.36, vbp_w 0.34, a_2536_3080# 0.28, vm 0.27, m1_186_3686# 0.24, sub1 0.22, m1_1656_4620#
+spk  total =  18.33 fF; largest: vm 7.95, vss 4.05, vdd 2.59, mreset 1.82, vbn_ref 0.35, a_8356_5974# 0.20, m1_6552_5730# 0.19, vbp_syn 0.15, vbp_st 0.15, a_7148_1874# 0.11, vbn_prb 0.11, vbp_w 0.09, vsrc 0.09, a_2536_3080# 0.09, a_4
+vr   total =   0.00 fF; largest: 

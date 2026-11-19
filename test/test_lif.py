@@ -1,4 +1,4 @@
-"""cocotb tests for the bit-serial digital LIF inside neuron_ctrl (rev C).
+"""cocotb tests for the bit-serial digital LIF inside neuron_ctrl (rev C..E).
 
 Ticks come from ui_in[7] (a tick generator here, PIO on the board); the
 spike is observed on uio[6] (OUT_MUX = 0).
@@ -16,7 +16,7 @@ import cocotb
 from cocotb.triggers import ClockCycles, FallingEdge
 
 from nc_driver import setup, wr, ns, stop_task, CLK_NS
-from regmap import A, clkd, lif_sr
+from regmap import A, lif_ctl, lif_sr
 from lif_model import LifParams, lif_run, lif_step
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "model"))
@@ -98,13 +98,13 @@ def codes(p: LifParams):
 async def configure(dut, pins, p, en=1, src=2):
     """Parameters are written only while LIF_EN = 0 (quasi-static contract)."""
     el, vth, vrst = codes(p)
-    await wr(dut, pins, A["CLKD"], clkd(lif_en=0, lif_src=src))
+    await wr(dut, pins, A["LIF_CTL"], lif_ctl(lif_en=0, lif_src=src))
     await wr(dut, pins, A["LIF_SR"], lif_sr(shift=p.shift, refr=p.refr))
     await wr(dut, pins, A["LIF_EL"], el)
     await wr(dut, pins, A["LIF_VTH"], vth)
     await wr(dut, pins, A["LIF_VRST"], vrst)
     await wr(dut, pins, A["LIF_W"], p.w)
-    await wr(dut, pins, A["CLKD"], clkd(lif_en=en, lif_src=src))
+    await wr(dut, pins, A["LIF_CTL"], lif_ctl(lif_en=en, lif_src=src))
 
 
 def check_trajectory(mon, p):
@@ -187,7 +187,7 @@ async def test_lif_rate_vs_input(dut):
         await ClockCycles(dut.clk, TICK_CLK * 500)
         tg.stop()
         await ClockCycles(dut.clk, 60)
-        await wr(dut, pins, A["CLKD"], clkd(lif_en=0, lif_src=2))
+        await wr(dut, pins, A["LIF_CTL"], lif_ctl(lif_en=0, lif_src=2))
         mon.run = False
         pc.stop()
         ticks = mon.ticks

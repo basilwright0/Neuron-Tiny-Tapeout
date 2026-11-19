@@ -1,0 +1,46 @@
+[spk] pex: 4 neurons (S=1000, 200 fF, Iin = 8 x rheobase, vm(0) = 1.27 V) spike together on the far tap; vin cal (AH trip 1.28 V); 10 idle lif_ah + 2 pdet on the line
+corner  T  | v0-vin(mV) | peak far/near (mV) | min far (mV) | back<2mV of settled (ns) | Q +-100ns/neuron (fC) | t_spk (us) | vin
+typical  27 |   +0.57 |   207.5 /   194.7 |   -65.0 |       76 |      751 | 0.515 | vin 0.418
+ss        0 |   +0.48 |   178.2 /   167.6 |   -52.7 |     2987 |      604 | 0.450 | vin 0.307
+ff       85 |   +0.77 |   240.3 /   226.1 |   -79.3 |       79 |      860 | 0.555 | vin 0.559
+sf       85 |   +0.71 |   234.0 /   221.3 |   -72.2 |      101 |      841 | 0.534 | vin 0.397
+[spk] vsrc_buf: 1 neurons (S=1000, 200 fF, Iin = 8 x rheobase, vm(0) = 1.27 V) spike together on the far tap; vin cal (AH trip 1.28 V); 13 idle lif_ah + 2 pdet on the line
+corner  T  | v0-vin(mV) | peak far/near (mV) | min far (mV) | back<2mV of settled (ns) | Q +-100ns/neuron (fC) | t_spk (us) | vin
+typical  27 |   +0.24 |    76.3 /    72.7 |   -32.8 |       57 |      860 | 0.475 | vin 0.418
+Traceback (most recent call last):
+  File "/work/sim/tb/vsrc/tb_vsrc.py", line 249, in <module>
+    {"dc": t_dc, "ac": t_ac, "spk": t_spk}[TEST]()
+  File "/work/sim/tb/vsrc/tb_vsrc.py", line 214, in t_spk
+    VIN = cal_vin(c, T) if VIN0 is None else VIN0
+          ^^^^^^^^^^^^^
+  File "/work/sim/tb/vsrc/tb_vsrc.py", line 204, in cal_vin
+    v = float(np.clip(v + (1.28 - ah_trip(v, c, T)) / 1.27, 0.2, 0.9))
+                                  ^^^^^^^^^^^^^^^^
+  File "/work/sim/tb/vsrc/tb_vsrc.py", line 195, in ah_trip
+    r = run(deck(body, "dc Vm 0.6 2.2 1m", ["v(spk)"], corner=c, temp=T), f"vsrc_trip_{c}_{T}")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/sim/lib/ngs.py", line 85, in run
+    arr = np.loadtxt(out, skiprows=1, ndmin=2)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/numpy/lib/_npyio_impl.py", line 1381, in loadtxt
+    arr = _read(fname, dtype=dtype, comment=comment, delimiter=delimiter,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/numpy/lib/_npyio_impl.py", line 1035, in _read
+    arr = _load_from_filelike(
+          ^^^^^^^^^^^^^^^^^^^^
+ValueError: the number of columns changed from 2 to 1 at row 1241; use `usecols` to select a subset and avoid this error
+[spk] vsrc_buf: 13 neurons (S=1000, 200 fF, Iin = 8 x rheobase, vm(0) = 1.27 V) spike together on the far tap; vin cal (AH trip 1.28 V); 1 idle lif_ah + 2 pdet on the line
+corner  T  | v0-vin(mV) | peak far/near (mV) | min far (mV) | back<2mV of settled (ns) | Q +-100ns/neuron (fC) | t_spk (us) | vin
+typical  27 |   +1.59 |   375.2 /   341.6 |  -234.4 |     3000 |     1975 | 0.580 | vin 0.418
+ss        0 |   +1.52 |   325.0 /   298.4 |   -94.7 |     2709 |      645 | 0.520 | vin 0.307
+ff       85 |   +2.31 |   418.0 /   380.3 |  -276.2 |     3000 |     3070 | 0.636 | vin 0.559
+sf       85 |   +1.90 |   424.4 /   391.5 |  -244.5 |     3000 |     1896 | 0.582 | vin 0.397
+[spk] ideal: 4 neurons (S=1000, 200 fF, Iin = 8 x rheobase, vm(0) = 1.27 V) spike together on the far tap; vin cal (AH trip 1.28 V); 10 idle lif_ah + 2 pdet on the line
+corner  T  | v0-vin(mV) | peak far/near (mV) | min far (mV) | back<2mV of settled (ns) | Q +-100ns/neuron (fC) | t_spk (us) | vin
+typical  27 |   +0.77 |    16.8 /    -0.8 |    -0.5 |       11 |     3783 | 0.744 | vin 0.418
+[spk] vsrc_buf (st3 detector): 4 neurons (S=1000, 200 fF, Iin = 8 x rheobase, vm(0) = 1.27 V) spike together on the far tap; vin cal (AH trip 1.28 V); 10 idle lif_ah + 2 pdet on the line
+corner  T  | v0-vin(mV) | peak far/near (mV) | min far (mV) | back<2mV of settled (ns) | Q +-100ns/neuron (fC) | t_spk (us) | vin
+typical  27 |   +0.48 |    46.6 /    43.6 |   -24.9 |       60 |      330 | 0.496 | vin 0.418
+[spk] vsrc_buf (st3v detector): 4 neurons (S=1000, 200 fF, Iin = 8 x rheobase, vm(0) = 1.27 V) spike together on the far tap; vin cal (AH trip 1.28 V); 10 idle lif_ah + 2 pdet on the line
+corner  T  | v0-vin(mV) | peak far/near (mV) | min far (mV) | back<2mV of settled (ns) | Q +-100ns/neuron (fC) | t_spk (us) | vin
+typical  27 |   +0.48 |    27.8 /    25.9 |   -16.4 |       57 |      252 | 0.423 | vin 0.418

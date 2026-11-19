@@ -1,0 +1,29 @@
+* LVS reference for r1_corner (layout/readout), flat transistor level.
+* Source: cells/readout/r1_corner.spice -> pad_psf (readout.spice) + vreset_buf (vreset/vreset_buf.spice)
+*         + vsrc_buf (vsrc/vsrc_buf.spice).
+* Internal nets: s = pad-driver enable/bias midpoint, t = Vreset tail (also the input-pair n-well),
+* a = Vreset mirror diode node; t2 / a2 / o = vsrc buffer tail / mirror diode / first-stage output.
+.subckt r1_corner abus pad en_b ibias vrin vreset vth_ref vsrc vdd vss
+* bias receiver
+XPR ibias ibias vdd vdd pfet_03v3 W=0.4u L=1u
+* pad_psf
+XPF vss abus pad pad pfet_03v3 W=40u L=0.5u
+XPE s en_b vdd vdd pfet_03v3 W=10u L=0.28u
+XPB pad ibias s vdd pfet_03v3 W=40u L=1u
+XPD abus vdd vss vss nfet_03v3 W=0.22u L=20u
+* vreset_buf (vfb = vout = vreset)
+XPT t ibias vdd vdd pfet_03v3 W=3u L=1u
+XM1 a vrin t t pfet_03v3 W=20u L=0.5u
+XM2 vreset vreset t t pfet_03v3 W=20u L=0.5u
+XN1 a a vss vss nfet_03v3 W=4u L=2u
+XN2 vreset a vss vss nfet_03v3 W=4u L=2u
+* vsrc_buf (vin = vth_ref, vbp = ibias)
+XVT t2 ibias vdd vdd pfet_03v3 W=0.22u L=2u
+XVA a2 vsrc t2 vdd pfet_03v3 W=10u L=2u
+XVB o vth_ref t2 vdd pfet_03v3 W=10u L=2u
+XVNA a2 a2 vss vss nfet_03v3 W=1u L=4u
+XVNB o a2 vss vss nfet_03v3 W=1u L=4u
+XVS vsrc o vss vss nfet_03v3 W=10u L=0.5u
+XVU vsrc ibias vdd vdd pfet_03v3 W=1.6u L=1u
+XVC vsrc o vsrc vsrc pfet_03v3 W=8u L=7u
+.ends r1_corner

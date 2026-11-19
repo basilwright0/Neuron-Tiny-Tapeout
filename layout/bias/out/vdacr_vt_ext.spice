@@ -1,0 +1,75 @@
+* NGSPICE file created from vdacr_vt.ext - technology: gf180mcuD
+
+.subckt r_w1_l9p86 a_n100_n1108# a_n100_986# VSUBS
+X0 a_n100_986# a_n100_n1108# VSUBS ppolyf_u_1k r_width=1u r_length=9.86u
+.ends
+
+.subckt r_w2_l2p5 a_n200_250# a_n200_n372# VSUBS
+X0 a_n200_250# a_n200_n372# VSUBS ppolyf_u_1k r_width=2u r_length=2.5u
+.ends
+
+.subckt r_w1_l2p465 a_n100_n369# a_n100_247# VSUBS
+X0 a_n100_247# a_n100_n369# VSUBS ppolyf_u_1k r_width=1u r_length=2.47u
+.ends
+
+.subckt r_w1_l4p93 a_n100_n615# a_n100_493# VSUBS
+X0 a_n100_493# a_n100_n615# VSUBS ppolyf_u_1k r_width=1u r_length=4.93u
+.ends
+
+.subckt n_w0p5_l1 a_100_n50# a_n100_n94# a_n188_n50# VSUBS
+X0 a_100_n50# a_n100_n94# a_n188_n50# VSUBS nfet_03v3 ad=0.22p pd=1.88u as=0.22p ps=1.88u w=0.5u l=1u
+.ends
+
+.subckt p_w1_l1 a_n188_n100# a_100_n100# a_n100_n144# w_n274_n230#
+X0 a_100_n100# a_n100_n144# a_n188_n100# w_n274_n230# pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=1u
+.ends
+
+.subckt r_w1_l13p145 a_n100_1315# a_n100_n1437# VSUBS
+X0 a_n100_1315# a_n100_n1437# VSUBS ppolyf_u_1k r_width=1u r_length=13.15u
+.ends
+
+.subckt r_w1_l13p39 a_n100_n1461# a_n100_1339# VSUBS
+X0 a_n100_1339# a_n100_n1461# VSUBS ppolyf_u_1k r_width=1u r_length=13.39u
+.ends
+
+.subckt n_w6_l0p28_f2 a_52_n644# a_108_n600# a_n108_n644# a_n196_n600# a_n52_n600#
++ VSUBS
+X0 a_108_n600# a_52_n644# a_n52_n600# VSUBS nfet_03v3 ad=2.64p pd=12.88u as=1.56p ps=6.52u w=6u l=0.28u
+X1 a_n52_n600# a_n108_n644# a_n196_n600# VSUBS nfet_03v3 ad=1.56p pd=6.52u as=2.64p ps=12.88u w=6u l=0.28u
+.ends
+
+.subckt vdacr_vt b0 b1 b2 b3 b4 b5 vdd out vss
+XXRS4_0 m1_4648_4446# m1_4328_3000# vss r_w1_l9p86
+XXRS4_1 m1_4488_3600# m1_4648_4446# vss r_w1_l9p86
+XXRS0 m1_1970_3610# m1_2702_4448# vss r_w2_l2p5
+XXRS1 m1_3342_4448# m1_2702_4448# vss r_w1_l2p465
+XXRS3 m1_4328_3000# m1_3600_4920# vss r_w1_l9p86
+XXRS2 m1_3600_4920# m1_3342_4448# vss r_w1_l4p93
+XIB5n a_5004_3816# b5 vss vss n_w0p5_l1
+XIB4n a_4412_3816# b4 vss vss n_w0p5_l1
+XIB5p vdd a_5004_3816# b5 vdd p_w1_l1
+XIB3n a_3820_3816# b3 vss vss n_w0p5_l1
+XIB4p vdd a_4412_3816# b4 vdd p_w1_l1
+XIB2n a_3228_3816# b2 vss vss n_w0p5_l1
+XIB3p vdd a_3820_3816# b3 vdd p_w1_l1
+XIB2p vdd a_3228_3816# b2 vdd p_w1_l1
+XIB1n a_2636_3816# b1 vss vss n_w0p5_l1
+XIB0n a_2044_3816# b0 vss vss n_w0p5_l1
+XIB1p vdd a_2636_3816# b1 vdd p_w1_l1
+XIB0p vdd a_2044_3816# b0 vdd p_w1_l1
+XXRS5_0 m1_4488_3600# m1_5542_4448# vss r_w1_l13p145
+XXRS5_1 m1_5542_4448# m1_5982_4448# vss r_w1_l13p145
+XXRB0 m1_502_4448# out vss r_w1_l13p39
+XSW0 a_2044_3816# m1_1970_3610# a_2044_3816# m1_1970_3610# m1_2702_4448# vss n_w6_l0p28_f2
+XXRS5_2 m1_5982_4448# vss vss r_w1_l13p145
+XXRB1 m1_942_4448# m1_502_4448# vss r_w1_l13p39
+XSW2 a_3228_3816# m1_3342_4448# a_3228_3816# m1_3342_4448# m1_3600_4920# vss n_w6_l0p28_f2
+XSW1 a_2636_3816# m1_2702_4448# a_2636_3816# m1_2702_4448# m1_3342_4448# vss n_w6_l0p28_f2
+XXRB3 m1_1822_4448# m1_1382_4448# vss r_w1_l13p39
+XXRB2 m1_1382_4448# m1_942_4448# vss r_w1_l13p39
+XSW3 a_3820_3816# m1_3600_4920# a_3820_3816# m1_3600_4920# m1_4328_3000# vss n_w6_l0p28_f2
+XXRB4 m1_1970_3610# m1_1822_4448# vss r_w1_l13p39
+XSW4 a_4412_3816# m1_4328_3000# a_4412_3816# m1_4328_3000# m1_4488_3600# vss n_w6_l0p28_f2
+XSW5 a_5004_3816# m1_4488_3600# a_5004_3816# m1_4488_3600# vss vss n_w6_l0p28_f2
+.ends
+

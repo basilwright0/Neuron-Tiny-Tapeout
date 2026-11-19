@@ -1,0 +1,174 @@
+* bias_vi (rev C): V-to-I converter I_vi = V(vglp)/R0 feeding the four resistor DACs, the probe
+* bias and R1's bias.  Independent of ua[0]: only VDD, the rails-string ratio (vglp = VDD*4/11)
+* and ppolyf_u_1k resistor ratios enter.
+*   OTA (nfet pair 4/2, pfet mirror, self-biased tail ~0.3 uA) forces x = vglp across R0
+*   (60 kOhm) through M_out (pfet 16/2) + cascode (16/1, gate vglp).  I_vi ~20 uA at VDD = 3.3 V.
+*   Copies (+ cascodes): 1:1 into el, vreset_src, vth_cmp; 1:4 (4/2) into vth_ref (vdacr_* chains):
+*     V = V(vglp) * k * R_chain / R0  -> ratio-accurate, speed-independent, VDD-ratiometric.
+*   vbn_prb: copy 0.8/2 (~1 uA) into a 2/2 nfet diode (probe-follower bias line).
+*   ib_r1:   4 x nfet 2/2 on vbn_prb (~4.2 uA sink for R1), +4 more with ib_x2.
+*   iint:    copy 0.8/2 (~1 uA), the internal master reference (switched into nd in bias_master).
+*   en = BIAS_EN: 0 pulls vgvi to vdd (all copies off -> outputs 0 V); startup via ns while vbt is low.
+* Ports: vgln vglp en ib_x2 el vreset_src vth_cmp vth_ref vbn_prb ib_r1 iint vdd vss
+.subckt bias_vi vgln vglp en ib_x2 el vreset_src vth_cmp vth_ref vbn_prb ib_r1 iint vdd vss
+XN1 vgvi vglp tl vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
+XN2 oa x tl vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
+XP1 oa oa vdd vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XP2 vgvi oa vdd vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XNT tl vbt vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XPB vbt vgvi vdd vdd pfet_03v3 W=0.5u L=4u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XNB vbt vbt vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XPS ns vgln vdd vdd pfet_03v3 W=0.5u L=10u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XNS ns vbt vss vss nfet_03v3 W=8u L=2u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XMS1 vgvi ns su vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XMS2 su en vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XPOFF vgvi en vdd vdd pfet_03v3 W=1u L=0.5u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XMO mo vgvi vdd vdd pfet_03v3 W=16u L=2u ad=9.6p as=9.6p pd=33.2u ps=33.2u
+XKO x vglp mo vdd pfet_03v3 W=16u L=1u ad=9.6p as=9.6p pd=33.2u ps=33.2u
+XME me vgvi vdd vdd pfet_03v3 W=16u L=2u ad=9.6p as=9.6p pd=33.2u ps=33.2u
+XKE el vglp me vdd pfet_03v3 W=16u L=1u ad=9.6p as=9.6p pd=33.2u ps=33.2u
+XMR mr vgvi vdd vdd pfet_03v3 W=16u L=2u ad=9.6p as=9.6p pd=33.2u ps=33.2u
+XKR vreset_src vglp mr vdd pfet_03v3 W=16u L=1u ad=9.6p as=9.6p pd=33.2u ps=33.2u
+XMC mc vgvi vdd vdd pfet_03v3 W=16u L=2u ad=9.6p as=9.6p pd=33.2u ps=33.2u
+XKC vth_cmp vglp mc vdd pfet_03v3 W=16u L=1u ad=9.6p as=9.6p pd=33.2u ps=33.2u
+XMT mt vgvi vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
+XKT vth_ref vglp mt vdd pfet_03v3 W=4u L=1u ad=2.4p as=2.4p pd=9.2u ps=9.2u
+XR00 x r01 vss ppolyf_u_1k r_width=1u r_length=14.19u
+XR01 r01 r02 vss ppolyf_u_1k r_width=1u r_length=14.19u
+XR02 r02 r03 vss ppolyf_u_1k r_width=1u r_length=14.19u
+XR03 r03 vss vss ppolyf_u_1k r_width=1u r_length=14.19u
+XPP vbn_prb vgvi vdd vdd pfet_03v3 W=0.8u L=2u ad=0.48p as=0.48p pd=2.8u ps=2.8u
+XDB vbn_prb vbn_prb vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XOR0 ib_r1 vbn_prb vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XOX0 ibx vbn_prb vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XOR1 ib_r1 vbn_prb vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XOX1 ibx vbn_prb vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XOR2 ib_r1 vbn_prb vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XOX2 ibx vbn_prb vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XOR3 ib_r1 vbn_prb vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XOX3 ibx vbn_prb vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XSX2 ib_r1 ib_x2 ibx vss nfet_03v3 W=4u L=0.5u ad=2.4p as=2.4p pd=9.2u ps=9.2u
+XPI iint vgvi vdd vdd pfet_03v3 W=0.8u L=2u ad=0.48p as=0.48p pd=2.8u ps=2.8u
+.ends bias_vi
+* vdacr_<k> (rev C): binary resistor-chain DAC fed by one I_vi copy (from bias_vi).
+*   out - R_base - n0 - [r] - n1 - [2r] - n2 - ... - [2^(N-1) r] - vss
+*   segment b is shorted by an nfet (gate = NOT b) when b = 0:  V = I*(R_base + code*r) (+ switch R_on).
+*   Monotonic by construction (each step adds r - R_on > 0); ratio-accurate (same ppolyf_u_1k as R0).
+*   Ports: out b0..b<N-1> vdd vss
+* vdacr_el: el, 5 bits, copy 1, R_base 48 sq, LSB 1 sq -> 0.985 .. 1.621 V (+ switch R_on)
+.subckt vdacr_el out b0 b1 b2 b3 b4 vdd vss
+XRB0 out rb1 vss ppolyf_u_1k r_width=1u r_length=11.645u
+XRB1 rb1 rb2 vss ppolyf_u_1k r_width=1u r_length=11.645u
+XRB2 rb2 rb3 vss ppolyf_u_1k r_width=1u r_length=11.645u
+XRB3 rb3 n0 vss ppolyf_u_1k r_width=1u r_length=11.645u
+XRS0 n0 n1 vss ppolyf_u_1k r_width=2u r_length=1.97u
+XIB0p bb0 b0 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB0n bb0 b0 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW0 n0 bb0 n1 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS1 n1 n2 vss ppolyf_u_1k r_width=1u r_length=1.94u
+XIB1p bb1 b1 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB1n bb1 b1 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW1 n1 bb1 n2 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS2 n2 n3 vss ppolyf_u_1k r_width=1u r_length=3.88u
+XIB2p bb2 b2 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB2n bb2 b2 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW2 n2 bb2 n3 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS3 n3 n4 vss ppolyf_u_1k r_width=1u r_length=7.765u
+XIB3p bb3 b3 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB3n bb3 b3 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW3 n3 bb3 n4 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS4_0 n4 rs4_1 vss ppolyf_u_1k r_width=1u r_length=7.765u
+XRS4_1 rs4_1 vss vss ppolyf_u_1k r_width=1u r_length=7.765u
+XIB4p bb4 b4 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB4n bb4 b4 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW4 n4 bb4 vss vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+.ends vdacr_el
+* vdacr_vr: vreset_src, 5 bits, copy 1, R_base 43 sq, LSB 1 sq -> 0.882 .. 1.518 V (+ switch R_on)
+.subckt vdacr_vr out b0 b1 b2 b3 b4 vdd vss
+XRB0 out rb1 vss ppolyf_u_1k r_width=1u r_length=13.91u
+XRB1 rb1 rb2 vss ppolyf_u_1k r_width=1u r_length=13.91u
+XRB2 rb2 n0 vss ppolyf_u_1k r_width=1u r_length=13.91u
+XRS0 n0 n1 vss ppolyf_u_1k r_width=2u r_length=1.97u
+XIB0p bb0 b0 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB0n bb0 b0 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW0 n0 bb0 n1 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS1 n1 n2 vss ppolyf_u_1k r_width=1u r_length=1.94u
+XIB1p bb1 b1 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB1n bb1 b1 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW1 n1 bb1 n2 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS2 n2 n3 vss ppolyf_u_1k r_width=1u r_length=3.88u
+XIB2p bb2 b2 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB2n bb2 b2 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW2 n2 bb2 n3 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS3 n3 n4 vss ppolyf_u_1k r_width=1u r_length=7.765u
+XIB3p bb3 b3 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB3n bb3 b3 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW3 n3 bb3 n4 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS4_0 n4 rs4_1 vss ppolyf_u_1k r_width=1u r_length=7.765u
+XRS4_1 rs4_1 vss vss ppolyf_u_1k r_width=1u r_length=7.765u
+XIB4p bb4 b4 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB4n bb4 b4 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW4 n4 bb4 vss vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+.ends vdacr_vr
+* vdacr_vc: vth_cmp, 5 bits, copy 1, R_base 53 sq, LSB 0.6667 sq -> 1.087 .. 1.511 V (+ switch R_on)
+.subckt vdacr_vc out b0 b1 b2 b3 b4 vdd vss
+XRB0 out rb1 vss ppolyf_u_1k r_width=1u r_length=12.86u
+XRB1 rb1 rb2 vss ppolyf_u_1k r_width=1u r_length=12.86u
+XRB2 rb2 rb3 vss ppolyf_u_1k r_width=1u r_length=12.86u
+XRB3 rb3 n0 vss ppolyf_u_1k r_width=1u r_length=12.86u
+XRS0 n0 n1 vss ppolyf_u_1k r_width=2u r_length=1.315u
+XIB0p bb0 b0 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB0n bb0 b0 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW0 n0 bb0 n1 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS1 n1 n2 vss ppolyf_u_1k r_width=2u r_length=2.625u
+XIB1p bb1 b1 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB1n bb1 b1 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW1 n1 bb1 n2 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS2 n2 n3 vss ppolyf_u_1k r_width=1u r_length=2.59u
+XIB2p bb2 b2 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB2n bb2 b2 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW2 n2 bb2 n3 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS3 n3 n4 vss ppolyf_u_1k r_width=1u r_length=5.175u
+XIB3p bb3 b3 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB3n bb3 b3 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW3 n3 bb3 n4 vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XRS4 n4 vss vss ppolyf_u_1k r_width=1u r_length=10.35u
+XIB4p bb4 b4 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB4n bb4 b4 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW4 n4 bb4 vss vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+.ends vdacr_vc
+* vdacr_vt: vth_ref, 6 bits, copy 0.25, R_base 69 sq, LSB 1.27 sq -> 0.354 .. 0.764 V (+ switch R_on)
+.subckt vdacr_vt out b0 b1 b2 b3 b4 b5 vdd vss
+XRB0 out rb1 vss ppolyf_u_1k r_width=1u r_length=13.39u
+XRB1 rb1 rb2 vss ppolyf_u_1k r_width=1u r_length=13.39u
+XRB2 rb2 rb3 vss ppolyf_u_1k r_width=1u r_length=13.39u
+XRB3 rb3 rb4 vss ppolyf_u_1k r_width=1u r_length=13.39u
+XRB4 rb4 n0 vss ppolyf_u_1k r_width=1u r_length=13.39u
+XRS0 n0 n1 vss ppolyf_u_1k r_width=2u r_length=2.5u
+XIB0p bb0 b0 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB0n bb0 b0 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW0 n0 bb0 n1 vss nfet_03v3 W=12u L=0.28u ad=7.2p as=7.2p pd=25.2u ps=25.2u
+XRS1 n1 n2 vss ppolyf_u_1k r_width=1u r_length=2.465u
+XIB1p bb1 b1 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB1n bb1 b1 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW1 n1 bb1 n2 vss nfet_03v3 W=12u L=0.28u ad=7.2p as=7.2p pd=25.2u ps=25.2u
+XRS2 n2 n3 vss ppolyf_u_1k r_width=1u r_length=4.93u
+XIB2p bb2 b2 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB2n bb2 b2 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW2 n2 bb2 n3 vss nfet_03v3 W=12u L=0.28u ad=7.2p as=7.2p pd=25.2u ps=25.2u
+XRS3 n3 n4 vss ppolyf_u_1k r_width=1u r_length=9.86u
+XIB3p bb3 b3 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB3n bb3 b3 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW3 n3 bb3 n4 vss nfet_03v3 W=12u L=0.28u ad=7.2p as=7.2p pd=25.2u ps=25.2u
+XRS4_0 n4 rs4_1 vss ppolyf_u_1k r_width=1u r_length=9.86u
+XRS4_1 rs4_1 n5 vss ppolyf_u_1k r_width=1u r_length=9.86u
+XIB4p bb4 b4 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB4n bb4 b4 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW4 n4 bb4 n5 vss nfet_03v3 W=12u L=0.28u ad=7.2p as=7.2p pd=25.2u ps=25.2u
+XRS5_0 n5 rs5_1 vss ppolyf_u_1k r_width=1u r_length=13.145u
+XRS5_1 rs5_1 rs5_2 vss ppolyf_u_1k r_width=1u r_length=13.145u
+XRS5_2 rs5_2 vss vss ppolyf_u_1k r_width=1u r_length=13.145u
+XIB5p bb5 b5 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIB5n bb5 b5 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XSW5 n5 bb5 vss vss nfet_03v3 W=12u L=0.28u ad=7.2p as=7.2p pd=25.2u ps=25.2u
+.ends vdacr_vt

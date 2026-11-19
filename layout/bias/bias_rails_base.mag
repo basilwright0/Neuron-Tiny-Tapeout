@@ -1,0 +1,61 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 0
+use r_w1_l14p555  R0
+timestamp 1794972955
+transform 1 0 440 0 1 2018
+box -100 -1578 100 1578
+use r_w1_l14p555  R1
+timestamp 1794972955
+transform 1 0 880 0 1 2018
+box -100 -1578 100 1578
+use r_w1_l14p555  R2
+timestamp 1794972955
+transform 1 0 1320 0 1 2018
+box -100 -1578 100 1578
+use r_w1_l14p555  R3
+timestamp 1794972955
+transform 1 0 1760 0 1 2018
+box -100 -1578 100 1578
+use r_w1_l14p555  R4
+timestamp 1794972955
+transform 1 0 2200 0 1 2018
+box -100 -1578 100 1578
+use r_w1_l14p555  R5
+timestamp 1794972955
+transform 1 0 2640 0 1 2018
+box -100 -1578 100 1578
+use r_w1_l14p555  R6
+timestamp 1794972955
+transform 1 0 3080 0 1 2018
+box -100 -1578 100 1578
+use r_w1_l14p555  R7
+timestamp 1794972955
+transform 1 0 3520 0 1 2018
+box -100 -1578 100 1578
+use r_w1_l14p555  R8
+timestamp 1794972955
+transform 1 0 3960 0 1 2018
+box -100 -1578 100 1578
+use r_w1_l14p555  R9
+timestamp 1794972955
+transform 1 0 4400 0 1 2018
+box -100 -1578 100 1578
+use r_w1_l14p555  R10
+timestamp 1794972955
+transform 1 0 4840 0 1 2018
+box -100 -1578 100 1578
+use p_w10_l10  C1
+timestamp 1794972957
+transform 1 0 1728 0 1 5406
+box -1174 -1130 1174 1130
+use p_w10_l10  C2
+timestamp 1794972957
+transform 1 0 4744 0 1 5406
+box -1174 -1130 1174 1130
+use p_w4_l0p5  HDR
+timestamp 1794972958
+transform 1 0 2300 0 1 8024
+box -224 -530 224 530
+<< end >>

@@ -1,0 +1,98 @@
+* NGSPICE file created from bias_master.ext - technology: gf180mcuD
+
+.subckt n_w2_l2 a_n288_n200# a_200_n200# a_n200_n244# VSUBS
+X0 a_200_n200# a_n200_n244# a_n288_n200# VSUBS nfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=2u
+.ends
+
+.subckt r_w4_l3p97 a_n400_n519# a_n400_397# VSUBS
+X0 a_n400_397# a_n400_n519# VSUBS ppolyf_u_1k r_width=4u r_length=3.97u
+.ends
+
+.subckt n_w8_l0p5 a_50_n800# a_n50_n844# a_n138_n800# VSUBS
+X0 a_50_n800# a_n50_n844# a_n138_n800# VSUBS nfet_03v3 ad=3.52p pd=16.88u as=3.52p ps=16.88u w=8u l=0.5u
+.ends
+
+.subckt n_w4_l0p5 a_n138_n400# a_50_n400# a_n50_n444# VSUBS
+X0 a_50_n400# a_n50_n444# a_n138_n400# VSUBS nfet_03v3 ad=1.76p pd=8.88u as=1.76p ps=8.88u w=4u l=0.5u
+.ends
+
+.subckt n_w0p5_l0p28 a_n28_n94# a_n116_n50# a_28_n50# VSUBS
+X0 a_28_n50# a_n28_n94# a_n116_n50# VSUBS nfet_03v3 ad=0.22p pd=1.88u as=0.22p ps=1.88u w=0.5u l=0.28u
+.ends
+
+.subckt p_w1_l0p28 w_n202_n230# a_28_n100# a_n28_n144# a_n116_n100#
+X0 a_28_n100# a_n28_n144# a_n116_n100# w_n202_n230# pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=0.28u
+.ends
+
+.subckt p_w2_l2_f4 a_n52_n200# a_452_n200# a_n452_n244# a_n556_n200# a_52_n244# a_956_n200#
++ a_n1044_n200# w_n1130_n330# a_n956_n244# a_556_n244#
+X0 a_452_n200# a_52_n244# a_n52_n200# w_n1130_n330# pfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=2u
+X1 a_956_n200# a_556_n244# a_452_n200# w_n1130_n330# pfet_03v3 ad=0.88p pd=4.88u as=0.52p ps=2.52u w=2u l=2u
+X2 a_n556_n200# a_n956_n244# a_n1044_n200# w_n1130_n330# pfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=2u
+X3 a_n52_n200# a_n452_n244# a_n556_n200# w_n1130_n330# pfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=2u
+.ends
+
+.subckt n_w2_l2_f8 a_n52_n200# a_n1060_n200# a_452_n200# a_1564_n244# a_n452_n244#
++ a_n556_n200# a_n1460_n244# a_1460_n200# a_52_n244# a_n1564_n200# a_956_n200# a_n2052_n200#
++ a_n956_n244# a_1060_n244# a_n1964_n244# a_556_n244# a_1964_n200# VSUBS
+X0 a_1964_n200# a_1564_n244# a_1460_n200# VSUBS nfet_03v3 ad=0.88p pd=4.88u as=0.52p ps=2.52u w=2u l=2u
+X1 a_452_n200# a_52_n244# a_n52_n200# VSUBS nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=2u
+X2 a_956_n200# a_556_n244# a_452_n200# VSUBS nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=2u
+X3 a_1460_n200# a_1060_n244# a_956_n200# VSUBS nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=2u
+X4 a_n1564_n200# a_n1964_n244# a_n2052_n200# VSUBS nfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=2u
+X5 a_n1060_n200# a_n1460_n244# a_n1564_n200# VSUBS nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=2u
+X6 a_n556_n200# a_n956_n244# a_n1060_n200# VSUBS nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=2u
+X7 a_n52_n200# a_n452_n244# a_n556_n200# VSUBS nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=2u
+.ends
+
+.subckt p_w2_l0p5 a_50_n200# a_n50_n244# w_n224_n330# a_n138_n200#
+X0 a_50_n200# a_n50_n244# a_n138_n200# w_n224_n330# pfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=0.5u
+.ends
+
+.subckt n_w2_l0p5 a_50_n200# a_n50_n244# a_n138_n200# VSUBS
+X0 a_50_n200# a_n50_n244# a_n138_n200# VSUBS nfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=0.5u
+.ends
+
+.subckt p_w4_l0p5 a_n138_n400# a_50_n400# a_n50_n444# w_n224_n530#
+X0 a_50_n400# a_n50_n444# a_n138_n400# w_n224_n530# pfet_03v3 ad=1.76p pd=8.88u as=1.76p ps=8.88u w=4u l=0.5u
+.ends
+
+.subckt bias_master pad s0 s1 stim intref en in_n in_p vbp_st iint ua0_stim en_b vdd
++ vss
+XOP vss a_1744_10100# a_736_7228# vss n_w2_l2
+XRS pad a_420_700# vss r_w4_l3p97
+XS1 a_736_5516# s1 a_420_700# vss n_w8_l0p5
+XS0 a_420_700# a_736_7228# s0 vss n_w4_l0p5
+XOS vss vbp_st a_736_7228# vss n_w2_l2
+XIENn en vss en_b vss n_w0p5_l0p28
+XIENp vdd en_b en vdd p_w1_l0p28
+XQX a_1744_9182# vdd a_1744_9182# vdd a_1744_9182# a_736_7228# a_736_7228# vdd a_1744_9182#
++ a_1744_9182# p_w2_l2_f4
+XDXa vss vss a_736_5516# a_736_5516# a_736_5516# a_736_5516# a_736_5516# a_736_5516#
++ a_736_5516# a_736_5516# vss vss a_736_5516# a_736_5516# a_736_5516# a_736_5516#
++ vss vss n_w2_l2_f8
+XOX vss a_1744_9182# a_736_5516# vss n_w2_l2
+XDXb vss vss a_736_5516# a_736_5516# a_736_5516# a_736_5516# a_736_5516# a_736_5516#
++ a_736_5516# a_736_5516# vss vss a_736_5516# a_736_5516# a_736_5516# a_736_5516#
++ vss vss n_w2_l2_f8
+XISTn stim vss a_1764_11418# vss n_w0p5_l0p28
+XISTp vdd a_1764_11418# stim vdd p_w1_l0p28
+XSWI a_736_7228# a_2240_11218# vdd iint p_w2_l0p5
+XPD vdd a_1744_10100# a_1744_10100# in_p a_1744_10100# vdd vdd vdd a_1744_10100# a_1744_10100#
++ p_w2_l2_f4
+XSTN ua0_stim stim a_420_700# vss n_w2_l0p5
+XSTP a_420_700# ua0_stim a_1764_11418# vdd p_w4_l0p5
+XPDN a_736_7228# vss en_b vss n_w4_l0p5
+XDa vss vss a_736_7228# a_736_7228# a_736_7228# a_736_7228# a_736_7228# a_736_7228#
++ a_736_7228# a_736_7228# vss vss a_736_7228# a_736_7228# a_736_7228# a_736_7228#
++ vss vss n_w2_l2_f8
+XDb vss vss a_736_7228# a_736_7228# a_736_7228# a_736_7228# a_736_7228# a_736_7228#
++ a_736_7228# a_736_7228# vss vss a_736_7228# a_736_7228# a_736_7228# a_736_7228#
++ vss vss n_w2_l2_f8
+XIIRn intref vss a_2240_11218# vss n_w0p5_l0p28
+XIIRp vdd a_2240_11218# intref vdd p_w1_l0p28
+XON vss in_n a_736_7228# vss n_w2_l2
+D0 vss a_420_700# diode_nd2ps_03v3 pj=22u area=10p
+D1 a_420_700# vdd diode_pd2nw_03v3 pj=22u area=10p
+.ends
+

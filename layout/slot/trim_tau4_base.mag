@@ -1,0 +1,125 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 0
+use n_w1_l2  XT_XB0
+timestamp 1795051080
+transform 1 0 480 0 1 320
+box -312 -168 312 168
+use n_w1_l2  XT_XB1
+timestamp 1795051080
+transform 1 0 1160 0 1 320
+box -312 -168 312 168
+use n_w1_l2  XT_XB2
+timestamp 1795051080
+transform 1 0 1840 0 1 320
+box -312 -168 312 168
+use n_w1_l2  XT_XB3
+timestamp 1795051080
+transform 1 0 2520 0 1 320
+box -312 -168 312 168
+use n_w1_l2  XT_XB4
+timestamp 1795051080
+transform 1 0 3200 0 1 320
+box -312 -168 312 168
+use n_w1_l2  XT_XB5
+timestamp 1795051080
+transform 1 0 3880 0 1 320
+box -312 -168 312 168
+use n_w1_l2  XT_XB6
+timestamp 1795051080
+transform 1 0 4560 0 1 320
+box -312 -168 312 168
+use n_w1_l2  XT_XB7
+timestamp 1795051080
+transform 1 0 5240 0 1 320
+box -312 -168 312 168
+use n_w1_l2  XT_XU0_0
+timestamp 1795051080
+transform 1 0 5920 0 1 320
+box -312 -168 312 168
+use n_w0p5_l0p5  XT_XS0
+timestamp 1795051080
+transform 1 0 2480 0 1 1280
+box -162 -118 162 118
+use n_w1_l2  XT_XU1_0
+timestamp 1795051080
+transform 1 0 6600 0 1 320
+box -312 -168 312 168
+use n_w1_l2  XT_XU1_1
+timestamp 1795051080
+transform 1 0 480 0 1 800
+box -312 -168 312 168
+use n_w0p5_l0p5  XT_XS1
+timestamp 1795051080
+transform 1 0 3000 0 1 1280
+box -162 -118 162 118
+use n_w1_l2  XT_XU2_0
+timestamp 1795051080
+transform 1 0 1160 0 1 800
+box -312 -168 312 168
+use n_w1_l2  XT_XU2_1
+timestamp 1795051080
+transform 1 0 1840 0 1 800
+box -312 -168 312 168
+use n_w1_l2  XT_XU2_2
+timestamp 1795051080
+transform 1 0 2520 0 1 800
+box -312 -168 312 168
+use n_w1_l2  XT_XU2_3
+timestamp 1795051080
+transform 1 0 3200 0 1 800
+box -312 -168 312 168
+use n_w0p5_l0p5  XT_XS2
+timestamp 1795051080
+transform 1 0 3520 0 1 1280
+box -162 -118 162 118
+use n_w1_l2  XT_XU3_0
+timestamp 1795051080
+transform 1 0 3880 0 1 800
+box -312 -168 312 168
+use n_w1_l2  XT_XU3_1
+timestamp 1795051080
+transform 1 0 4560 0 1 800
+box -312 -168 312 168
+use n_w1_l2  XT_XU3_2
+timestamp 1795051080
+transform 1 0 5240 0 1 800
+box -312 -168 312 168
+use n_w1_l2  XT_XU3_3
+timestamp 1795051080
+transform 1 0 5920 0 1 800
+box -312 -168 312 168
+use n_w1_l2  XT_XU3_4
+timestamp 1795051080
+transform 1 0 6600 0 1 800
+box -312 -168 312 168
+use n_w1_l2  XT_XU3_5
+timestamp 1795051080
+transform 1 0 480 0 1 1280
+box -312 -168 312 168
+use n_w1_l2  XT_XU3_6
+timestamp 1795051080
+transform 1 0 1160 0 1 1280
+box -312 -168 312 168
+use n_w1_l2  XT_XU3_7
+timestamp 1795051080
+transform 1 0 1840 0 1 1280
+box -312 -168 312 168
+use n_w0p5_l0p5  XT_XS3
+timestamp 1795051080
+transform 1 0 4040 0 1 1280
+box -162 -118 162 118
+use p_w1_l2  XPD
+timestamp 1795051080
+transform 1 0 4400 0 1 1910
+box -374 -230 374 230
+use p_w0p84_l2  XPM
+timestamp 1795051080
+transform 1 0 5200 0 1 1910
+box -374 -214 374 214
+use n_w2_l4  XND
+timestamp 1795051080
+transform 1 0 5800 0 1 1330
+box -512 -268 512 268
+<< end >>

@@ -1,82 +1,75 @@
-* bias_master: ua[0] master reference input stage (block B1)
-* Ports:
-*  iref_pad : from ua[0]; external current Iref (1-100 uA) flows INTO this pin
-*  in_n     : sink output  I = Iref*m/16 (drawn out of the n-ladder input node)
-*  in_p     : source output I = Iref*m/16 (pushed into the p-ladder input node)
-*  m0..m3   : ratio code m = m0+2*m1+4*m2+8*m3 (0..15), 3.3 V logic
-*  vdd vss  : 3.3 V / 0 V
-* Series ppolyf_u_1k 2 kOhm between pad and diode (secondary ESD / isolation);
-* the TT pad ring supplies the primary ESD clamp.  Diode = 16 x (4/2) nfet.
-.subckt bias_master iref_pad in_n in_p m0 m1 m2 m3 vdd vss
-XRS iref_pad nd vss ppolyf_u_1k r_width=2u r_length=4u
-XD0 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD1 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD2 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD3 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD4 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD5 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD6 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD7 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD8 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD9 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD10 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD11 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD12 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD13 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD14 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XD15 nd nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa0_0 xa0 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XSa0 in_n m0 xa0 vss nfet_03v3 W=2u L=0.5u ad=1.2p as=1.2p pd=5.2u ps=5.2u
-XOa1_0 xa1 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa1_1 xa1 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XSa1 in_n m1 xa1 vss nfet_03v3 W=2u L=0.5u ad=1.2p as=1.2p pd=5.2u ps=5.2u
-XOa2_0 xa2 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa2_1 xa2 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa2_2 xa2 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa2_3 xa2 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XSa2 in_n m2 xa2 vss nfet_03v3 W=2u L=0.5u ad=1.2p as=1.2p pd=5.2u ps=5.2u
-XOa3_0 xa3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa3_1 xa3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa3_2 xa3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa3_3 xa3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa3_4 xa3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa3_5 xa3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa3_6 xa3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOa3_7 xa3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XSa3 in_n m3 xa3 vss nfet_03v3 W=2u L=0.5u ad=1.2p as=1.2p pd=5.2u ps=5.2u
-XOb0_0 xb0 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XSb0 pd m0 xb0 vss nfet_03v3 W=2u L=0.5u ad=1.2p as=1.2p pd=5.2u ps=5.2u
-XOb1_0 xb1 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOb1_1 xb1 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XSb1 pd m1 xb1 vss nfet_03v3 W=2u L=0.5u ad=1.2p as=1.2p pd=5.2u ps=5.2u
-XOb2_0 xb2 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOb2_1 xb2 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOb2_2 xb2 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOb2_3 xb2 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XSb2 pd m2 xb2 vss nfet_03v3 W=2u L=0.5u ad=1.2p as=1.2p pd=5.2u ps=5.2u
-XOb3_0 xb3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOb3_1 xb3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOb3_2 xb3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOb3_3 xb3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOb3_4 xb3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOb3_5 xb3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOb3_6 xb3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XOb3_7 xb3 nd vss vss nfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XSb3 pd m3 xb3 vss nfet_03v3 W=2u L=0.5u ad=1.2p as=1.2p pd=5.2u ps=5.2u
-XPD0 pd pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPO0 in_p pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPD1 pd pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPO1 in_p pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPD2 pd pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPO2 in_p pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPD3 pd pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPO3 in_p pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPD4 pd pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPO4 in_p pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPD5 pd pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPO5 in_p pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPD6 pd pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPO6 in_p pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPD7 pd pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
-XPO7 in_p pd vdd vdd pfet_03v3 W=4u L=2u ad=2.4p as=2.4p pd=9.2u ps=9.2u
+* bias_master: ua[0] master reference input stage (block B1), rev C
+* I_nd (current in the 16-unit master diode nd) sets the speed: S = 100 * I_nd / 1 uA
+* (S = 10 ... 1000 <-> I_nd = 0.1 ... 10 uA).  Ratioed to I_nd:
+*   in_n   sinks   I_nd/16  (n-ladder input)        in_p  sources I_nd/16 (p-ladder input)
+*   vbp_st sinks   I_nd/16  from the rx_p05 receiver (detector starve line, fixed ratio)
+* UA0 modes (decoded one-hot by the control macro from UA0_MODE / BIAS_EN, see regmap):
+*   s0     ua[0] -> nd directly          (mode 0 EXT/1: I_nd = Iref;  mode 3 INT_MON: pad reads V(nd))
+*   s1     ua[0] -> nx, 16:1 pre-mirror  (mode 1 EXT/16: I_nd = Iref/16)
+*   stim   ua[0] <-> ua0_stim (transmission gate; mode 2 STIM)
+*   intref internal reference: the ~1 uA current iint from bias_vi (V-to-I, ua[0]-independent)
+*          is switched into nd (modes 2, 3) -> I_nd ~1 uA, S ~100
+*   en     BIAS_EN: 0 pulls nd to vss (all ladder currents 0) and en_b turns the strings off
+* Secondary ESD: ua[0] -> 1 kOhm ppolyf_u_1k (W=4 um, 1 square) -> clamp diodes to vdd
+*   (diode_pd2nw_03v3) and vss (diode_nd2ps_03v3) on the inner node 'pin'; the pad switches see 'pin'.
+.subckt bias_master pad in_n in_p vbp_st ua0_stim iint s0 s1 stim intref en en_b vdd vss
+XRS pad pin vss ppolyf_u_1k r_width=4u r_length=3.97u
+DDP pin vdd diode_pd2nw_03v3 area=10p pj=22u
+DDN vss pin diode_nd2ps_03v3 area=10p pj=22u
+XIENp en_b en vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIENn en_b en vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XISTp stim_b stim vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XISTn stim_b stim vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XIIRp intref_b intref vdd vdd pfet_03v3 W=1u L=0.28u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+XIIRn intref_b intref vss vss nfet_03v3 W=0.5u L=0.28u ad=0.3p as=0.3p pd=2.2u ps=2.2u
+XS0 nd s0 pin vss nfet_03v3 W=4u L=0.5u ad=2.4p as=2.4p pd=9.2u ps=9.2u
+XS1 nx s1 pin vss nfet_03v3 W=8u L=0.5u ad=4.8p as=4.8p pd=17.2u ps=17.2u
+XSTN ua0_stim stim pin vss nfet_03v3 W=2u L=0.5u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XSTP ua0_stim stim_b pin vdd pfet_03v3 W=4u L=0.5u ad=2.4p as=2.4p pd=9.2u ps=9.2u
+XSWI nd intref_b iint vdd pfet_03v3 W=2u L=0.5u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX0 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX1 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX2 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX3 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX4 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX5 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX6 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX7 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX8 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX9 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX10 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX11 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX12 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX13 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX14 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDX15 nx nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XOX px nx vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XPX0 px px vdd vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XQX0 nd px vdd vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XPX1 px px vdd vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XQX1 nd px vdd vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD0 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD1 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD2 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD3 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD4 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD5 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD6 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD7 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD8 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD9 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD10 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD11 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD12 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD13 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD14 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD15 nd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XPDN nd en_b vss vss nfet_03v3 W=4u L=0.5u ad=2.4p as=2.4p pd=9.2u ps=9.2u
+XON in_n nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XOP pd nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XOS vbp_st nd vss vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XPD0 pd pd vdd vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XPO0 in_p pd vdd vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XPD1 pd pd vdd vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XPO1 in_p pd vdd vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
 .ends bias_master

@@ -1,0 +1,59 @@
+785 parasitic capacitors in slot_ah_h_pex.spice
+Cfb  (spk-vm coupling, MOM + routing) = 7.89 fF   (target 8 fF +-25 %: 6.0 .. 10.0)
+vm   total wiring capacitance          = 20.02 fF
+vm   breakdown (to other nodes):
+       spk               7.886 fF
+       vss               3.512 fF
+       vdd               2.369 fF
+       a_480_5620#       1.803 fF
+       hold              0.684 fF
+       el                0.473 fF
+       a_1580_2680#      0.470 fF
+       m1_2640_980#      0.385 fF
+       a_2510_1690#      0.258 fF
+       m1_218_2312#      0.212 fF
+       m1_3360_308#      0.192 fF
+       a_2160_3542#      0.150 fF
+       vreset            0.139 fF
+       vbp_syn           0.130 fF
+       a_2240_2680#      0.121 fF
+       vbp_st            0.109 fF
+       vsrc              0.107 fF
+       m1_2960_1560#     0.097 fF
+       sta               0.083 fF
+       rsel              0.078 fF
+       sub_b             0.069 fF
+       t0                0.061 fF
+       t1                0.058 fF
+       t3                0.055 fF
+       sub               0.055 fF
+       m1_2521_6720#     0.055 fF
+       m1_1728_4540#     0.054 fF
+       m1_1400_6220#     0.052 fF
+       stb               0.042 fF
+       abus              0.041 fF
+       m1_1960_6220#     0.039 fF
+       t2                0.036 fF
+       m1_853_6232#      0.031 fF
+       a_280_2680#       0.028 fF
+       m1_3212_6232#     0.028 fF
+       vbn_leak          0.016 fF
+       m1_3652_6232#     0.016 fF
+       m1_2240_4540#     0.012 fF
+       m1_230_7612#      0.006 fF
+       m1_201_7160#      0.002 fF
+       m1_3620_1976#     0.002 fF
+       a_2804_3624#      0.001 fF
+       mreset            0.000 fF
+       vbn_prb           0.000 fF
+       vbn_ref           0.000 fF
+       m1_4822_412#      0.000 fF
+       a_3844_4734#      0.000 fF
+       a_3184_3624#      0.000 fF
+       m1_2117_7612#     0.000 fF
+       m1_1545_7160#     0.000 fF
+       m1_4822_6422#     0.000 fF
+       aux               0.000 fF
+       en                0.000 fF
+vr   total wiring capacitance          = 0.00 fF
+spk  total wiring capacitance          = 12.41 fF

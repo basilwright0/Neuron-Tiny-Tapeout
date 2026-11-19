@@ -1,0 +1,77 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 0
+use p_w5_l0p5_nf8  XPF
+timestamp 1795062979
+transform 1 0 4328 0 1 1240
+box -938 -630 938 630
+use p_w1_l1_nf3  XPT
+timestamp 1795062980
+transform 1 0 1012 0 1 3400
+box -578 -230 578 230
+use p_w0p4_l1_nf1  XPR
+timestamp 1795062980
+transform 1 0 1892 0 1 3460
+box -274 -170 274 170
+use p_w4_l1_nf10  XPB
+timestamp 1795062980
+transform 1 0 3844 0 1 3400
+box -1642 -530 1642 530
+use p_w5_l0p28_nf2  XPE
+timestamp 1795062980
+transform 1 0 5804 0 1 3400
+box -282 -630 282 630
+use p_w5_l0p5_nf4  XM1
+timestamp 1795062980
+transform 1 0 920 0 1 5800
+box -530 -630 530 630
+use p_w5_l0p5_nf4  XM2
+timestamp 1795062980
+transform 1 0 2120 0 1 5800
+box -530 -630 530 630
+use n_w2_l2_nf2  XN1
+timestamp 1795062980
+transform 1 0 4080 0 1 5700
+box -564 -268 564 268
+use n_w2_l2_nf2  XN2
+timestamp 1795062980
+transform 1 0 5400 0 1 5700
+box -564 -268 564 268
+use n_w0p22_l20_nf1  XPD
+timestamp 1795062980
+transform 1 0 3600 0 1 7400
+box -2116 -97 2116 97
+use p_w5_l2_nf2  XVB
+timestamp 1795062980
+transform 1 0 860 0 1 900
+box -626 -630 626 630
+use p_w5_l2_nf2  XVA
+timestamp 1795062980
+transform 1 0 2140 0 1 900
+box -626 -630 626 630
+use p_w0p22_l2_nf1  XVT
+timestamp 1795062980
+transform 1 0 1108 0 1 2044
+box -378 -159 378 159
+use p_w1p6_l1_nf1  XVU
+timestamp 1795062980
+transform 1 0 1800 0 1 1920
+box -274 -290 274 290
+use n_w1_l4_nf1  XVNA
+timestamp 1795062980
+transform 1 0 4000 0 1 6520
+box -512 -168 512 168
+use n_w1_l4_nf1  XVNB
+timestamp 1795062980
+transform 1 0 5120 0 1 6520
+box -512 -168 512 168
+use n_w2p5_l0p5_nf4  XVS
+timestamp 1795062980
+transform 1 0 6240 0 1 6520
+box -468 -318 468 318
+use p_w8_l7_nf1  XVC
+timestamp 1795062980
+transform 1 0 6710 0 1 1300
+box -874 -930 874 930
+<< end >>

@@ -1,0 +1,22 @@
+* Vreset line buffer (R1 corner, layout/readout r1_corner). Unity-gain follower:
+* B1 VDAC tap vreset_src (unbuffered poly-string node, 0.9-1.5 V) -> vreset column line
+* (16 array slots + D1, ~20 membranes).
+* PMOS-input 5T OTA follower: pair W20/L0.5 (weak/moderate inversion, max gm) in its own n-well
+* (body = tail t), NMOS mirror W4/L2, tail W3/L1 = 30 uA mirrored from the R1 receiver
+* (W0.4/L1 diode fed ib_r1 = 4 uA). Single stage: the line + membrane capacitance is the dominant
+* pole, so it is unconditionally stable for any load >= the bare line (PM >= 78 deg, PEX).
+* Reset kick (20 x 200 fF + 1 x 800 fF from vreset+0.2 V): back within 5 mV in 95-131 ns
+* (schematic, 15 corners x 3 vin, before the W3 tail re-layout), 110-140 ns post-layout (4 corners);
+* offset MC sigma 2.8 mV (sim/tb/vreset/mc_offset.py). Testbench: sim/tb/vreset/tb_vreset.py.
+* vreset_core: vfb = inverting (feedback) input; vreset_buf ties vfb to vout.
+.subckt vreset_core vin vfb vout vbp vdd vss wtl=3u ltl=1u wip=20u lip=0.5u wmn=4u lmn=2u
+XPT t   vbp  vdd vdd pfet_03v3 W={wtl} L={ltl}
+XM1 a   vin  t   t   pfet_03v3 W={wip} L={lip}
+XM2 vout vfb  t   t   pfet_03v3 W={wip} L={lip}
+XN1 a   a    vss vss nfet_03v3 W={wmn} L={lmn}
+XN2 vout a   vss vss nfet_03v3 W={wmn} L={lmn}
+.ends vreset_core
+
+.subckt vreset_buf vin vout vbp vdd vss wtl=3u ltl=1u wip=20u lip=0.5u wmn=4u lmn=2u
+X vin vout vout vbp vdd vss vreset_core wtl={wtl} ltl={ltl} wip={wip} lip={lip} wmn={wmn} lmn={lmn}
+.ends vreset_buf

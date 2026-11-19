@@ -1,0 +1,10 @@
+* NGSPICE file created from rx_p1.ext - technology: gf180mcuD
+
+.subckt p_w1_l2 w_n374_n230# a_n288_n100# a_200_n100# a_n200_n144#
+X0 a_200_n100# a_n200_n144# a_n288_n100# w_n374_n230# pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=2u
+.ends
+
+.subckt rx_p1 line vdd vss
+XD vdd vdd line line p_w1_l2
+.ends
+

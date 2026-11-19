@@ -1,0 +1,41 @@
+* UNUSED (2026-11-18): P group second knob changed from EL to leak tau; see trim_tau.spice. Kept for reference.
+* trim_el4: per-column EL trim for the P slots (TE strip below the array; drives the aux column line).
+* Requires nothing else (flat transistors).
+*
+* aux = el + dV(code): a 5-transistor subthreshold follower (nfet pair, tail on vbn_leak, i.e. the same
+* tail current I_b as the slots' leak OTAs) whose output carries the same R-2R steering DAC as
+* trim_gap4: legs steered either into the follower's mirror diode a (nfet switch, b_k = 1: output
+* pulled up) or out of the output aux (pfet switch, b_k = 0: pulled down).
+*   offset current (2c - 15) * T/16, T ~ 0.33 I_b (R_s = 2R = 6 sq, R_in = 3 sq, x1.47 narrow-device
+*   factor); follower g = I_b / (2 n U_T) ~ 14.5 S/A * I_b  ->  ~3 mV/step, ~ +/-22 mV, S-portable
+*   (all currents scale with vbn_leak).
+* The output impedance is 1/g ~ 200 MOhm at S = 100: aux is a gate-only line (the P slot's OTA
+* input); the cell needs no decap (row-track crossings kick aux by ~1-2 mV, recovering in ~10 us).
+*
+* Ports: aux el vbn_leak b0 b1 b2 b3 vdd vss
+.subckt trim_el4 aux el vbn_leak b0 b1 b2 b3 vdd vss
+* follower: + input el, output aux (= - input)
+XMT t   vbn_leak vss vss nfet_03v3 W=1u L=2u
+XM1 a   el  t   vss nfet_03v3 W=1u L=1u
+XM2 aux aux t   vss nfet_03v3 W=1u L=1u
+XP1 a   a   vdd vdd pfet_03v3 W=1u L=2u
+XP2 aux a   vdd vdd pfet_03v3 W=1u L=2u
+* R-2R ladder (all gates vbn): R = 0.5/1.5, 2R = 0.5/3
+XRS n1 vbn_leak vss vss nfet_03v3 W=0.5u L=3u
+XL3 o3 vbn_leak n1  vss nfet_03v3 W=0.5u L=3u
+XR1 n2 vbn_leak n1  vss nfet_03v3 W=0.5u L=1.5u
+XL2 o2 vbn_leak n2  vss nfet_03v3 W=0.5u L=3u
+XR2 n3 vbn_leak n2  vss nfet_03v3 W=0.5u L=1.5u
+XL1 o1 vbn_leak n3  vss nfet_03v3 W=0.5u L=3u
+XR3 n4 vbn_leak n3  vss nfet_03v3 W=0.5u L=1.5u
+XL0 o0 vbn_leak n4  vss nfet_03v3 W=0.5u L=3u
+XLT vdd vbn_leak n4 vss nfet_03v3 W=0.5u L=3u
+XN3 a   b3 o3 vss nfet_03v3 W=0.5u L=0.28u
+XN2 a   b2 o2 vss nfet_03v3 W=0.5u L=0.28u
+XN1 a   b1 o1 vss nfet_03v3 W=0.5u L=0.28u
+XN0 a   b0 o0 vss nfet_03v3 W=0.5u L=0.28u
+XS3 aux b3 o3 vdd pfet_03v3 W=1u L=0.28u
+XS2 aux b2 o2 vdd pfet_03v3 W=1u L=0.28u
+XS1 aux b1 o1 vdd pfet_03v3 W=1u L=0.28u
+XS0 aux b0 o0 vdd pfet_03v3 W=1u L=0.28u
+.ends trim_el4

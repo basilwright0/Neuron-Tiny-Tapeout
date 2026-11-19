@@ -1,0 +1,181 @@
+* Neuron-array slots: one axon-hillock LIF + input synapse + two in-cell probe taps (+ gap trim).
+* Layout: layout/slot/ (<cell>.mag / out/<cell>.gds), 28.0 x 43.5 um box (docs/06 Floorplan.md s4).
+* Requires: neuron/membrane.spice, neuron/lif.spice, readout/readout.spice, neuron/synapse.spice,
+*           trim/trim_gap.spice (include them first).
+*
+* Variants (same frame, pins and column lines; see layout/slot/README.md):
+*   slot_ah    S slot: no trim.
+*   slot_ah_h  H slot: + 4-bit Vth-EL gap trim (trim_gap4, bits t0..t3).
+*   slot_ah_p  P slot: as slot_ah_h, but the leak OTA tail gate (and the gap-trim ladder gate, so the
+*              gap-trim mV/step is unchanged) is the aux column line: per-column leak-tau trim from the
+*              trim_tau4 cell in the strip below the array. el and vbn_leak feed through.
+*              Cut path: build with P_AS_H=1 (layout/slot/build.sh) -> P positions use slot_ah_h.
+*   slot_ah_f  F slot: as slot_ah, leak OTA tail XL.XMT W/L halved (1/4 instead of 2/4) on the same
+*              vbn_leak line, so tau_F = 2 tau_S by geometry (NH EXP-46 "etch tau variants").
+*   slot_cmp_h CMP slot: comparator LIF (det_cmp of lif_cmp, starve/tail on vbp_st) + gap trim (nibble 6).
+*              Its threshold vth_cmp arrives on the aux column line (array column 1 only: there aux has
+*              no tau-trim cell, so the integrator connects B1's vth_cmp to column 1's aux). vsrc feeds through.
+*   slot_ah_50  AH50: as slot_ah with a 50 fF membrane (mcap 3.54 x 3.54).
+*   slot_ah_800 AH800: as slot_ah with 200 fF + ~580 fF (mcap_r 11.7 x 12.4 in the former trim space,
+*              Metal1 vss shield over it) = ~780 fF; the hold switch moves into the main n-well.
+*   slot_ref   REF slot (0,0): one prb_tap on el (sb = sub; PROBE_SUB = 3 -> row 0, column 0, sub = 1),
+*              identical to the array taps, so it calibrates the whole tap + bus + pad path. No neuron.
+*   slot_dummy DUMMY slot (0,3): slot_ah with no spike pin (spk internal) and both probe taps tied off
+*              (en / sel / sb = vss; the abus side of XSB stays on abus so the bus load is uniform).
+*
+* Ports (order of the .subckt line):
+*   vm       membrane node
+*   spk      spike output (to a Metal3 feed-through track -> control macro spk_in)
+*   rsel     probe ROW select (shared by the 4 slots of a row; row Metal3 track)
+*   sub      PROBE_SUB[0]   (shared row track): 1 = refractory-node tap vr
+*   sub_b    ~PROBE_SUB[0]  (shared row track): 1 = membrane tap vm
+*            The probe COLUMN select is the en column line (per column: en_c = PROBE_EN & col == c),
+*            so a slot's tap reaches abus only when its row (rsel), its column (en) and sub agree.
+*            This replaces the per-slot sel / sel_vr lines (8 row tracks -> 3).
+*   el       leak reversal / resting voltage           (column line, shared)
+*   vsrc     axon-hillock threshold knob (detector nfet source rail, shared)
+*   vreset   reset voltage                             (column, shared)
+*   vbn_leak leak OTA tail nfet gate bias              (column, shared; also the gap-trim DAC gate)
+*   vbp_st   detector starve pfet gate bias            (column, shared)
+*   vbn_ref  refractory discharge nfet gate bias       (column, shared)
+*   vbn_prb  probe follower sink nfet gate bias        (column, shared)
+*   en       probe column enable (3.3 V logic, per column line)
+*   abus     analog probe bus (shared, to the pad driver)
+*   vdd vss  supplies
+*   aux      spare column line. slot_ah / slot_ah_h: feed-through. slot_ah_p: leak tail gate (tau trim).
+*   vbp_syn  synapse weight pfet gate bias (NEW column line; p-IDAC into a 2/4 pmaster in the bias block)
+*   sta stb hold mreset   rt_out[0..3] (3.3 V logic, shared by all slots; row Metal3 tracks)
+*   t0..t3   gap-trim bits (slot_ah_h / slot_ah_p only; row Metal3 tracks from the trim latches)
+*
+* Contents: 200 fF mcap, leak OTA (leak_ota_degx = leak_ota_deg with its mirror node a brought out),
+* AH detector (Cfb 8 fF), refractory (Cr 50 fF), probe taps on vm and vr (wf=4u lf=2u), syn_in.
+* Change vs the week-1 lif_ah: the leak OTA output (vl) reaches vm through the hold switch XS.XHL
+* (pfet, on while hold = 0); the OTA devices themselves are unchanged.
+* Cfb is an ideal capacitor here; in layout it is a Metal1-Metal3 finger (MOM) capacitor, so the
+* LVS reference (layout/slot/<cell>_lvs.spice) omits it and its value comes from PEX.
+
+* prb_tap: in-cell probe follower (as readout/readout.spice prb_nsf) with a second series switch XSB,
+* so the tap connects to abus only when sel (row select) AND sb (sub / sub_b) are high.
+* XSC (2026-11-18): third series switch on the column select en. Without it, the taps of the other three
+* columns in the selected row (sel = sb = 1, en = 0: sink off but the path on) still SOURCE current into
+* abus through their followers, so abus read the max of the row: +65 mV with equal vm, up to +640 mV
+* (sim/tb/tb_slot_probe_row.py). A drain-side enable was rejected: with the drain off the follower channel
+* collapses and enabling kicks vm by +215 mV (50 fF floating) through the full gate-channel capacitance.
+.subckt prb_tap vm abus en sel sb vbn_prb vdd vss wf=1u lf=0.5u
+XMF vdd vm  prb vss nfet_03v3 W={wf} L={lf}
+XME prb en  s   vss nfet_03v3 W=1u L=0.28u
+XMB s   vbn_prb vss vss nfet_03v3 W=2u L=2u
+XSC prb en  mc  vss nfet_03v3 W=1u L=0.28u
+XSW mc  sel m   vss nfet_03v3 W=1u L=0.28u
+XSB m   sb  abus vss nfet_03v3 W=1u L=0.28u
+.ends prb_tap
+
+* leak_ota_deg with the mirror diode node a as a port (identical devices and names).
+.subckt leak_ota_degx vm el a vbn vdd vss wi=4u li=1u wt=2u lt=4u wl=2u ll=4u wd=8u ld=1u
+XMT  t   vbn vss vss nfet_03v3 W={wt} L={lt}
+XM1  a   el  s1  vss nfet_03v3 W={wi} L={li}
+XD1  s1  s1  t   vss nfet_03v3 W={wd} L={ld}
+XM2  vm  vm  s2  vss nfet_03v3 W={wi} L={li}
+XD2  s2  s2  t   vss nfet_03v3 W={wd} L={ld}
+XP1  a   a   vdd vdd pfet_03v3 W={wl} L={ll}
+XP2  vm  a   vdd vdd pfet_03v3 W={wl} L={ll}
+.ends leak_ota_degx
+
+.subckt slot_ah vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
++ vbp_syn sta stb hold mreset cfb=8f wf=4u lf=2u
+XC  vm vss mcap wl=7.07u
+XL  vl el la vbn_leak vdd vss leak_ota_degx
+XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
+.ends slot_ah
+
+.subckt slot_ah_h vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
++ vbp_syn sta stb hold mreset t0 t1 t2 t3 cfb=8f wf=4u lf=2u
+XC  vm vss mcap wl=7.07u
+XL  vl el la vbn_leak vdd vss leak_ota_degx
+XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
+XT  la vm vbn_leak t0 t1 t2 t3 vdd vss trim_gap4
+.ends slot_ah_h
+
+.subckt slot_ah_p vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
++ vbp_syn sta stb hold mreset t0 t1 t2 t3 cfb=8f wf=4u lf=2u
+XC  vm vss mcap wl=7.07u
+XL  vl el la aux vdd vss leak_ota_degx
+XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
+XT  la vm aux t0 t1 t2 t3 vdd vss trim_gap4
+.ends slot_ah_p
+
+* ---------------------------------------------------------------- variants (2026-11-18)
+.subckt slot_ah_f vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
++ vbp_syn sta stb hold mreset cfb=8f wf=4u lf=2u
+XC  vm vss mcap wl=7.07u
+XL  vl el la vbn_leak vdd vss leak_ota_degx wt=1u
+XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
+.ends slot_ah_f
+
+* aux = vth_cmp (column 1). det_cmp port order: vm vth spk vbp vdd vss.
+.subckt slot_cmp_h vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
++ vbp_syn sta stb hold mreset t0 t1 t2 t3 wf=4u lf=2u
+XC  vm vss mcap wl=7.07u
+XL  vl el la vbn_leak vdd vss leak_ota_degx
+XD  vm aux spk vbp_st vdd vss det_cmp
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
+XT  la vm vbn_leak t0 t1 t2 t3 vdd vss trim_gap4
+.ends slot_cmp_h
+
+.subckt slot_ah_50 vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
++ vbp_syn sta stb hold mreset cfb=8f wf=4u lf=2u
+XC  vm vss mcap wl=3.54u
+XL  vl el la vbn_leak vdd vss leak_ota_degx
+XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
+.ends slot_ah_50
+
+.subckt slot_ah_800 vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
++ vbp_syn sta stb hold mreset cfb=8f wf=4u lf=2u
+XC  vm vss mcap wl=7.07u
+XC2 vm vss mcap_r w=11.7u l=12.4u
+XL  vl el la vbn_leak vdd vss leak_ota_degx
+XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
+.ends slot_ah_800
+
+* REF: el, en, abus, vbn_prb, rsel, sub used; the other column lines feed through.
+.subckt slot_ref rsel sub el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn wf=4u lf=2u
+XPM el abus en rsel sub vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+.ends slot_ref
+
+.subckt slot_dummy vm el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
++ vbp_syn sta stb hold mreset cfb=8f wf=4u lf=2u
+XC  vm vss mcap wl=7.07u
+XL  vl el la vbn_leak vdd vss leak_ota_degx
+XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XPM vm abus vss vss vss vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XPR vr abus vss vss vss vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
+.ends slot_dummy

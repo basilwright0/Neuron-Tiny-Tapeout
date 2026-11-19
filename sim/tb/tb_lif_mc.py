@@ -10,6 +10,7 @@ Then we ask which single trim knob removes the most rate variance (parameter eco
 estimated by regressing rate on (g, off, vthr) and removing each term's contribution.
 
 usage: python3 sim/tb/tb_lif_mc.py [variant] [N] [cap_um]
+       python3 sim/tb/tb_lif_mc.py trim [N]     gap-trim validation on slot_ah_h (see trim_mc below)
 """
 import json, sys
 import numpy as np
@@ -71,6 +72,124 @@ def one(seed):
         if k == 2:
             out["vthr"] = float(np.percentile(vm[t > 5 * tau], 99.9))
     return out
+
+# ------------------------------------------------------------------------------------------------
+# Gap-trim validation (slot_ah_h schematic: lif_ah + leak_ota_degx + trim_gap4 + synapse + probes).
+# Per mismatch instance: rate at 2x / 4x rheobase untrimmed (code 8, the nominal mid code), the trim
+# code found by a rate-based binary search at S = 100, 2x rheobase (what bring-up does: count spikes,
+# step the code), then the trimmed rates at 4x (S = 100) and at 2x / 4x with the SAME code at S = 10 and
+# S = 1000 (portability). Input: ideal current source into vm (the synapse is off). Shared bias lines
+# are ideal voltages from mismatch-free masters; vsrc is the per-die/temperature global calibration.
+TRIM_S = (100.0, 10.0, 1000.0)
+
+
+def _trim_setup():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("slotbench", "/work/sim/tb/trim/slotbench.py")
+    sb = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sb)
+    return sb
+
+
+def trim_rate(sb, b, vsrc, vb, k, code, seed, tag):
+    body = sb.slot_body("slot_ah_h", b, vsrc, iin=k * b.rheo, code=int(code), vbias=vb) + f".ic v(vm)={sb.EL}\n"
+    d = deck(body, f"tran {b.tau / 200} {30 * b.tau} uic", ["v(spk)"], mismatch=seed is not None, seed=seed or 1)
+    r = run(d, f"mctrim/{tag}")
+    return rate(crossings(r["_x"], r["v(spk)"], 1.65), 5 * b.tau)
+
+
+def trim_u8(arg):
+    """Phase 1: untrimmed (code 8) rate at S = 100, 2x rheobase."""
+    seed, env = arg
+    sb = _trim_setup()
+    return trim_rate(sb, sb.Bias(100.0), env[100.0]["vsrc"], env[100.0]["vb"], 2, 8, seed, f"s{seed}_S100_k2_c8")
+
+
+def trim_one(arg):
+    """Phase 2: trim search toward the die's target rate, then trimmed / untrimmed rates everywhere."""
+    seed, env, target, r8 = arg
+    sb = _trim_setup()
+    out = {"seed": seed}
+    b100 = sb.Bias(100.0)
+    vb100, vs100 = env[100.0]["vb"], env[100.0]["vsrc"]
+    cache = {8: r8}
+
+    def r2(c):
+        if c not in cache:
+            cache[c] = trim_rate(sb, b100, vs100, vb100, 2, c, seed, f"s{seed}_S100_k2_c{c}")
+        return cache[c]
+    # binary search on the monotonic rate(code); keep the best visited code
+    c, step = 8, 4
+    while True:
+        r = r2(c)
+        if step == 0:
+            break
+        c = c + step if r < target else c - step
+        step //= 2
+    best = min(cache, key=lambda q: abs(np.log(cache[q] / target)) if cache[q] > 0 else 1e9)
+    for q in (best - 1, best + 1):        # DNL guard: also try the neighbours of the best code
+        if 0 <= q <= 15:
+            r2(q)
+    best = min(cache, key=lambda q: abs(np.log(cache[q] / target)) if cache[q] > 0 else 1e9)
+    out["code"] = int(best)
+    out["n_search"] = len(cache)
+    for S in TRIM_S:
+        b = sb.Bias(S)
+        for k in (2, 4):
+            for nm, cc in (("u", 8), ("t", best)):
+                if S == 100.0 and k == 2:
+                    out[f"{nm}_S{S:g}_k{k}"] = r2(cc)
+                    continue
+                out[f"{nm}_S{S:g}_k{k}"] = trim_rate(sb, b, env[S]["vsrc"], env[S]["vb"], k, cc, seed,
+                                                     f"s{seed}_S{S:g}_k{k}_c{cc}")
+    return out
+
+
+def trim_env(S):
+    sb = _trim_setup()
+    b = sb.Bias(S)
+    vsrc = sb.cal_vsrc("typical", 27, S, tag=f"mctrim_S{S:g}")
+    vb = sb.bias_voltages(b, tag=f"mctrim_S{S:g}")
+    # nominal (mismatch-free) target: mean of codes 7 and 8 (offsets -/+1.5 mV around zero)
+    tgt = {k: float(np.mean([trim_rate(sb, b, vsrc, vb, k, c, None, f"nom_S{S:g}_k{k}_c{c}") for c in (7, 8)]))
+           for k in (2, 4)}
+    return S, dict(vsrc=vsrc, vb=vb, target=tgt)
+
+
+def main_trim(N):
+    (RESULTS / "mctrim").mkdir(parents=True, exist_ok=True)
+    import os
+    with Pool(int(os.environ.get("MC_POOL", "3"))) as p:
+        env = dict(p.map(trim_env, TRIM_S))
+        r8 = p.map(trim_u8, [(s, env) for s in range(1, N + 1)])
+        # per-die target: the population median of the untrimmed rate (bring-up trims every neuron of a
+        # die to that die's median; the die-level offset is the global vsrc / bias calibration's job)
+        target = float(np.median(r8))
+        res = p.map(trim_one, [(s, env, target, r) for s, r in zip(range(1, N + 1), r8)])
+    (RESULTS / "mc_trim.json").write_text(json.dumps(dict(env=env, target=target, res=res), indent=1))
+    A = {k: np.array([r[k] for r in res], dtype=float) for k in res[0]}
+    def cv(x): return np.std(x) / np.mean(x) * 100
+    def err(x, t): return np.sqrt(np.mean(np.log(x / t) ** 2)) * 100
+    L = [f"gap-trim MC: slot_ah_h schematic, typical 27 C, N={N}, trim found at S=100 / 2x rheobase "
+         f"(binary search, mean {A['n_search'].mean():.1f} rate measurements per neuron)",
+         f"codes used: {np.bincount(A['code'].astype(int), minlength=16).tolist()} (count per code 0..15)",
+         f"population median untrimmed rate at S=100 2x = {target:.0f} Hz = {target / env[100.0]['target'][2]:.3f} x "
+         f"the mismatch-free neuron; rms log-err columns are vs the population median at each S / k",
+         " S     k   median(Hz)  cv untrimmed  cv trimmed   rms log-err untrimmed  trimmed   max |err| trimmed"]
+    for S in TRIM_S:
+        for k in (2, 4):
+            u, t = A[f"u_S{S:g}_k{k}"], A[f"t_S{S:g}_k{k}"]
+            tg = float(np.median(u))
+            L.append(f" {S:<5g} {k}x {tg:10.1f}   {cv(u):8.1f} %   {cv(t):8.1f} %       {err(u, tg):8.1f} %       "
+                     f"{err(t, tg):6.1f} %   {np.max(np.abs(np.log(t / tg))) * 100:6.1f} %")
+    txt = "\n".join(L)
+    print(txt)
+    (RESULTS / "mc_trim_summary.txt").write_text(txt + "\n")
+
+
+if __name__ == "__main__" and variant == "trim":
+    main_trim(N)
+    sys.exit(0)
 
 if __name__ == "__main__":
     with Pool(6) as p:

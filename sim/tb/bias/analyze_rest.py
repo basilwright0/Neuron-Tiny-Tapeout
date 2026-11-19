@@ -32,7 +32,7 @@ for fn in sorted(glob.glob("out/vdac/dc_*.log")):
     v = np.array([d[1] for d in D]); tap = np.array([d[2] for d in D])
     vdd = 3.3
     if "_v" in fn: vdd = float(fn.split("_v")[-1][:-4])
-    ideal = vdd * (0.3 + np.arange(64) * 1.7 / 63) / 3.3
+    ideal = vdd * (15 + 1.349 * np.arange(64)) / 160     # rev B string (1k poly, 15k + 63 x 1.349k + 60k)
     lsb = (v[63] - v[0]) / 63; dnl = np.diff(v) / lsb - 1
     print(f"{os.path.basename(fn)[3:-4]:14s} V0 {v[0]:.4f} V63 {v[63]:.4f}  maxerr {1e3*np.abs(v-ideal).max():5.1f} mV"
           f"  DNL {dnl.min():+.3f}/{dnl.max():+.3f}  mono {'Y' if np.all(np.diff(v)>0) else 'N'}"

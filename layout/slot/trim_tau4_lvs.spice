@@ -1,0 +1,34 @@
+* LVS reference for trim_tau4: flattened from cells/neuron/slot.spice by layout/slot/flatten.py
+* Cfb (MOM capacitor, value from PEX) omitted: 
+.subckt trim_tau4 aux vg vsn c0 c1 c2 c3 vdd vss
+XXT_XB0 d vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XB1 d vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XB2 d vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XB3 d vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XB4 d vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XB5 d vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XB6 d vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XB7 d vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU0_0 XT.d0 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XS0 d c0 XT.d0 vss nfet_03v3 W=0.5u L=0.5u
+XXT_XU1_0 XT.d1 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU1_1 XT.d1 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XS1 d c1 XT.d1 vss nfet_03v3 W=0.5u L=0.5u
+XXT_XU2_0 XT.d2 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU2_1 XT.d2 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU2_2 XT.d2 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU2_3 XT.d2 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XS2 d c2 XT.d2 vss nfet_03v3 W=0.5u L=0.5u
+XXT_XU3_0 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU3_1 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU3_2 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU3_3 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU3_4 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU3_5 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU3_6 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XU3_7 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
+XXT_XS3 d c3 XT.d3 vss nfet_03v3 W=0.5u L=0.5u
+XXPD d d vdd vdd pfet_03v3 W=1u L=2u
+XXPM aux d vdd vdd pfet_03v3 W=0.84u L=2u
+XXND aux aux vss vss nfet_03v3 W=2u L=4u
+.ends trim_tau4

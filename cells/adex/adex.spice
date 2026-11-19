@@ -1,0 +1,123 @@
+* A1 AdEx neuron (gf180mcuD, 3.3 V devices): axon-hillock LIF + DPI adaptation + exponential term.
+* Spike channel 3 (replaces P1), outside the array (docs/08 Updated Plan.md s3).
+* Requires (include first): neuron/membrane.spice, neuron/lif.spice, readout/readout.spice,
+* neuron/synapse.spice.
+* Layout: layout/tier2/ (adex_a1). Results and area: docs/research/T2-area-estimate.md; tb: sim/tb/tier2/.
+*
+* Reference: model/reference.py AdEx, at S = 100 (tau_m = 100 us, tau_w ~ 0.83 ms, b ~ 44 pA at vbp_w 8 nA, a = 0).
+*
+*   membrane   = lif_ah parts unchanged: 200 fF mcap, leak_ota_deg (2026-11-19 sizes: inputs 4/1, diodes 8/1),
+*                det_ah (2026-11-19: starved third stage) + 8 fF MOM Cfb, refrac. Nominal EL/Vth/Vreset 1.30/1.38/1.30 V. No trim (plan s5: no AdEx trim nibble).
+*   synapse    = syn_in (neuron/synapse.spice): stim A/B, hold, mreset, as in the array slots.
+*   adaptation = a1_adapt: a DPI (differential-pair integrator) driven by the refractory pulse.
+*   exp term   = a1_exp: subthreshold nfet on vm with its source on vsrc (the calibrated AH rail),
+*                mirrored down into vm. Positive feedback ~ exp(vm/(n*UT)), so it tracks the
+*                per-die threshold calibration.
+*   hold       the adaptation sink (XA.XW) and the exp-term output (XE.XE3) land on vl, the leak
+*              output, which reaches vm only through the synapse's hold switch XS.XHL: hold = 1
+*              freezes vm against leak, exp and adaptation currents (and the synapse).
+*   probe      vm (nfet follower, as the array) on PROBE_SUB 0, vw (pfet follower) on PROBE_SUB 1,
+*              muxed onto abus by sel_adex & sub_raw (a1_pmux).
+*
+* Bias lines: el, vsrc, vreset, vbn_leak, vbp_st, vbn_ref, vbn_prb, vbp_syn, en, abus (shared with the
+* array) + vbp_w (adaptation increment current: B1 IDAC5 (former vbp_spare), pfet 1/2 receiver rx_p1,
+* 1:1 into XA.XPW). The decay current (and the DPI gain node) are fixed ratios of vbn_leak, so
+* tau_w / tau_m is fixed by geometry and scales with S like the membrane.
+* Adaptation off: IDAC5 off (vbp_w = vdd) -> Iin = 0 -> vw decays to 0 -> plain LIF + exp term.
+
+
+* --------------------------------------------------------------- a1_adapt ---
+* DPI adaptation (Bartolozzi & Indiveri 2007 topology, pfet pair, nfet output):
+*   increment: while the refractory node vr is high (one pulse per spike, length t_on ~ Cr*2.6 V/I_ref,
+*     ~35 us at S = 100) XPS closes and Iin (XPW, gate vbp_w, nominal 8 nA) is split by the pfet pair
+*     XPA (0.5/1, into vw) / XPB (4/0.5, gate vbn_leak, to vss). The share into vw is Iin*Ig/(Ig + Iw):
+*     Iw = adaptation current, Ig = Iw at vw = vbn_leak - nUT*ln(16) (the 16x wider XPB), a few pA.
+*   decay: Itau from the stack XT1..XT3 (gate vbn_leak, 3 x 0.22/15) = 10 pA at Ib_leak = 324 pA (simulated,
+*     sim/tb/tier2/tb_itau.py; narrow 0.22 um devices carry ~3x their W/L share, so the ratio is from sim).
+*   Cw: pfet gate cap to vdd (S/D/B = vdd), 7.07 x 7.07 = 200 fF. vw sits at 0-0.5 V, where an nfet mcap
+*     is depleted (~1/3 of Cox); the pfet is strongly inverted there (full Cox). Cost: vw is vdd-referenced.
+*   output: XW (0.22/8, gate vw) sinks Iw ~ exp(vw/(n UT)) from vm.
+*   Log-domain: tau_w dIw/dt = -Iw + (Ig/Itau) * Iin(t) for Iw >> Ig, tau_w = Cw n UT / Itau ~ 0.74 ms
+*     (measured from the vw decay slope), b = (Ig/Itau) * Iin * t_on / tau_w per spike (tb: ISI ratio
+*     last/first ~2 at 400 pA with Iin = 8 nA, built up over ~10 spikes as in the reference AdEx).
+*   Floor: for Iw << Ig every pulse adds a fixed dVw (Iin all into vw) until Iw ~ Ig: the first spike
+*     already lifts vw into the linear range at the nominal Iin.
+* The pulse switch XPS is on the vdd side of the tail, so the tail node never stores a charge packet.
+* mreset also clears vw through XR1/XR2 (2 x 0.22/2 in series: off-leakage 0.9 pA at ff 85 C = 8 % of Itau;
+* a single 0.5/0.28 leaks 21 pA there, tb_ioff.py). This is needed at power-up: Cw is vdd-referenced, so the
+* vdd ramp at project enable drags vw to ~2.8 V (Iw large, vm clamped low) and the 10 pA decay would take
+* ~50 ms (S = 100) to recover. Firmware: pulse MRESET after BIAS_EN. mreset also pulls vr up; vr then
+* decays as after a spike, so ONE increment follows the release of mreset.
+* vm port: in adex_a1 this is vl (the leak output, behind the hold switch), not the membrane itself.
+.subckt a1_adapt vm vw vr vbp_w vbn_leak vbp_st mreset vdd vss lw=8u
+Xi   vr  vrb vbp_st vdd vss inv3s
+XPS  t   vrb      vdd vdd pfet_03v3 W=1u L=0.28u
+XPW  s   vbp_w    t   vdd pfet_03v3 W=1u L=2u
+XPA  vw  vw       s   vdd pfet_03v3 W=0.5u L=1u
+XPB  vss vbn_leak s   vdd pfet_03v3 W=4u L=0.5u
+XT1  vw  vbn_leak m1  vss nfet_03v3 W=0.22u L=15u
+XT2  m1  vbn_leak m2  vss nfet_03v3 W=0.22u L=15u
+XT3  m2  vbn_leak vss vss nfet_03v3 W=0.22u L=15u
+XCW  vdd vw vdd vdd pfet_03v3 W=7.07u L=7.07u
+XW   vm  vw       vss vss nfet_03v3 W=0.22u L={lw}
+XR1  vw  mreset   r   vss nfet_03v3 W=0.22u L=2u
+XR2  r   mreset   vss vss nfet_03v3 W=0.22u L=2u
+.ends a1_adapt
+
+* ----------------------------------------------------------------- a1_exp ---
+* Exponential (positive-feedback) term. XE1 (gate vm, source vsrc, W/L 0.22/8) senses vm against the
+* calibrated AH rail; the pfet mirror XE2:XE3 = 2/0.5 : 0.22/8 returns a small fraction into vl (behind the
+* hold switch), i.e. I_exp ~ gL * Delta_T * exp((vm - VT)/Delta_T). Measured (tb_adex_char.py, typical 27 C):
+* Delta_T ~ 42 mV, VT ~ 30 mV above rest. l1 was 4u in rev 1: at ss 0 C (where the leak OTA gL halves) 9 of 16
+* mismatch seeds then had no stable rest (rheobase <= 0); l1 = 8u halves I_exp and gives >= 20 pA rheobase
+* there. le / l1 are tuning hooks (sim/tb/tier2/tune_adex.py).
+* vo = output (in adex_a1: vl, behind the hold switch).
+.subckt a1_exp vm vo vsrc vdd vss le=8u l1=8u
+XE1  e   vm  vsrc vss nfet_03v3 W=0.22u L={l1}
+XE2  e   e   vdd  vdd pfet_03v3 W=2u L=0.5u
+XE3  vo  e   vdd  vdd pfet_03v3 W=0.22u L={le}
+.ends a1_exp
+
+* ---------------------------------------------------------------- a1_pmux ---
+* Probe for the two taps into a shared node m; m reaches abus only through XSA (sel_adex) and XSC (~sub1),
+* so PROBE_SUB 2 and 3 select nothing.
+*   tap 0 (sub0 = 0): vm, prb_nsf nfet follower (as the array), its switch XSW on ~sub0. abus ~ vm - 0.8 V.
+*   tap 1 (sub0 = 1): vw. vw sits at 0-0.5 V, below an nfet follower's range (abus would read ~0), so this
+*     tap is a pfet source follower XPF (2/0.5, body vdd) biased from vbp_st (XPB 1/2, ~100 nA), enabled
+*     when sub0 = 1 (XPE, gate s0b), switch XS1 on sub0. abus ~ vw + 1.1..1.3 V (tb_adex_func.py).
+.subckt a1_pmux vm vw abus en sel sub0 sub1 vbn_prb vbp_st vdd vss
+Xi0  sub0 s0b vdd vss inv3
+Xi1  sub1 s1b vdd vss inv3
+XT0  vm  m  en s0b  vbn_prb vdd vss prb_nsf wf=4u lf=2u
+XPE  t1  s0b    vdd vdd pfet_03v3 W=1u L=0.28u
+XPB  p1  vbp_st t1  vdd pfet_03v3 W=1u L=2u
+XPF  vss vw     p1  vdd pfet_03v3 W=2u L=0.5u
+XS1  p1  sub0   m   vss nfet_03v3 W=1u L=0.28u
+XSA  m   sel n    vss nfet_03v3 W=1u L=0.28u
+XSC  n   s1b abus vss nfet_03v3 W=1u L=0.28u
+.ends a1_pmux
+
+* ---------------------------------------------------------------- adex_a1 ---
+* Ports:
+*   vm vw          membrane / adaptation node (test nodes)
+*   spk            spike output (spike channel 3)
+*   sel_adex       probe select for this neuron (control block: PROBE_EN & SEL == 3, like probe_sel_d1)
+*   sub0 sub1      probe_sub_raw[1:0]: 0 = vm, 1 = vw, 2/3 = nothing
+*   sta stb hold mreset   rt_out[0..3] (3.3 V logic)
+*   vbp_syn el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus : shared array lines
+*                  en = vm-follower enable (tie to sel_adex, or to PROBE_EN)
+*   vbp_w          adaptation increment current (B1 IDAC5, pfet 1/2 receiver, 1:1 into XA.XPW)
+* All-zero state (bias off: vbn_* = 0, vbp_* = vdd, el/vreset/vsrc = 0; logic 0): no DC path (leak,
+* refractory, decay, synapse, probe all off), probe disconnected from abus, spk low. vw comes up near vdd
+* (Cw to vdd) and holds vm low (no spikes) until MRESET clears it (sim/tb/tier2/tb_adex_func.py).
+.subckt adex_a1 vm vw spk sel_adex sub0 sub1 sta stb hold mreset vbp_syn el vsrc vreset vbn_leak vbp_st
++ vbn_ref vbn_prb vbp_w en abus vdd vss cfb=8f le=8u l1=8u lw=8u
+XC   vm  vss mcap wl=7.07u
+XL   vl  el vbn_leak vdd vss leak_ota_deg
+XD   vm  spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR   spk vm vr vreset vbn_ref vdd vss refrac
+XS   vm  vl vr sta stb hold mreset vbp_syn vdd vss syn_in
+XA   vl  vw vr vbp_w vbn_leak vbp_st mreset vdd vss a1_adapt lw={lw}
+XE   vm  vl vsrc vdd vss a1_exp le={le} l1={l1}
+XP   vm  vw abus en sel_adex sub0 sub1 vbn_prb vbp_st vdd vss a1_pmux
+.ends adex_a1

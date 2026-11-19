@@ -1,4 +1,4 @@
-# Area estimate for neuron_ctrl rev C on gf180mcu_fd_sc_mcu7t5v0, tt 25C 3.3V.
+# Area estimate for neuron_ctrl rev E on gf180mcu_fd_sc_mcu7t5v0, tt 25C 3.3V.
 # Run: scripts/eda.sh "bash rtl/scripts/synth.sh"
 read_liberty -lib synth/sc7t_tt_3v30.lib
 read_verilog -DNC_GF180_CELLS -I. nc_sync.v nc_cfg.v digital_lif.v neuron_ctrl.v

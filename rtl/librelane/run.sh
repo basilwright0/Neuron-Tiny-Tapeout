@@ -1,5 +1,5 @@
 #!/bin/bash
-# Harden neuron_ctrl rev C with LibreLane.
+# Harden neuron_ctrl rev E with LibreLane.
 # Usage (container): bash rtl/librelane/run.sh [config.json] [run-tag]
 cd /work/rtl/librelane
 CFG=${1:-config.json}

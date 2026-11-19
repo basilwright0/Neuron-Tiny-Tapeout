@@ -14,9 +14,12 @@
 <rect x="492.0" y="497.664" width="314.4" height="249.6" fill="#e8a2a2" stroke="#333"/>
 <text x="649.1999999999999" y="622.464" font-size="13" text-anchor="middle">B1+R1 bias &amp; pad driver</text>
 <text x="649.1999999999999" y="638.464" font-size="11" text-anchor="middle">13.6k um² (need ~12.4k)</text>
-<rect x="19.2" y="497.664" width="268.8" height="249.6" fill="#dddddd" stroke="#333"/>
-<text x="153.6" y="622.464" font-size="13" text-anchor="middle">T2 Tier-2 zone</text>
-<text x="153.6" y="638.464" font-size="11" text-anchor="middle">11.6k um² (need ~10.0k)</text>
+<rect x="19.2" y="531.264" width="268.8" height="216.0" fill="#dddddd" stroke="#333"/>
+<text x="153.6" y="639.264" font-size="13" text-anchor="middle">T2 Tier-2 zone</text>
+<text x="153.6" y="655.264" font-size="11" text-anchor="middle">10.1k um² (need ~10.0k)</text>
+<rect x="19.2" y="497.664" width="268.8" height="28.799999999999997" fill="#f7e08a" stroke="#333"/>
+<text x="153.6" y="512.064" font-size="13" text-anchor="middle">TE tau trims (P slots)</text>
+<text x="153.6" y="528.064" font-size="11" text-anchor="middle">1.3k um² (need ~0.6k)</text>
 <rect x="19.2" y="350.064" width="67.2" height="104.39999999999999" fill="none" stroke="#a66"/>
 <text x="52.8" y="406.264" font-size="11" text-anchor="middle">REF</text>
 <rect x="86.39999999999999" y="350.064" width="67.2" height="104.39999999999999" fill="none" stroke="#a66"/>
@@ -24,7 +27,7 @@
 <rect x="153.6" y="350.064" width="67.2" height="104.39999999999999" fill="none" stroke="#a66"/>
 <text x="187.2" y="406.264" font-size="11" text-anchor="middle">H1 ch2</text>
 <rect x="220.79999999999998" y="350.064" width="67.2" height="104.39999999999999" fill="none" stroke="#a66"/>
-<text x="254.39999999999998" y="406.264" font-size="11" text-anchor="middle">P1 ch3</text>
+<text x="254.39999999999998" y="406.264" font-size="11" text-anchor="middle">DUMMY</text>
 <rect x="19.2" y="245.66400000000002" width="67.2" height="104.39999999999999" fill="none" stroke="#a66"/>
 <text x="52.8" y="301.86400000000003" font-size="11" text-anchor="middle">H2 ch6</text>
 <rect x="86.39999999999999" y="245.66400000000002" width="67.2" height="104.39999999999999" fill="none" stroke="#a66"/>

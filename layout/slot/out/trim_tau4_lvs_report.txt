@@ -1,0 +1,67 @@
+
+Circuit 1 cell pfet_03v3 and Circuit 2 cell pfet_03v3 are black boxes.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes pfet_03v3 and pfet_03v3 are equivalent.
+
+Circuit 1 cell nfet_03v3 and Circuit 2 cell nfet_03v3 are black boxes.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes nfet_03v3 and nfet_03v3 are equivalent.
+Flattening unmatched subcell p_w0p84_l2 in circuit trim_tau4 (0)(1 instance)
+Flattening unmatched subcell n_w1_l2 in circuit trim_tau4 (0)(23 instances)
+Flattening unmatched subcell n_w0p5_l0p5 in circuit trim_tau4 (0)(4 instances)
+Flattening unmatched subcell p_w1_l2 in circuit trim_tau4 (0)(1 instance)
+Flattening unmatched subcell n_w2_l4 in circuit trim_tau4 (0)(1 instance)
+
+Class trim_tau4 (0):  Merged 18 parallel devices.
+Class trim_tau4 (1):  Merged 18 parallel devices.
+Subcircuit summary:
+Circuit 1: trim_tau4                       |Circuit 2: trim_tau4                       
+-------------------------------------------|-------------------------------------------
+pfet_03v3 (2)                              |pfet_03v3 (2)                              
+nfet_03v3 (28->10)                         |nfet_03v3 (28->10)                         
+Number of devices: 12                      |Number of devices: 12                      
+Number of nets: 14                         |Number of nets: 14                         
+---------------------------------------------------------------------------------------
+Resolving symmetries by property value.
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: trim_tau4                       |Circuit 2: trim_tau4                       
+-------------------------------------------|-------------------------------------------
+c3                                         |c3                                         
+c1                                         |c1                                         
+c2                                         |c2                                         
+c0                                         |c0                                         
+vss                                        |vss                                        
+vg                                         |vg                                         
+vsn                                        |vsn                                        
+aux                                        |aux                                        
+vdd                                        |vdd                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes trim_tau4 and trim_tau4 are equivalent.
+
+Final result: Circuits match uniquely.
+.

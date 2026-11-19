@@ -1,0 +1,96 @@
+
+Circuit 1 cell nfet_03v3 and Circuit 2 cell nfet_03v3 are black boxes.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes nfet_03v3 and nfet_03v3 are equivalent.
+
+Circuit 1 cell ppolyf_u_1k and Circuit 2 cell ppolyf_u_1k are black boxes.
+Warning: Equate pins:  cell ppolyf_u_1k is a placeholder, treated as a black box.
+Warning: Equate pins:  cell ppolyf_u_1k is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: ppolyf_u_1k                     |Circuit 2: ppolyf_u_1k                     
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes ppolyf_u_1k and ppolyf_u_1k are equivalent.
+
+Circuit 1 cell pfet_03v3 and Circuit 2 cell pfet_03v3 are black boxes.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes pfet_03v3 and pfet_03v3 are equivalent.
+Flattening unmatched subcell n_w2_l2 in circuit bias_master (0)(4 instances)
+Flattening unmatched subcell r_w4_l3p97 in circuit bias_master (0)(1 instance)
+Flattening unmatched subcell n_w8_l0p5 in circuit bias_master (0)(1 instance)
+Flattening unmatched subcell n_w4_l0p5 in circuit bias_master (0)(2 instances)
+Flattening unmatched subcell n_w0p5_l0p28 in circuit bias_master (0)(3 instances)
+Flattening unmatched subcell p_w1_l0p28 in circuit bias_master (0)(3 instances)
+Flattening unmatched subcell p_w2_l2_f4 in circuit bias_master (0)(2 instances)
+Flattening unmatched subcell n_w2_l2_f8 in circuit bias_master (0)(4 instances)
+Flattening unmatched subcell p_w2_l0p5 in circuit bias_master (0)(1 instance)
+Flattening unmatched subcell n_w2_l0p5 in circuit bias_master (0)(1 instance)
+Flattening unmatched subcell p_w4_l0p5 in circuit bias_master (0)(1 instance)
+
+Class bias_master (0):  Merged 34 parallel devices.
+Class bias_master (1):  Merged 34 parallel devices.
+Subcircuit summary:
+Circuit 1: bias_master                     |Circuit 2: bias_master                     
+-------------------------------------------|-------------------------------------------
+nfet_03v3 (43->13)                         |nfet_03v3 (43->13)                         
+ppolyf_u_1k (1)                            |ppolyf_u_1k (1)                            
+pfet_03v3 (13->9)                          |pfet_03v3 (13->9)                          
+diode_nd2ps_03v3 (1)                       |diode_nd2ps_03v3 (1)                       
+diode_pd2nw_03v3 (1)                       |diode_pd2nw_03v3 (1)                       
+Number of devices: 25                      |Number of devices: 25                      
+Number of nets: 21                         |Number of nets: 21                         
+---------------------------------------------------------------------------------------
+Resolving symmetries by property value.
+Resolving symmetries by pin name.
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: bias_master                     |Circuit 2: bias_master                     
+-------------------------------------------|-------------------------------------------
+vdd                                        |vdd                                        
+en_b                                       |en_b                                       
+stim                                       |stim                                       
+intref                                     |intref                                     
+en                                         |en                                         
+ua0_stim                                   |ua0_stim                                   
+pad                                        |pad                                        
+s0                                         |s0                                         
+s1                                         |s1                                         
+iint                                       |iint                                       
+in_n                                       |in_n                                       
+vbp_st                                     |vbp_st                                     
+in_p                                       |in_p                                       
+vss                                        |vss                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes bias_master and bias_master are equivalent.
+
+Final result: Circuits match uniquely.
+.

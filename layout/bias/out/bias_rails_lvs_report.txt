@@ -1,0 +1,61 @@
+
+Circuit 1 cell ppolyf_u_1k and Circuit 2 cell ppolyf_u_1k are black boxes.
+Warning: Equate pins:  cell ppolyf_u_1k is a placeholder, treated as a black box.
+Warning: Equate pins:  cell ppolyf_u_1k is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: ppolyf_u_1k                     |Circuit 2: ppolyf_u_1k                     
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes ppolyf_u_1k and ppolyf_u_1k are equivalent.
+
+Circuit 1 cell pfet_03v3 and Circuit 2 cell pfet_03v3 are black boxes.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes pfet_03v3 and pfet_03v3 are equivalent.
+Flattening unmatched subcell r_w1_l14p555 in circuit bias_rails (0)(11 instances)
+Flattening unmatched subcell p_w4_l0p5 in circuit bias_rails (0)(1 instance)
+Flattening unmatched subcell p_w10_l10 in circuit bias_rails (0)(2 instances)
+
+Class bias_rails (0):  Merged 6 series devices.
+Class bias_rails (1):  Merged 6 series devices.
+Subcircuit summary:
+Circuit 1: bias_rails                      |Circuit 2: bias_rails                      
+-------------------------------------------|-------------------------------------------
+ppolyf_u_1k (11->5)                        |ppolyf_u_1k (11->5)                        
+pfet_03v3 (3)                              |pfet_03v3 (3)                              
+Number of devices: 8                       |Number of devices: 8                       
+Number of nets: 8                          |Number of nets: 8                          
+---------------------------------------------------------------------------------------
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: bias_rails                      |Circuit 2: bias_rails                      
+-------------------------------------------|-------------------------------------------
+en_b                                       |en_b                                       
+vsn                                        |vsn                                        
+vdd                                        |vdd                                        
+vss                                        |vss                                        
+vgln                                       |vgln                                       
+vglp                                       |vglp                                       
+vsp                                        |vsp                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes bias_rails and bias_rails are equivalent.
+
+Final result: Circuits match uniquely.
+.

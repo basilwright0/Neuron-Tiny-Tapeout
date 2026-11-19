@@ -1,0 +1,141 @@
+
+Circuit 1 cell nfet_03v3 and Circuit 2 cell nfet_03v3 are black boxes.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes nfet_03v3 and nfet_03v3 are equivalent.
+
+Circuit 1 cell pfet_03v3 and Circuit 2 cell pfet_03v3 are black boxes.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes pfet_03v3 and pfet_03v3 are equivalent.
+Flattening unmatched subcell n_w2_l4 in circuit dend_d1 (0)(9 instances)
+Flattening unmatched subcell n_w1_l0p28 in circuit dend_d1 (0)(12 instances)
+Flattening unmatched subcell p_w1_l0p28 in circuit dend_d1 (0)(30 instances)
+Flattening unmatched subcell n_w2_l2 in circuit dend_d1 (0)(35 instances)
+Flattening unmatched subcell p_w2_l4 in circuit dend_d1 (0)(22 instances)
+Flattening unmatched subcell p_w1_l0p5 in circuit dend_d1 (0)(3 instances)
+Flattening unmatched subcell p_w1_l2 in circuit dend_d1 (0)(10 instances)
+Flattening unmatched subcell n_w0p5_l0p28 in circuit dend_d1 (0)(20 instances)
+Flattening unmatched subcell n_w0p5_l0p5 in circuit dend_d1 (0)(1 instance)
+Flattening unmatched subcell n_w4_l2 in circuit dend_d1 (0)(7 instances)
+Flattening unmatched subcell n_w3p54_l3p54 in circuit dend_d1 (0)(3 instances)
+Flattening unmatched subcell n_w1_l0p5 in circuit dend_d1 (0)(1 instance)
+Flattening unmatched subcell n_w1_l1 in circuit dend_d1 (0)(10 instances)
+Flattening unmatched subcell n_w1_l4 in circuit dend_d1 (0)(2 instances)
+Flattening unmatched subcell n_w0p22_l2 in circuit dend_d1 (0)(3 instances)
+Flattening unmatched subcell n_w7p07_l7p07 in circuit dend_d1 (0)(3 instances)
+Flattening unmatched subcell n_w4_l1 in circuit dend_d1 (0)(1 instance)
+
+Cell dend_d1 (0) disconnected node: ta0
+Cell dend_d1 (0) disconnected node: ta1
+Cell dend_d1 (0) disconnected node: ta2
+Cell dend_d1 (0) disconnected node: ta3
+Cell dend_d1 (0) disconnected node: tb0
+Cell dend_d1 (0) disconnected node: tb1
+Cell dend_d1 (0) disconnected node: tb2
+Cell dend_d1 (0) disconnected node: tb3
+Cell dend_d1 (1) disconnected node: ta0
+Cell dend_d1 (1) disconnected node: ta1
+Cell dend_d1 (1) disconnected node: ta2
+Cell dend_d1 (1) disconnected node: ta3
+Cell dend_d1 (1) disconnected node: tb0
+Cell dend_d1 (1) disconnected node: tb1
+Cell dend_d1 (1) disconnected node: tb2
+Cell dend_d1 (1) disconnected node: tb3
+Class dend_d1 (0):  Merged 3 parallel devices.
+Class dend_d1 (1):  Merged 3 parallel devices.
+Cell dend_d1 (0) disconnected node: ta0
+Cell dend_d1 (0) disconnected node: ta1
+Cell dend_d1 (0) disconnected node: ta2
+Cell dend_d1 (0) disconnected node: ta3
+Cell dend_d1 (0) disconnected node: tb0
+Cell dend_d1 (0) disconnected node: tb1
+Cell dend_d1 (0) disconnected node: tb2
+Cell dend_d1 (0) disconnected node: tb3
+Cell dend_d1 (1) disconnected node: ta0
+Cell dend_d1 (1) disconnected node: ta1
+Cell dend_d1 (1) disconnected node: ta2
+Cell dend_d1 (1) disconnected node: ta3
+Cell dend_d1 (1) disconnected node: tb0
+Cell dend_d1 (1) disconnected node: tb1
+Cell dend_d1 (1) disconnected node: tb2
+Cell dend_d1 (1) disconnected node: tb3
+Subcircuit summary:
+Circuit 1: dend_d1                         |Circuit 2: dend_d1                         
+-------------------------------------------|-------------------------------------------
+nfet_03v3 (107->104)                       |nfet_03v3 (107->104)                       
+pfet_03v3 (65)                             |pfet_03v3 (65)                             
+Number of devices: 169                     |Number of devices: 169                     
+Number of nets: 119                        |Number of nets: 119                        
+---------------------------------------------------------------------------------------
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: dend_d1                         |Circuit 2: dend_d1                         
+-------------------------------------------|-------------------------------------------
+d1                                         |d1                                         
+vbn_ref                                    |vbn_ref                                    
+vreset                                     |vreset                                     
+mreset                                     |mreset                                     
+sel0                                       |sel0                                       
+sel1                                       |sel1                                       
+sel2                                       |sel2                                       
+d1_bsel                                    |d1_bsel                                    
+vbp_st                                     |vbp_st                                     
+sta                                        |sta                                        
+pl_en                                      |pl_en                                      
+hold                                       |hold                                       
+d2                                         |d2                                         
+vdd                                        |vdd                                        
+vs                                         |vs                                         
+vsrc                                       |vsrc                                       
+chain                                      |chain                                      
+en                                         |en                                         
+vbn_prb                                    |vbn_prb                                    
+abus                                       |abus                                       
+vss                                        |vss                                        
+vbn_leak                                   |vbn_leak                                   
+vsrcp                                      |vsrcp                                      
+el                                         |el                                         
+spk                                        |spk                                        
+vbp_syn                                    |vbp_syn                                    
+stb                                        |stb                                        
+vbn_ax                                     |vbn_ax                                     
+la1                                        |la1                                        
+la2                                        |la2                                        
+dl1                                        |dl1                                        
+dl2                                        |dl2                                        
+ta0                                        |ta0                                        
+ta1                                        |ta1                                        
+ta2                                        |ta2                                        
+ta3                                        |ta3                                        
+tb0                                        |tb0                                        
+tb1                                        |tb1                                        
+tb2                                        |tb2                                        
+tb3                                        |tb3                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes dend_d1 and dend_d1 are equivalent.
+
+Final result: Circuits match uniquely.
+.

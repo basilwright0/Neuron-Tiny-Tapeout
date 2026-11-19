@@ -1,0 +1,133 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 0
+use p_w1_l1  IB0p
+timestamp 1795071262
+transform 1 0 1200 0 1 1090
+box -274 -230 274 230
+use p_w1_l1  IB1p
+timestamp 1795071262
+transform 1 0 2176 0 1 1090
+box -274 -230 274 230
+use p_w1_l1  IB2p
+timestamp 1795071262
+transform 1 0 3152 0 1 1090
+box -274 -230 274 230
+use p_w1_l1  IB3p
+timestamp 1795071262
+transform 1 0 4128 0 1 1090
+box -274 -230 274 230
+use p_w1_l1  IB4p
+timestamp 1795071262
+transform 1 0 5104 0 1 1090
+box -274 -230 274 230
+use p_w1_l1  IB5p
+timestamp 1795071262
+transform 1 0 6080 0 1 1090
+box -274 -230 274 230
+use n_w0p5_l1  IB0n
+timestamp 1794971372
+transform 1 0 1000 0 1 2076
+box -212 -118 212 118
+use n_w0p5_l1  IB1n
+timestamp 1794971372
+transform 1 0 2056 0 1 2076
+box -212 -118 212 118
+use n_w0p5_l1  IB2n
+timestamp 1794971372
+transform 1 0 3112 0 1 2076
+box -212 -118 212 118
+use n_w0p5_l1  IB3n
+timestamp 1794971372
+transform 1 0 4168 0 1 2076
+box -212 -118 212 118
+use n_w0p5_l1  IB4n
+timestamp 1794971372
+transform 1 0 5224 0 1 2076
+box -212 -118 212 118
+use n_w0p5_l1  IB5n
+timestamp 1794971372
+transform 1 0 6280 0 1 2076
+box -212 -118 212 118
+use n_w6_l0p28_f2  SW0
+timestamp 1795062301
+transform 1 0 2160 0 1 3162
+box -220 -668 220 668
+use n_w6_l0p28_f2  SW1
+timestamp 1795062301
+transform 1 0 2752 0 1 3162
+box -220 -668 220 668
+use n_w6_l0p28_f2  SW2
+timestamp 1795062301
+transform 1 0 3344 0 1 3162
+box -220 -668 220 668
+use n_w6_l0p28_f2  SW3
+timestamp 1795062301
+transform 1 0 3936 0 1 3162
+box -220 -668 220 668
+use n_w6_l0p28_f2  SW4
+timestamp 1795062301
+transform 1 0 4528 0 1 3162
+box -220 -668 220 668
+use n_w6_l0p28_f2  SW5
+timestamp 1795062301
+transform 1 0 5120 0 1 3162
+box -220 -668 220 668
+use r_w1_l13p39  XRB0
+timestamp 1795062302
+transform 1 0 600 0 1 5911
+box -100 -1461 100 1461
+use r_w1_l13p39  XRB1
+timestamp 1795062302
+transform 1 0 1040 0 1 5911
+box -100 -1461 100 1461
+use r_w1_l13p39  XRB2
+timestamp 1795062302
+transform 1 0 1480 0 1 5911
+box -100 -1461 100 1461
+use r_w1_l13p39  XRB3
+timestamp 1795062302
+transform 1 0 1920 0 1 5911
+box -100 -1461 100 1461
+use r_w1_l13p39  XRB4
+timestamp 1795062302
+transform 1 0 2360 0 1 5911
+box -100 -1461 100 1461
+use r_w2_l2p5  XRS0
+timestamp 1795067100
+transform 1 0 2900 0 1 4822
+box -200 -372 200 372
+use r_w1_l2p465  XRS1
+timestamp 1795062303
+transform 1 0 3440 0 1 4819
+box -100 -369 100 369
+use r_w1_l4p93  XRS2
+timestamp 1795062303
+transform 1 0 3880 0 1 5065
+box -100 -615 100 615
+use r_w1_l9p86  XRS3
+timestamp 1795062304
+transform 1 0 4320 0 1 5558
+box -100 -1108 100 1108
+use r_w1_l9p86  XRS4_0
+timestamp 1795062304
+transform 1 0 4760 0 1 5558
+box -100 -1108 100 1108
+use r_w1_l9p86  XRS4_1
+timestamp 1795062304
+transform 1 0 5200 0 1 5558
+box -100 -1108 100 1108
+use r_w1_l13p145  XRS5_0
+timestamp 1795062304
+transform 1 0 5640 0 1 5887
+box -100 -1437 100 1437
+use r_w1_l13p145  XRS5_1
+timestamp 1795062304
+transform 1 0 6080 0 1 5887
+box -100 -1437 100 1437
+use r_w1_l13p145  XRS5_2
+timestamp 1795062304
+transform 1 0 6520 0 1 5887
+box -100 -1437 100 1437
+<< end >>

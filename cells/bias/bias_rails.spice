@@ -1,15 +1,53 @@
-* bias_rails: shifted-source rails and ladder gate biases (block B1)
-* ppolyf_u_3k string, 10 uA (330 kOhm, 110 squares at W=1 um), ratiometric to VDD.
-* vsn ~0.3 V, vsp ~VDD-0.3 V, vgln ~1.8 V (n-ladder gates), vglp ~1.2 V (p-ladder gates).
-* 1 pF MOS decaps (MIM needs Metal5, forbidden on TT GF): pfet gate cap vsn->vdd (strong inversion),
-* nfet gate cap vsp->vss (strong inversion). ~4 fF/um^2 -> 15.8x15.8 um each.
-* Ports: vsn vsp vgln vglp vdd vss
-.subckt bias_rails vsn vsp vgln vglp vdd vss
-XR0 vdd vsp vss ppolyf_u_3k r_width=1u r_length=9.814u
-XR1 vsp vgln vss ppolyf_u_3k r_width=1u r_length=39.814u
-XR2 vgln vglp vss ppolyf_u_3k r_width=1u r_length=19.814u
-XR3 vglp vsn vss ppolyf_u_3k r_width=1u r_length=29.814u
-XR4 vsn vss vss ppolyf_u_3k r_width=1u r_length=9.814u
+* bias_rails: shifted-source rails and ladder gate biases (block B1), rev B
+* ppolyf_u_1k string of 11 identical 15 kOhm strips (165 kOhm, ~20 uA), ratiometric to VDD,
+* switched off by en_b (pfet header).  vsn ~0.3 V, vsp ~VDD-0.3 V, vgln ~1.8 V, vglp ~1.2 V.
+* Decaps: pfet accumulation caps referenced to each rail's own supply (vsn->vss, vsp->vdd),
+* 10 x 10 um each (~0.21 pF at |Vgb| = 0.3 V).
+* Ports: vsn vsp vgln vglp en_b vdd vss
+.subckt bias_rails vsn vsp vgln vglp en_b vdd vss
+XR0 top vsp vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR1 vsp vsp_vgln1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR2 vsp_vgln1 vsp_vgln2 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR3 vsp_vgln2 vsp_vgln3 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR4 vsp_vgln3 vgln vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR5 vgln vgln_vglp1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR6 vgln_vglp1 vglp vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR7 vglp vglp_vsn1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR8 vglp_vsn1 vglp_vsn2 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR9 vglp_vsn2 vsn vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR10 vsn vss vss ppolyf_u_1k r_width=1u r_length=14.555u
+XHDR top en_b vdd vdd pfet_03v3 W=4u L=0.5u ad=2.4p as=2.4p pd=9.2u ps=9.2u
+XC1 vss vsn vss vss pfet_03v3 W=10u L=10u
+XC2 vsp vdd vsp vsp pfet_03v3 W=10u L=10u
+.ends bias_rails
+* --- re-check variants: rev A cap orientation, and no decaps
+.subckt bias_rails_cross vsn vsp vgln vglp en_b vdd vss
+XR0 top vsp vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR1 vsp vsp_vgln1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR2 vsp_vgln1 vsp_vgln2 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR3 vsp_vgln2 vsp_vgln3 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR4 vsp_vgln3 vgln vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR5 vgln vgln_vglp1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR6 vgln_vglp1 vglp vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR7 vglp vglp_vsn1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR8 vglp_vsn1 vglp_vsn2 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR9 vglp_vsn2 vsn vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR10 vsn vss vss ppolyf_u_1k r_width=1u r_length=14.555u
+XHDR top en_b vdd vdd pfet_03v3 W=4u L=0.5u ad=2.4p as=2.4p pd=9.2u ps=9.2u
 XC1 vdd vsn vdd vdd pfet_03v3 W=15.8u L=15.8u
 XC2 vss vsp vss vss nfet_03v3 W=15.8u L=15.8u
-.ends bias_rails
+.ends bias_rails_cross
+.subckt bias_rails_nocap vsn vsp vgln vglp en_b vdd vss
+XR0 top vsp vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR1 vsp vsp_vgln1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR2 vsp_vgln1 vsp_vgln2 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR3 vsp_vgln2 vsp_vgln3 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR4 vsp_vgln3 vgln vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR5 vgln vgln_vglp1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR6 vgln_vglp1 vglp vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR7 vglp vglp_vsn1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR8 vglp_vsn1 vglp_vsn2 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR9 vglp_vsn2 vsn vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR10 vsn vss vss ppolyf_u_1k r_width=1u r_length=14.555u
+XHDR top en_b vdd vdd pfet_03v3 W=4u L=0.5u ad=2.4p as=2.4p pd=9.2u ps=9.2u
+.ends bias_rails_nocap

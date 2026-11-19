@@ -3,7 +3,7 @@
 * Requires membrane.spice. Input current is injected into vm by the caller (synapse/stimulus).
 *
 * Nominal S=100 operating point (200 fF): Ib_leak ~ 320 pA -> g ~ 2 nS -> tau ~ 100 us,
-* EL = 1.20 V, Vth = 1.28 V (comparator variant), Vreset = 1.20 V, t_ref set by I_ref.
+* EL = 1.30 V, Vth = 1.38 V, Vreset = 1.30 V (moved up 0.1 V on 2026-11-19 with the leak OTA fix), t_ref set by I_ref.
 
 * ---------------------------------------------------------------- inv3 ---
 .subckt inv3 a y vdd vss wn=0.5u wp=1u l=0.28u
@@ -62,8 +62,14 @@ XS2 s2  vbp_st vdd vdd pfet_03v3 W=1u L=2u
 XP2 p   n1  s2  vdd pfet_03v3 W=1u L=0.28u
 XN2 p   n1  vsrc vss nfet_03v3 W=0.22u L=2u
 * p swings vsrc..VDD, so the next stage is also vsrc-referenced (no static current when idle);
-* pb swings VDD (idle) .. vsrc (spiking); the output inverter only conducts during a spike.
-XP3 pb  p   vdd vdd pfet_03v3 W=1u L=0.28u
+* pb swings VDD (idle) .. vsrc (spiking), stage 3 pull-up starved; the output inverter only conducts during a spike.
+* 2026-11-19 (R1 track, sim/tb/vsrc/tb_vsrc.py 'st3'): the third stage used to crowbar ~40 uA for ~0.3 us into
+* vsrc at every threshold crossing (13 neurons spiking together at S = 1000 made the vsrc line ring). Now its
+* pull-up is starved from vbp_st like stages 1-2 (XS3). XN3 stays on vsrc: the 'st3v' variant (XN3 to vss)
+* cannot idle once vsrc > ~0.55 V (p rests at vsrc, so XN3 sees Vgs = vsrc and beats the starved pull-up;
+* spk sticks high), and with EL/Vth at 1.30/1.38 V vsrc is ~0.55-0.70 V (sim/tb/tb_slot_det.py).
+XS3 s3  vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XP3 pb  p   s3  vdd pfet_03v3 W=1u L=0.28u
 XN3 pb  p   vsrc vss nfet_03v3 W=0.5u L=0.28u
 Xi4 pb  spk vdd vss inv3
 CFB spk vm {cfb}

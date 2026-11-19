@@ -1,0 +1,20 @@
+* trim_tau4: per-column leak-tau trim for the P slots (TE strip below the array; drives the aux column
+* line, which in slot_ah_p is the gate of the leak OTA tail AND of the gap-trim ladder, in place of vbn_leak).
+* Requires bias/bias_trim.spice (trim4_n, B1's verified 4-bit current trim).
+*
+*   I_tail(P) = I_ref * (8 + c)/16  (c = 0..15: 0.50x .. 1.44x, 1.00x at c = 8)
+*   vg, vsn: B1's shared leak reference -- the gate line of a trim_ref_n (16-unit diode on the shifted
+*            source rail vsn) carrying the leak IDAC current I_ref (= the current of the vbn_leak master).
+*   trim4_n sinks I_trim from the pfet diode XPD; XPM mirrors it (W 0.84/1 at L 2: cancels the ~+19 % systematic
+*   gain from trim4_n output at ~2.9 V vs its reference at ~0.6 V) into the nfet diode XND, whose gate
+*   is aux. XND (W/L 2/4, source vss) equals the slot tail XMT and the vbn_leak nmaster, so at c = 8 the
+*   P neuron gets the same leak current (tau) as the S/H neurons; tau scales by 16/(8 + c).
+*   The gap trim in the P slot rides on aux too, so its mV/step does not change with the tau code.
+*
+* Ports: aux vg vsn c0 c1 c2 c3 vdd vss
+.subckt trim_tau4 aux vg vsn c0 c1 c2 c3 vdd vss
+XT  d vg vsn c0 c1 c2 c3 vdd vss trim4_n
+XPD d   d   vdd vdd pfet_03v3 W=1u L=2u
+XPM aux d   vdd vdd pfet_03v3 W=0.84u L=2u
+XND aux aux vss vss nfet_03v3 W=2u L=4u
+.ends trim_tau4

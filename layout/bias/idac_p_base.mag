@@ -1,0 +1,81 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 0
+use p_w2_l2_f8  U4a
+timestamp 1794972636
+transform 1 0 2540 0 1 1208
+box -2138 -330 2138 330
+use p_w2_l2_f8  U4b
+timestamp 1794972636
+transform 1 0 2540 0 1 1868
+box -2138 -330 2138 330
+use p_w2_l2_f8  U3
+timestamp 1794972636
+transform 1 0 2540 0 1 3024
+box -2138 -330 2138 330
+use p_w2_l2_f7  U210
+timestamp 1794972637
+transform 1 0 2288 0 1 3684
+box -1886 -330 1886 330
+use p_w0p5_l0p5_f2  SW0
+timestamp 1794972637
+transform 1 0 680 0 1 4522
+box -326 -180 326 180
+use p_w0p5_l0p5_f2  SW1
+timestamp 1794972637
+transform 1 0 1530 0 1 4522
+box -326 -180 326 180
+use p_w0p5_l0p5_f2  SW2
+timestamp 1794972637
+transform 1 0 2380 0 1 4522
+box -326 -180 326 180
+use p_w0p5_l0p5_f2  SW3
+timestamp 1794972637
+transform 1 0 3230 0 1 4522
+box -326 -180 326 180
+use p_w0p5_l0p5_f2  SW4
+timestamp 1794972637
+transform 1 0 4080 0 1 4522
+box -326 -180 326 180
+use p_w1_l0p28_f2  IP0
+timestamp 1794971371
+transform 1 0 800 0 1 5128
+box -282 -230 282 230
+use p_w1_l0p28_f2  IP1
+timestamp 1794971371
+transform 1 0 1650 0 1 5128
+box -282 -230 282 230
+use p_w1_l0p28_f2  IP2
+timestamp 1794971371
+transform 1 0 2500 0 1 5128
+box -282 -230 282 230
+use p_w1_l0p28_f2  IP3
+timestamp 1794971371
+transform 1 0 3350 0 1 5128
+box -282 -230 282 230
+use p_w1_l0p28_f2  IP4
+timestamp 1794971371
+transform 1 0 4200 0 1 5128
+box -282 -230 282 230
+use n_w0p5_l0p28_f2  IN0
+timestamp 1794971371
+transform 1 0 800 0 1 6284
+box -220 -118 220 118
+use n_w0p5_l0p28_f2  IN1
+timestamp 1794971371
+transform 1 0 1650 0 1 6284
+box -220 -118 220 118
+use n_w0p5_l0p28_f2  IN2
+timestamp 1794971371
+transform 1 0 2500 0 1 6284
+box -220 -118 220 118
+use n_w0p5_l0p28_f2  IN3
+timestamp 1794971371
+transform 1 0 3350 0 1 6284
+box -220 -118 220 118
+use n_w0p5_l0p28_f2  IN4
+timestamp 1794971371
+transform 1 0 4200 0 1 6284
+box -220 -118 220 118
+<< end >>

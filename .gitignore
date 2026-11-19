@@ -21,3 +21,9 @@ rtl/librelane/sweep_*.json
 sim/tb/bias/out/**
 !sim/tb/bias/out/*/
 !sim/tb/bias/out/*_summary.txt
+layout/*/scratch/
+layout/*/out/ext_*/
+layout/*/out/pex_*/
+layout/*/out/ext/
+layout/*/out/pex/
+*.ext

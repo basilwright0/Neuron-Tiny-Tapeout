@@ -1,0 +1,18 @@
+corner  T   gain   Vpad@1.2  lin(1.0-1.6)  t_settle1%(ns)  slew-dir(ns,fall)
+typical   0  0.688  1.410       3.1mV           180             178
+typical  27  0.690  1.413       2.9mV           187             184
+typical  85  0.694  1.416       2.5mV           199             196
+ff        0  0.704  1.355       2.8mV           173             170
+ff       27  0.705  1.358       2.6mV           179             176
+ff       85  0.709  1.361       2.4mV           191             187
+ss        0  0.670  1.467       4.4mV           188             185
+ss       27  0.674  1.470       3.8mV           196             193
+ss       85  0.679  1.473       3.1mV           208             205
+fs        0  0.698  1.561       2.8mV           187             182
+fs       27  0.700  1.565       2.7mV           193             190
+fs       85  0.703  1.570       2.4mV           205             202
+sf        0  0.677  1.259       3.6mV           174             173
+sf       27  0.680  1.261       3.3mV           180             178
+sf       85  0.685  1.263       2.8mV           193             190
+worst-case 1% settling: 208 ns  -> G1 PASS
+membrane (50 fF, floating) kick: en toggle -20.54 mV, sel toggle -11.70 mV

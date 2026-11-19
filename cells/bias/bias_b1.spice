@@ -1,0 +1,30 @@
+* bias_b1: B1 shared bias generator, top level (block B1), rev C.  LVS reference of layout/bias.
+* REV C PORTS STABLE (2026-11-19): the port list below is final for rev C (unchanged from the DRAFT list).
+* Digital inputs from the control macro (3.3 V logic, active high; all-zero + bias_en = 0 is safe):
+*   i<k>_b0..b4 : current-DAC fine code (b4 = MSB), code 0 = off, fixed range per DAC:
+*       i0 vbn_leak, i1 vbn_ref, i2 vbp_syn, i3 vbn_ax, i4 vbp_w
+*   r<k>_b0..b4 : resistor-DAC code: r0 el, r1 vreset_src, r2 vth_cmp
+*   v0_c0..c5   : vth_ref 6-bit resistor-DAC code (c0 = LSB), ~0.35 .. 0.75 V
+*   ua0_s0 ua0_s1 ua0_stim ua0_int bias_en ib_x2 : master mode lines (see bias_master / bias_vi)
+* Analog outputs: vbn_leak vbn_ref vbp_syn vbn_ax vbp_w vbp_st vbn_prb vth_ref el vreset_src vth_cmp ib_r1 ua0_stim_out ; ua0 = the ua[0] pad
+.subckt bias_b1 i0_b0 i0_b1 i0_b2 i0_b3 i0_b4 i1_b0 i1_b1 i1_b2 i1_b3 i1_b4 i2_b0 i2_b1 i2_b2 i2_b3 i2_b4 i3_b0 i3_b1 i3_b2 i3_b3 i3_b4 i4_b0 i4_b1 i4_b2 i4_b3 i4_b4 r0_b0 r0_b1 r0_b2 r0_b3 r0_b4 r1_b0 r1_b1 r1_b2 r1_b3 r1_b4 r2_b0 r2_b1 r2_b2 r2_b3 r2_b4 v0_c0 v0_c1 v0_c2 v0_c3 v0_c4 v0_c5 ua0_s0 ua0_s1 ua0_stim ua0_int bias_en ib_x2 vbn_leak vbn_ref vbp_syn vbn_ax vbp_w vbp_st vbn_prb vth_ref el vreset_src vth_cmp ib_r1 ua0_stim_out ua0 vdd vss
+Xm ua0 in_n in_p vbp_st ua0_stim_out iint ua0_s0 ua0_s1 ua0_stim ua0_int bias_en en_b vdd vss bias_master
+Xr vsn vsp vgln vglp en_b vdd vss bias_rails
+Xg in_n in_p vgn3 vgn5 vgp3 vgp5 vgp6 vsn vsp vgln vglp vdd vss bias_ladder
+Xvi vgln vglp bias_en ib_x2 el vreset_src vth_cmp vth_ref vbn_prb ib_r1 iint vdd vss bias_vi
+Xd3 vth_ref v0_c0 v0_c1 v0_c2 v0_c3 v0_c4 v0_c5 vdd vss vdacr_vt
+Xd0 el r0_b0 r0_b1 r0_b2 r0_b3 r0_b4 vdd vss vdacr_el
+Xd1 vreset_src r1_b0 r1_b1 r1_b2 r1_b3 r1_b4 vdd vss vdacr_vr
+Xd2 vth_cmp r2_b0 r2_b1 r2_b2 r2_b3 r2_b4 vdd vss vdacr_vc
+Xi0 vbn_leak vss i0_b0 i0_b1 i0_b2 i0_b3 i0_b4 vgp5 vsp vgln vdd vss idac_p
+Xx0 vbn_leak vdd vss rx_n4
+Xi1 vbn_ref vss i1_b0 i1_b1 i1_b2 i1_b3 i1_b4 vgp3 vsp vgln vdd vss idac_p
+Xx1 vbn_ref vdd vss rx_n2
+Xi2 vbp_syn vdd i2_b0 i2_b1 i2_b2 i2_b3 i2_b4 vgn5 vsn vgln vdd vss idac_n
+Xx2 vbp_syn vdd vss rx_p24
+Xi3 vbn_ax vss i3_b0 i3_b1 i3_b2 i3_b3 i3_b4 vgp6 vsp vgln vdd vss idac_p
+Xx3 vbn_ax vdd vss rx_n1
+Xi4 vbp_w vdd i4_b0 i4_b1 i4_b2 i4_b3 i4_b4 vgn3 vsn vgln vdd vss idac_n
+Xx4 vbp_w vdd vss rx_p05
+Xxst vbp_st vdd vss rx_p05
+.ends bias_b1

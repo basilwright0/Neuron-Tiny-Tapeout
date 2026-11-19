@@ -1,6 +1,8 @@
-"""cocotb tests for neuron_ctrl rev C: SCK/DATA/LOAD config port and latches,
-latch reset, probe decode, direct spike pins + output mux, config echo,
-rt pass-through, SC clock divider, LIF tick / event-source / enable paths."""
+"""cocotb tests for neuron_ctrl rev E: SCK/DATA/LOAD config port and latches,
+latch reset, row x column probe decode (AdEx line, dummy slot never selected),
+packed bias_b1 DAC codes + master lines vs the Python model, direct spike pins
++ output mux, config echo, rt pass-through, LIF tick / event-source / enable paths."""
+import os
 import random
 
 import cocotb
@@ -8,11 +10,14 @@ from cocotb.triggers import ClockCycles, RisingEdge, FallingEdge, Edge, ReadOnly
 from cocotb.utils import get_sim_time
 
 from nc_driver import setup, wr, shift_bits, ns, stop_task, CLK_NS, _V2
-from regmap import A, NREG, FW, reg_used, cfg_pack, ana, probe, mode, clkd
+from regmap import (A, NREG, FW, reg_used, cfg_pack, ana, probe, mode, lif_ctl, idac_word,
+                    probe_lines, bias_lines, IDACS, VDACS, SLOT, D1_CH, ADEX_CH, DUMMY_SLOT,
+                    REF_SLOT, TRIM_MASK_DEFAULT)
 
 U = lambda s: int(s.value)  # noqa: E731
 NTRIM = 16
-USED = reg_used(NTRIM)
+TRIM_MASK = int(os.environ.get("TRIM_MASK", f"{TRIM_MASK_DEFAULT:X}"), 16)   # set by make TRIM_MASK=...
+USED = reg_used(NTRIM, TRIM_MASK)
 
 
 def now_ns():
@@ -24,10 +29,25 @@ def regs(dut):
     return [(v >> (8 * a)) & 0xFF for a in range(NREG)]
 
 
+def probe_got(dut):
+    c = dut.u_ctrl
+    return (U(c.probe_rsel), U(c.probe_en_c), U(c.probe_sel_d1), U(c.probe_sel_adex),
+            U(c.probe_sub), U(c.probe_sub_b), U(c.probe_sub_raw))
+
+
+def check_bias(dut, shadow, msg=""):
+    exp = bias_lines(shadow)
+    bad = {n: (U(getattr(dut.u_ctrl, n)), v) for n, v in exp.items() if U(getattr(dut.u_ctrl, n)) != v}
+    assert not bad, f"{msg}: bias lines (got, exp) {bad}"
+
+
 def check_image(dut, shadow, msg=""):
     got = regs(dut)
     assert got == shadow, f"{msg}: regs {[hex(x) for x in got]} != {[hex(x) for x in shadow]}"
     assert U(dut.cfg_out) == cfg_pack(shadow, NTRIM), f"{msg}: cfg_out packing"
+    pr = shadow[A["PROBE"]]
+    assert probe_got(dut) == probe_lines(pr & 0xF, (pr >> 4) & 3, (pr >> 6) & 1), f"{msg}: probe"
+    check_bias(dut, shadow, msg)
 
 
 @cocotb.test()
@@ -40,9 +60,12 @@ async def test_reset_defaults(dut):
     await ClockCycles(dut.clk, 20)
     assert regs(dut) == [0] * NREG
     assert U(dut.cfg_out) == 0
-    assert U(dut.probe_sel_onehot) == 0
+    assert probe_got(dut) == (0b0001, 0, 0, 0, 0, 1, 0), "probe: no column enabled"
+    check_bias(dut, [0] * NREG, "reset: every DAC code 0 (off), ua0 = EXT/1, bias off")
+    for p in IDACS:                               # explicit safe state
+        assert all(U(getattr(dut.u_ctrl, f"{p}_b{j}")) == 0 for j in range(5)), p
+    assert U(dut.u_ctrl.bias_en) == 0 and U(dut.u_ctrl.ua0_s0) == 1 and U(dut.u_ctrl.ua0_int) == 0
     assert U(dut.rt_out) == 0, "rt pass-through must default off"
-    assert U(dut.sc_clk) == 0
     assert U(dut.uio_oe) == 0xFF
     assert U(dut.uo_out) == 0xC3
     uio = str(dut.uio_out.value)              # MSB first; uio[7] = echo, X until 13 SCK edges
@@ -68,17 +91,23 @@ async def test_cfg_write_all(dut):
                 shadow[a] = v & USED[a]
             check_image(dut, shadow, f"write {a:#x}={v:#x}")
     # field-level spot checks of the packing
-    await wr(dut, pins, A["IDAC0"] + 3, 0b101_10011)
-    await wr(dut, pins, A["VDAC0"] + 2, 0x2D)
-    await wr(dut, pins, A["ANA"], ana(grp=0b1010, plat=0b01, bias=1))
+    await wr(dut, pins, A["ANA"], ana(grp=0b1010, plat=1, chain=0, bias=1, bsel=1))
     await wr(dut, pins, A["TRIM0"] + 7, 0x9C)
     await wr(dut, pins, A["TRIM0"] + 0, 0x00)
     c = U(dut.cfg_out)
-    assert (c >> 24) & 0xFF == 0b101_10011
-    assert (c >> (48 + 12)) & 0x3F == 0x2D
-    assert (c >> 69) & 0xF == 0b1010 and (c >> 73) & 3 == 1 and (c >> 75) & 1 == 1
-    assert (c >> (78 + 4 * 14)) & 0xF == 0xC and (c >> (78 + 4 * 15)) & 0xF == 0x9
-    assert (c >> 78) & 0xFF == 0
+    assert c & 0xF == 0b1010 and (c >> 4) & 1 == 1 and (c >> 5) & 1 == 0 and (c >> 6) & 1 == 1
+    assert (c >> (7 + 4 * 14)) & 0xF == 0xC and (c >> (7 + 4 * 15)) & 0xF == 0x9
+    assert (c >> 7) & 0xFF == 0
+    # masked nibbles (no storage) stay 0 on cfg_out whatever is written
+    for t in range(8):
+        await wr(dut, pins, A["TRIM0"] + t, 0xFF)
+    c = U(dut.cfg_out)
+    for n in range(NTRIM):
+        assert (c >> (7 + 4 * n)) & 0xF == (0xF if (TRIM_MASK >> n) & 1 else 0), f"nibble {n}"
+    assert U(dut.u_ctrl.bias_en) == 1
+    await wr(dut, pins, A["ANA"], ana(chain=1))
+    c = U(dut.cfg_out)
+    assert c & 0x7F == 1 << 5 and U(dut.u_ctrl.bias_en) == 0
 
 
 @cocotb.test()
@@ -131,20 +160,22 @@ async def test_latch_reset_and_no_clk(dut):
     for a in range(NREG):
         await wr(dut, pins, a, 0xFF)
     assert regs(dut) == USED
-    assert U(dut.probe_sel_onehot) == 1 << 15
+    assert probe_got(dut) == probe_lines(15, 3, 1)       # SUB = 3: REF slot (0,0)
     stop_task(pins.clk_task)
     await ns(1000)
     dut.rst_n.value = 0
     await ns(50)
     assert regs(dut) == [0] * NREG, "async latch reset (no clk)"
-    assert U(dut.cfg_out) == 0 and U(dut.probe_sel_onehot) == 0
+    assert U(dut.cfg_out) == 0 and U(dut.probe_en_c) == 0 and U(dut.probe_sel_d1) == 0
+    assert U(dut.probe_sel_adex) == 0
+    check_bias(dut, [0] * NREG, "after reset")
     # LOAD during reset: reset dominates
     await wr(dut, pins, A["ANA"], 0x7F)
     assert regs(dut)[A["ANA"]] == 0
     dut.rst_n.value = 1
     await ns(50)
     shadow = [0] * NREG
-    for a in (A["IDAC0"], A["PROBE"], A["TRIM0"] + 5):
+    for a in (A["IDAC"] + 1, A["PROBE"], A["TRIM0"] + 2):
         await wr(dut, pins, a, 0x3C)
         shadow[a] = 0x3C & USED[a]
     check_image(dut, shadow, "writes without clk")
@@ -202,17 +233,93 @@ async def test_spike_pins_and_out_mux(dut):
 
 @cocotb.test()
 async def test_probe_decode(dut):
+    """Exhaustive SEL x SUB x EN against the floorplan-derived model: row/column
+    lines, D1 and AdEx lines, sub taps. At most one target is enabled, the
+    dummy slot (0,3) is never selected, and every array channel reaches its own
+    slot."""
     pins = await setup(dut)
+    dr, dc = DUMMY_SLOT
+    reached = set()
     for sel in range(16):
-        for sub in (0, 3):
-            await wr(dut, pins, A["PROBE"], probe(sel=sel, sub=sub, en=0))
-            assert U(dut.probe_sel_onehot) == 0, "enable off -> all off"
-            await wr(dut, pins, A["PROBE"], probe(sel=sel, sub=sub, en=1))
-            assert U(dut.probe_sel_onehot) == 1 << sel
-            c = U(dut.cfg_out)
-            assert (c >> 66) & 3 == sub and (c >> 68) & 1 == 1
-    await wr(dut, pins, A["PROBE"], probe(sel=5, en=0))
-    assert U(dut.probe_sel_onehot) == 0
+        for sub in range(4):
+            for en in (0, 1):
+                await wr(dut, pins, A["PROBE"], probe(sel=sel, sub=sub, en=en))
+                got = probe_got(dut)
+                exp = probe_lines(sel, sub, en)
+                assert got == exp, (sel, sub, en, got, exp)
+                rsel, enc, d1, adex = got[:4]
+                assert bin(enc).count("1") + d1 + adex <= 1 and bin(rsel).count("1") <= 1
+                assert not ((rsel >> dr) & 1 and (enc >> dc) & 1), f"dummy slot selected by {sel},{sub}"
+                assert not (en == 0 and (enc or d1 or adex)), "PROBE_EN = 0 must enable nothing"
+                if en and enc:
+                    reached.add((rsel.bit_length() - 1, enc.bit_length() - 1))
+                if sub != 3 and sel in (D1_CH, ADEX_CH):      # outside the array: no row, no column
+                    assert rsel == 0 and enc == 0
+                    assert (d1, adex) == ((en, 0) if sel == D1_CH else (0, en))
+    assert reached == set(SLOT.values()) | {REF_SLOT}, "every array channel and REF reachable"
+    assert DUMMY_SLOT not in reached
+    # spot checks against the floorplan table (docs/regmap.md section 3.1)
+    for sel, sub, rc in ((0, 0, (0, 1)), (12, 1, (1, 1)), (15, 0, (3, 3)), (7, 2, (2, 0)), (9, 3, (0, 0)),
+                         (3, 3, (0, 0)), (13, 3, (0, 0))):
+        await wr(dut, pins, A["PROBE"], probe(sel=sel, sub=sub, en=1))
+        assert U(dut.probe_rsel) == 1 << rc[0] and U(dut.probe_en_c) == 1 << rc[1], (sel, sub)
+        assert U(dut.probe_sel_d1) == 0 and U(dut.probe_sel_adex) == 0
+    for sub in range(3):
+        await wr(dut, pins, A["PROBE"], probe(sel=ADEX_CH, sub=sub, en=1))
+        assert U(dut.probe_sel_adex) == 1 and U(dut.probe_sel_d1) == 0
+        assert U(dut.probe_en_c) == 0 and U(dut.probe_rsel) == 0
+        assert U(dut.probe_sub_raw) == sub and U(dut.probe_sub) == sub & 1
+        assert U(dut.probe_sub_b) == 1 - (sub & 1)
+    await wr(dut, pins, A["PROBE"], probe(sel=13, sub=2, en=1))
+    assert U(dut.probe_sel_d1) == 1 and U(dut.probe_sel_adex) == 0
+    assert U(dut.probe_sub_raw) == 2 and U(dut.probe_sub) == 0 and U(dut.probe_sub_b) == 1
+    await wr(dut, pins, A["PROBE"], probe(sel=13, sub=2, en=0))
+    assert U(dut.probe_sel_d1) == 0
+
+
+@cocotb.test()
+async def test_bias_decode(dut):
+    """bias_b1 lines vs the Python model: every UA0_MODE x BIAS_EN x IB_X2 master
+    state; each current-DAC code walked through all 32 values (others random), so
+    the packed 40-bit word is checked bit-exact across byte boundaries; the
+    voltage-DAC code through all 64 values; BIAS_EN does not touch the codes."""
+    pins = await setup(dut)
+    rng = random.Random(11)
+    shadow = [0] * NREG
+
+    async def put(a, v):
+        await wr(dut, pins, a, v)
+        shadow[a] = v & USED[a]
+
+    for m in range(4):
+        for be in (0, 1):
+            for x2 in (0, 1):
+                await put(A["MODE"], mode(ua0=m, ib_x2=x2))
+                await put(A["ANA"], ana(bias=be))
+                check_bias(dut, shadow, f"master M={m} BIAS_EN={be} IB_X2={x2}")
+
+    async def put_codes(codes):
+        for i, b in enumerate(idac_word(codes)):
+            await put(A["IDAC"] + i, b)
+
+    for k in range(8):
+        for c in range(32):
+            codes = [rng.getrandbits(5) for _ in range(8)]
+            codes[k] = c
+            await put_codes(codes)
+            check_bias(dut, shadow, f"DAC {k} ({IDACS[k]}) code {c}")
+            got = sum(U(getattr(dut.u_ctrl, f"{IDACS[k]}_b{j}")) << j for j in range(5))
+            assert got == c, (k, got, c)
+    for be in (0, 1, 0):
+        await put(A["ANA"], ana(bias=be))
+        check_bias(dut, shadow, f"codes kept with BIAS_EN={be}")
+    for v in range(64):
+        await put(A["VDAC"], v | 0xC0)                 # [7:6] have no storage
+        check_bias(dut, shadow, f"VDAC {v}")
+        assert sum(U(getattr(dut.u_ctrl, f"{VDACS[0]}_c{j}")) << j for j in range(6)) == v
+    await put_codes([0] * 8)
+    check_bias(dut, shadow, "all codes 0 = off")
+    check_image(dut, shadow, "image")
 
 
 @cocotb.test()
@@ -221,39 +328,13 @@ async def test_rt_passthrough(dut):
     rng = random.Random(5)
     for en in range(16):
         await wr(dut, pins, A["MODE"], mode(rt_en=en, ua0=en & 3))
-        assert (U(dut.cfg_out) >> 76) & 3 == en & 3
+        assert U(dut.u_ctrl.ua0_s1) == int(en & 3 == 1)
         for _ in range(6):
             u = rng.getrandbits(4)
             for b in range(4):
                 pins.set_ui(3 + b, (u >> b) & 1)
             await ns(1)
             assert U(dut.rt_out) == u & en
-
-
-@cocotb.test()
-async def test_sc_clk_divider(dut):
-    pins = await setup(dut)
-    await wr(dut, pins, A["CLKD"], clkd(sc_div=0))
-    await ClockCycles(dut.clk, 200)
-    assert U(dut.sc_clk) == 0
-    for div in (1, 2, 3, 5, 8, 15, 1):
-        await wr(dut, pins, A["CLKD"], clkd(sc_div=div))
-        await RisingEdge(dut.sc_clk)
-        t = []
-        hi = []
-        for _ in range(3):
-            await RisingEdge(dut.sc_clk)
-            t.append(now_ns())
-            await FallingEdge(dut.sc_clk)
-            hi.append(now_ns() - t[-1])
-        per = [round((b - a) / CLK_NS) for a, b in zip(t, t[1:])]
-        assert per == [2 ** div] * 2, f"div {div}: periods {per}"
-        assert all(round(h / CLK_NS) == 2 ** (div - 1) for h in hi), f"div {div}: duty"
-    await wr(dut, pins, A["CLKD"], clkd(sc_div=0))
-    await ClockCycles(dut.clk, 3)
-    for _ in range(100):
-        await FallingEdge(dut.clk)
-        assert U(dut.sc_clk) == 0, "SC_DIV = 0 -> stopped low"
 
 
 async def count_pulses(dut, sig, n_clk):
@@ -270,7 +351,7 @@ async def test_lif_enable_and_tick(dut):
     rising edge (2-FF sync + edge detect)."""
     pins = await setup(dut)
     lif = dut.u_ctrl.u_lif
-    await wr(dut, pins, A["CLKD"], clkd(lif_en=1, lif_src=2))
+    await wr(dut, pins, A["LIF_CTL"], lif_ctl(lif_en=1, lif_src=2))
     lat = 0
     while not U(lif.en):
         await RisingEdge(dut.clk)
@@ -296,7 +377,7 @@ async def test_lif_enable_and_tick(dut):
     assert len(ticks) == len(edges), (len(ticks), len(edges))
     for e, t in zip(edges, ticks):
         assert CLK_NS < t - e < 4 * CLK_NS, f"tick latency {t - e} ns"
-    await wr(dut, pins, A["CLKD"], clkd(lif_en=0))
+    await wr(dut, pins, A["LIF_CTL"], lif_ctl(lif_en=0))
     await ClockCycles(dut.clk, 4)
     assert U(lif.en) == 0
 
@@ -318,8 +399,8 @@ async def test_lif_event_sources(dut):
             await pins.spike(idx, w)
 
     for src in (0, 1, 3, 2):
-        await wr(dut, pins, A["CLKD"], clkd(lif_en=0, lif_src=src))
-        await wr(dut, pins, A["CLKD"], clkd(lif_en=1, lif_src=src))
+        await wr(dut, pins, A["LIF_CTL"], lif_ctl(lif_en=0, lif_src=src))
+        await wr(dut, pins, A["LIF_CTL"], lif_ctl(lif_en=1, lif_src=src))
         await ClockCycles(dut.clk, 6)
         assert U(lif.dc) == (1 if src == 2 else 0)
         cnt = {"n": 0}
@@ -342,4 +423,4 @@ async def test_lif_event_sources(dut):
         await ClockCycles(dut.clk, 6)
         stop_task(m)
         assert cnt["n"] == npulse, f"src {src}: {cnt['n']} events, {npulse} pulses"
-    await wr(dut, pins, A["CLKD"], clkd(lif_en=0))
+    await wr(dut, pins, A["LIF_CTL"], lif_ctl(lif_en=0))

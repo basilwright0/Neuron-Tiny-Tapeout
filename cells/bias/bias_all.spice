@@ -1,7 +1,9 @@
 * B1 bias generator: include all cells (paths relative to the repo mounted at /work)
 .include /work/cells/bias/bias_master.spice
 .include /work/cells/bias/bias_rails.spice
-.include /work/cells/bias/bias_rangegen.spice
+.include /work/cells/bias/bias_ladder.spice
 .include /work/cells/bias/bias_idac.spice
-.include /work/cells/bias/bias_vdac.spice
+.include /work/cells/bias/bias_rx.spice
+.include /work/cells/bias/bias_vi.spice
 .include /work/cells/bias/bias_trim.spice
+.include /work/cells/bias/bias_b1.spice

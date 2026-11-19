@@ -1,0 +1,28 @@
+* Receiving diodes (block B1): turn an idac output current into a gate-voltage line.
+*  rx_n4 : 4 x nfet 2/4 diode (vbn line; neuron tails are 2/4 -> I_neuron = I_line/4)
+*  rx_n2 : 2 x nfet 2/4 diode (I_neuron = I_line/2)
+*  rx_p05: pfet 1/4 diode (vbp line; neuron starve pfets are 1/2 -> I_neuron = 2 I_line)
+*  rx_p1 : pfet 1/2 diode (I_neuron = I_line)
+* Ports: line vdd vss
+.subckt rx_n4 line vdd vss
+XD0 line line vss vss nfet_03v3 W=2u L=4u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD1 line line vss vss nfet_03v3 W=2u L=4u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD2 line line vss vss nfet_03v3 W=2u L=4u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD3 line line vss vss nfet_03v3 W=2u L=4u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+.ends rx_n4
+.subckt rx_n1 line vdd vss
+XD0 line line vss vss nfet_03v3 W=2u L=4u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+.ends rx_n1
+.subckt rx_n2 line vdd vss
+XD0 line line vss vss nfet_03v3 W=2u L=4u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XD1 line line vss vss nfet_03v3 W=2u L=4u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+.ends rx_n2
+.subckt rx_p05 line vdd vss
+XD0 line line vdd vdd pfet_03v3 W=1u L=4u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+.ends rx_p05
+.subckt rx_p1 line vdd vss
+XD0 line line vdd vdd pfet_03v3 W=1u L=2u ad=0.6p as=0.6p pd=3.2u ps=3.2u
+.ends rx_p1
+.subckt rx_p24 line vdd vss
+XD0 line line vdd vdd pfet_03v3 W=2u L=4u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+.ends rx_p24

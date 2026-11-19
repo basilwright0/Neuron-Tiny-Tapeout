@@ -1,0 +1,1 @@
+magic DRC, style drc(full), cell r1_corner: 0 error tiles

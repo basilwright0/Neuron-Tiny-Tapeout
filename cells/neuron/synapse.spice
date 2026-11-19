@@ -1,0 +1,39 @@
+* Neuron input synapse + hold/reset gates for the neuron-array slots (gf180mcuD, 3.3 V devices).
+*
+* syn_in: two equal, independent excitatory current-pulse synapses (stim A, stim B) into vm, a hold
+* (freeze) gate and a membrane-reset gate. All control inputs are 3.3 V logic, active high
+* (rt_out[3:0] = mreset, hold, stb, sta). No inverters are needed.
+*
+*   weight     pfet current source XW (gate vbp_syn, W/L = 2/4, i.e. 1:1 with a 2/4 pmaster on the
+*              vbp_syn column line, which the bias block drives from a p-type IDAC). I_w flows all the
+*              time (while hold = 0); stim only steers it.
+*   steering   drain-side, complementary, driven by the stim line itself:
+*                stim = 1: nfet XN (gate stim) passes I_w into vm;
+*                stim = 0: pfet XQ (gate stim) dumps I_w to vss; the drain node d then sits at ~|Vtp|
+*              (0.8-1.0 V), close to vm, so switching moves little charge. A pulse of width t delivers
+*              Q = I_w * t (+ a small fixed charge, see sim/tb/synapse/tb_syn.py). Switching in the source
+*              instead was rejected: the 25 fF Cgs of the weight device then discharges into vm after
+*              every pulse as a ~C*nUT/t tail (2-4 fC per pulse).
+*   DC mode    hold stim A (or B) high: I_w flows into vm continuously (f-I curves vs the IDAC code).
+*   hold       hold = 1: XPH (long L: its off-current would otherwise reach vm while stim is high)
+*              cuts the synapse supply AND XHL opens the leak OTA output (vl) from vm,
+*              so the membrane is frozen (retention / drift measurement). Probe, detector and reset
+*              still see vm.
+*   mreset     mreset = 1: XMR (nfet follower from vdd) pulls the refractory node vr to ~2.3 V, so the
+*              existing refractory switch (vm -> vreset) clamps vm to vreset. When mreset falls, vr
+*              decays with I_ref as after a spike: one refractory period, then free.
+*
+* Ports: vm vl vr sta stb hold mreset vbp_syn vdd vss
+*   vl = output node of the slot's leak OTA (follower output; connected to vm through XHL)
+*   vr = refractory node of the slot
+.subckt syn_in vm vl vr sta stb hold mreset vbp_syn vdd vss
+XPH h   hold    vdd vdd pfet_03v3 W=1u L=2u
+XWA da  vbp_syn h   vdd pfet_03v3 W=2u L=4u
+XWB db  vbp_syn h   vdd pfet_03v3 W=2u L=4u
+XNA da  sta     vm  vss nfet_03v3 W=0.5u L=0.28u
+XNB db  stb     vm  vss nfet_03v3 W=0.5u L=0.28u
+XQA vss sta     da  vdd pfet_03v3 W=1u L=0.28u
+XQB vss stb     db  vdd pfet_03v3 W=1u L=0.28u
+XHL vm  hold    vl  vdd pfet_03v3 W=1u L=0.28u
+XMR vdd mreset  vr  vss nfet_03v3 W=0.5u L=0.28u
+.ends syn_in

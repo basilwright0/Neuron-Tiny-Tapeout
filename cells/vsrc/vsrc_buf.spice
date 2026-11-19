@@ -1,0 +1,27 @@
+* vsrc buffer (R1 corner, layout/readout r1_corner): B1 vth_ref (6-bit resistor-string VDAC tap,
+* high-Z, 0.35-0.75 V) -> vsrc, the source rail of the axon-hillock detectors (13 array slots +
+* D1's soma det_ah + 2 pdet, ~300 um Metal2). Replaces ah_replica (lif.spice). Tests: sim/tb/vsrc/.
+*
+* Load: the detectors only SINK into vsrc (nfet sources): ~20-400 nA each idle, ~2 x I_st (2 uA at
+* S = 1000) while vm sits just below threshold, ~40 uA while vm crosses slowly (det_ah stage 3,
+* XP3/XN3, is not starved), and a ~100 uA / few-ns surge at the spike itself.
+* So: two-stage, nfet shunt output (sinks > 300 uA), pfet pull-up keeps it biased.
+*   stage 1: PMOS-input 5T OTA, pair W10/L2 (bodies on vdd: the extra |Vt| gives the OTA output
+*            headroom to drive the shunt gate at vin = 0.35 V in sf/85 C), nfet mirror W1/L4,
+*            tail W0.22/L2 (~1.1 uA from the R1 receiver vbp, 4 uA in W0.4/L1).
+*            vth_ref -> XB (output side), vsrc -> XA (diode side): vsrc up -> o up -> shunt sinks more.
+*   stage 2: XS nfet shunt W10/L0.5 (gate o, drain vsrc), XU pfet pull-up W1.6/L1 (~16 uA).
+*   comp:    Miller XCC: pfet accumulation cap, gate = o, S/D/n-well = vsrc (o - vsrc ~ 0.1-0.3 V,
+*            ~2 fF/um^2, W8/L7 -> ~120 fF), in its own n-well (well on vsrc).
+* Quiescent ~17 uA (+4 uA receiver, shared). PM >= 65 deg, f_u ~ 8 MHz (sim/tb/vsrc/tb_vsrc.py ac).
+.subckt vsrc_buf vin vsrc vbp vdd vss wt=0.22u lt=2u wp=10u lp=2u wm=1u lm=4u ws=10u ls=0.5u
++ wu=1.6u lu=1u wc=8u lc=7u
+XT  t    vbp  vdd  vdd  pfet_03v3 W={wt} L={lt}
+XA  a    vsrc t    vdd  pfet_03v3 W={wp} L={lp}
+XB  o    vin  t    vdd  pfet_03v3 W={wp} L={lp}
+XNA a    a    vss  vss  nfet_03v3 W={wm} L={lm}
+XNB o    a    vss  vss  nfet_03v3 W={wm} L={lm}
+XS  vsrc o    vss  vss  nfet_03v3 W={ws} L={ls}
+XU  vsrc vbp  vdd  vdd  pfet_03v3 W={wu} L={lu}
+XCC vsrc o    vsrc vsrc pfet_03v3 W={wc} L={lc}
+.ends vsrc_buf

@@ -1,0 +1,9 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 0
+use p_w1_l2  D
+timestamp 1794971355
+transform 1 0 708 0 1 860
+box -374 -230 374 230
+<< end >>

@@ -49,14 +49,16 @@ BLOCKS = {
     "NA neuron array 4x4":       (8.0, 136.0, 120.0, 310.0),
     "D1 dendrite":               (132.0, 14.0, 194.5, 118.0),
     "B1+R1 bias & pad driver":   (205.0, 14.0, 336.0, 118.0),
-    "T2 Tier-2 zone":            (8.0, 14.0, 120.0, 118.0),
+    "T2 Tier-2 zone":            (8.0, 14.0, 120.0, 104.0),
+    "TE tau trims (P slots)":    (8.0, 106.0, 120.0, 118.0),
 }
 EST = {  # schematic-stage area estimates (um^2) for what must go in each block
     "C1 control macro": 33124,             # hardened, rev C
-    "NA neuron array 4x4": 16 * 1000,      # ~1000 um^2 per slot incl. trims, follower, switch
+    "NA neuron array 4x4": 16 * 1218,      # S slot laid out at 28 x 43.5 (layout/slot), routing-bound
     "D1 dendrite": 6000,
     "B1+R1 bias & pad driver": 10200 + 1800 + 400,   # B1 core+DACs, pad follower+refs, Vreset buffer
     "T2 Tier-2 zone": 5000 + 5000,         # A1 AdEx x2 + S1 switched-cap dendrite (W1 if room)
+    "TE tau trims (P slots)": 3 * 200,     # one leak-tau current trim per P slot, under its column
 }
 CHANNELS = {  # routing-only regions
     "CH_BOT bias/ua entry": (8.0, 2.0, 336.0, 12.0),
@@ -67,15 +69,17 @@ CHANNELS = {  # routing-only regions
 
 # --------------------------------------------------------------------- NA slot map
 # Latin square over groups F(fixed geometry) S(shared bias) H(hybrid: shared + threshold trim)
-# P(programmable: threshold + EL trims); its diagonal is a transversal and holds the singles.
+# P(programmable: gap trim + leak-tau trim; can be cut -> becomes H); its diagonal is a transversal and holds the singles.
 # Row 0 is the bottom row of the array.
 SQUARE = ["FSHP", "HPFS", "PHSF", "SFPH"]
 SINGLES = {0: "REF", 1: "CMP", 2: "AH50", 3: "AH800"}
-SPIKE_CH = {"S1": 0, "F1": 1, "H1": 2, "P1": 3, "S2": 4, "F2": 5, "H2": 6, "P2": 7,
+SPIKE_CH = {"S1": 0, "F1": 1, "H1": 2, "ADEX": 3, "S2": 4, "F2": 5, "H2": 6, "P2": 7,
             "S3": 8, "F3": 9, "H3": 10, "P3": 11, "CMP": 12, "D1": 13, "AH50": 14, "AH800": 15}
-TRIMS = {"H1": ["VTH"], "H2": ["VTH"], "H3": ["VTH"],
-         "P1": ["VTH", "EL"], "P2": ["VTH", "EL"], "P3": ["VTH", "EL"],
-         "CMP": ["VTH"], "D1": ["PLAT"]}
+# AdEx replaced P1 (docs/08 Updated Plan.md): it sits outside the array; P1's slot is a dummy S slot.
+DUMMY_SLOTS = {"P1"}
+# Trim nibble assignment, fixed so it matches the control block's TRIM_MASK (nibbles 0,2-8,14,15).
+TRIM_NIBBLES = {"H1.VTH": 0, "H2.VTH": 2, "P2.VTH": 3, "H3.VTH": 4, "P3.VTH": 5, "CMP.VTH": 6,
+                "D1.PLAT1": 7, "D1.PLAT2": 8, "P2.TAU": 14, "P3.TAU": 15}
 
 
 def slot_map():
@@ -86,7 +90,8 @@ def slot_map():
                 grid[(r, c)] = SINGLES[r]
             else:
                 count[g] = count.get(g, 0) + 1
-                grid[(r, c)] = f"{g}{count[g]}"
+                n = f"{g}{count[g]}"
+                grid[(r, c)] = "DUMMY" if n in DUMMY_SLOTS else n
     return grid
 
 
@@ -97,12 +102,12 @@ def slot_box(r, c):
 
 
 def trim_index():
-    out, n = {}, 0
-    for name in SPIKE_CH:                      # deterministic order: by spike channel
-        for t in TRIMS.get(name, []):
-            out[f"{name}.{t}"] = n
-            n += 1
-    return out
+    return dict(TRIM_NIBBLES)
+
+
+def el_columns():
+    """Column of each P slot: its leak-tail gate voltage comes up that column's aux track from the TE strip."""
+    return {n: c for (r, c), n in slot_map().items() if n[0] == "P" and n[1:].isdigit()}
 
 
 # --------------------------------------------------------------------- checks
@@ -151,7 +156,7 @@ def checks():
             errs.append(f"{pin} (x={x}) not under B1+R1")
     # spike channels and slots
     grid = slot_map()
-    placed = set(grid.values()) | {"D1"}
+    placed = set(grid.values()) | {"D1", "ADEX"}
     for name in SPIKE_CH:
         if name not in placed:
             errs.append(f"spike channel {name} has no slot")
@@ -162,15 +167,20 @@ def checks():
         if n[0] in "FSHP" and n[1:].isdigit():
             groups.setdefault(n[0], []).append((r, c))
     for g, cells in groups.items():
-        if len(cells) != 3 or len({r for r, _ in cells}) != 3 or len({c for _, c in cells}) != 3:
-            errs.append(f"group {g} not spread over 3 rows and 3 columns: {cells}")
-    if len(trim_index()) > 16:
-        errs.append("more trims than NTRIM=16")
+        k = 2 if g == "P" else 3
+        if len(cells) != k or len({r for r, _ in cells}) != k or len({c for _, c in cells}) != k:
+            errs.append(f"group {g} not spread over its own rows and columns: {cells}")
+    ti = trim_index()
+    if len(ti) > 16 or max(ti.values()) > 15 or len(set(ti.values())) != len(ti):
+        errs.append("trim nibbles collide or exceed NTRIM=16")
+    cols = el_columns()
+    if len(set(cols.values())) != len(cols):
+        errs.append(f"two P slots share a column, so one aux track can't carry both ELs: {cols}")
     return errs
 
 
 # --------------------------------------------------------------------- drawing
-COL = {"C1": "#9aa7c7", "NA": "#f2c48d", "D1": "#b9dba0", "B1": "#e8a2a2", "T2": "#dddddd"}
+COL = {"C1": "#9aa7c7", "NA": "#f2c48d", "D1": "#b9dba0", "B1": "#e8a2a2", "T2": "#dddddd", "TE": "#f7e08a"}
 
 
 def svg(path):
@@ -228,6 +238,7 @@ def main():
     g = slot_map()
     for r in range(3, -1, -1):
         print("   " + "  ".join(f"{g[(r, c)]:6s}" for c in range(4)))
+    print("P slot columns (aux track carries leak-tau bias):", el_columns())
     print("trim nibbles:", ", ".join(f"{k}->{v}" for k, v in trim_index().items()))
     errs = checks()
     svg(ROOT / "docs" / "floorplan.svg")

@@ -1,0 +1,14 @@
+* NGSPICE file created from rx_n4.ext - technology: gf180mcuD
+
+.subckt n_w2_l4_f4 a_n52_n200# a_852_n200# a_n852_n244# a_n956_n200# a_52_n244# a_n1756_n244#
++ a_1756_n200# a_n1844_n200# a_956_n244# VSUBS
+X0 a_852_n200# a_52_n244# a_n52_n200# VSUBS nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=4u
+X1 a_1756_n200# a_956_n244# a_852_n200# VSUBS nfet_03v3 ad=0.88p pd=4.88u as=0.52p ps=2.52u w=2u l=4u
+X2 a_n956_n200# a_n1756_n244# a_n1844_n200# VSUBS nfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=4u
+X3 a_n52_n200# a_n852_n244# a_n956_n200# VSUBS nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=4u
+.ends
+
+.subckt rx_n4 line vdd vss
+XD vss line line line line line vss vss line vss n_w2_l4_f4
+.ends
+

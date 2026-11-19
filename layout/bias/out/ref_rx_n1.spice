@@ -1,0 +1,3 @@
+.subckt rx_n1 line vdd vss
+XD0 line line vss vss nfet_03v3 W=2u L=4u
+.ends rx_n1

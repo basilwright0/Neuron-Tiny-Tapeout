@@ -1,5 +1,5 @@
 * Membrane primitives for the analog neuron family (gf180mcuD, 3.3 V devices)
-* Conventions: VDD = 3.3 V, VSS = 0. Membrane window 1.0-2.0 V (NMOS-cap flat region).
+* Conventions: VDD = 3.3 V, VSS = 0. Membrane window 1.0-2.0 V (NMOS-cap flat region). Nominal EL = 1.30 V.
 * Bias inputs are gate voltages from diode-connected mirror masters (vbn_* = nfet sink gate,
 * vbp_* = pfet source gate), so every current tracks process like the bias generator.
 
@@ -22,7 +22,11 @@ XP1  a   a   vdd vdd pfet_03v3 W={wl} L={ll}
 XP2  vm  a   vdd vdd pfet_03v3 W={wl} L={ll}
 .ends leak_ota
 
-.subckt leak_ota_deg vm el vbn vdd vss wi=2u li=2u wt=2u lt=4u wl=2u ll=4u wd=2u ld=2u
+* 2026-11-19 (D1 track finding, sim/results/dendrite/leak_lin.txt): with inputs 2/2 and diodes 2/2 the tail had
+* 1-40 mV of headroom at ss/0 C (EL 1.2 V): g/Ib fell to 2.8 S/A and the OTA sourced only 25 % of Ib.
+* Now inputs 4/1, degeneration diodes 8/1, and nominal EL = 1.30 V: g/Ib >= 5.2 S/A, linear range >= 75 mV,
+* >= 92 % sourcing at all 15 corner/temperature cases (S = 100 and 2x).
+.subckt leak_ota_deg vm el vbn vdd vss wi=4u li=1u wt=2u lt=4u wl=2u ll=4u wd=8u ld=1u
 XMT  t   vbn vss vss nfet_03v3 W={wt} L={lt}
 XM1  a   el  s1  vss nfet_03v3 W={wi} L={li}
 XD1  s1  s1  t   vss nfet_03v3 W={wd} L={ld}
@@ -40,3 +44,10 @@ XM vb vb vss vss nfet_03v3 W={w} L={l}
 .subckt pmaster vb vdd w=2u l=4u
 XM vb vb vdd vdd pfet_03v3 W={w} L={l}
 .ends pmaster
+
+* ---------------------------------------------------------------- mcap_r ---
+* Rectangular membrane capacitor (same device as mcap): C ~= 4.0e-3 * W*L fF (W, L in um).
+* Used by slot_ah_800 to fill the S slot's former trim space (11.7 x 12.4 -> ~580 fF).
+.subckt mcap_r top vss w=7.07u l=7.07u
+XC vss top vss vss nfet_03v3 W={w} L={l}
+.ends mcap_r

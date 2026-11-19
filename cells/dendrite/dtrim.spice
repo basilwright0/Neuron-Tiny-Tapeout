@@ -1,0 +1,38 @@
+* trim_gap4w: D1 plateau-threshold trim = trim_gap4 (cells/trim/trim_gap.spice, slot track) with a
+* larger ladder input current: series XRA+XRB W/L 0.5/lr each (lr = 0.6u default; trim_gap4: 0.5/4 each),
+* so T ~ Ib/2.6 -> typ 27 C: mean step 6.6 mV, span 98.6 mV (code 0..15 = -43.8..+54.8 mV rest shift),
+* 0 C: 5.6 mV / 83.7 mV, 85 C: 8.8 mV / 132 mV (sim/results/dendrite/trim.txt). lr = 1u gave 5.4 mV / 81.6 mV.
+* Topology, ports and steering identical to trim_gap4: I_off = (2c - 15) * T/16 into vm.
+* Ports: a vm vbn b0 b1 b2 b3 vdd vss   (a = the leak OTA's el-side mirror node)
+.subckt trim_gap4w a vm vbn b0 b1 b2 b3 vdd vss lr=0.6u
+XRA nr vbn vss vss nfet_03v3 W=0.5u L={lr}
+XRB n1 vbn nr  vss nfet_03v3 W=0.5u L={lr}
+XL3 o3 vbn n1  vss nfet_03v3 W=0.5u L=3u
+XR1 n2 vbn n1  vss nfet_03v3 W=0.5u L=1.5u
+XL2 o2 vbn n2  vss nfet_03v3 W=0.5u L=3u
+XR2 n3 vbn n2  vss nfet_03v3 W=0.5u L=1.5u
+XL1 o1 vbn n3  vss nfet_03v3 W=0.5u L=3u
+XR3 n4 vbn n3  vss nfet_03v3 W=0.5u L=1.5u
+XL0 o0 vbn n4  vss nfet_03v3 W=0.5u L=3u
+XLT vdd vbn n4 vss nfet_03v3 W=0.5u L=3u
+XN3 a  b3 o3 vss nfet_03v3 W=0.5u L=0.28u
+XN2 a  b2 o2 vss nfet_03v3 W=0.5u L=0.28u
+XN1 a  b1 o1 vss nfet_03v3 W=0.5u L=0.28u
+XN0 a  b0 o0 vss nfet_03v3 W=0.5u L=0.28u
+XP3 vm b3 o3 vdd pfet_03v3 W=1u L=0.28u
+XP2 vm b2 o2 vdd pfet_03v3 W=1u L=0.28u
+XP1 vm b1 o1 vdd pfet_03v3 W=1u L=0.28u
+XP0 vm b0 o0 vdd pfet_03v3 W=1u L=0.28u
+.ends trim_gap4w
+
+* leak_ota_dega: leak_ota_deg (membrane.spice) with its el-side mirror node a as a port (trim hook);
+* devices identical (same as the slot's leak_ota_degx).
+.subckt leak_ota_dega vm el a vbn vdd vss
+XMT  t   vbn vss vss nfet_03v3 W=2u L=4u
+XM1  a   el  s1  vss nfet_03v3 W=4u L=1u
+XD1  s1  s1  t   vss nfet_03v3 W=8u L=1u
+XM2  vm  vm  s2  vss nfet_03v3 W=4u L=1u
+XD2  s2  s2  t   vss nfet_03v3 W=8u L=1u
+XP1  a   a   vdd vdd pfet_03v3 W=2u L=4u
+XP2  vm  a   vdd vdd pfet_03v3 W=2u L=4u
+.ends leak_ota_dega

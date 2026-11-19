@@ -1,0 +1,55 @@
+* NGSPICE file created from trim_tau4.ext - technology: gf180mcuD
+
+.subckt p_w0p84_l2 w_n374_n214# a_n288_n84# a_200_n84# a_n200_n128#
+X0 a_200_n84# a_n200_n128# a_n288_n84# w_n374_n214# pfet_03v3 ad=0.3696p pd=2.56u as=0.3696p ps=2.56u w=0.84u l=2u
+.ends
+
+.subckt n_w1_l2 a_n288_n100# a_200_n100# a_n200_n144# VSUBS
+X0 a_200_n100# a_n200_n144# a_n288_n100# VSUBS nfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=2u
+.ends
+
+.subckt n_w0p5_l0p5 a_n138_n50# a_50_n50# a_n50_n94# VSUBS
+X0 a_50_n50# a_n50_n94# a_n138_n50# VSUBS nfet_03v3 ad=0.22p pd=1.88u as=0.22p ps=1.88u w=0.5u l=0.5u
+.ends
+
+.subckt p_w1_l2 w_n374_n230# a_n288_n100# a_200_n100# a_n200_n144#
+X0 a_200_n100# a_n200_n144# a_n288_n100# w_n374_n230# pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=2u
+.ends
+
+.subckt n_w2_l4 a_400_n200# a_n400_n244# a_n488_n200# VSUBS
+X0 a_400_n200# a_n400_n244# a_n488_n200# VSUBS nfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=4u
+.ends
+
+.subckt trim_tau4 vss c0 c1 c2 c3 vg vsn aux vdd
+XXPM vdd vdd aux a_4200_2010# p_w0p84_l2
+XXT_XB3 vsn a_4200_2010# vg vss n_w1_l2
+XXT_XB4 vsn a_4200_2010# vg vss n_w1_l2
+XXT_XB5 vsn a_4200_2010# vg vss n_w1_l2
+XXT_XB6 vsn a_4200_2010# vg vss n_w1_l2
+XXT_XB7 vsn a_4200_2010# vg vss n_w1_l2
+XXT_XU3_0 vsn m1_692_1240# vg vss n_w1_l2
+XXT_XU3_1 vsn m1_692_1240# vg vss n_w1_l2
+XXT_XU3_2 vsn m1_692_1240# vg vss n_w1_l2
+XXT_XU3_3 vsn m1_692_1240# vg vss n_w1_l2
+XXT_XU1_0 vsn m1_692_760# vg vss n_w1_l2
+XXT_XU3_5 vsn m1_692_1240# vg vss n_w1_l2
+XXT_XU3_4 vsn m1_692_1240# vg vss n_w1_l2
+XXT_XU1_1 vsn m1_692_760# vg vss n_w1_l2
+XXT_XU3_6 vsn m1_692_1240# vg vss n_w1_l2
+XXT_XU3_7 vsn m1_692_1240# vg vss n_w1_l2
+XXT_XS0 a_4200_2010# m1_2552_1250# c0 vss n_w0p5_l0p5
+XXT_XS2 a_4200_2010# m1_1372_760# c2 vss n_w0p5_l0p5
+XXT_XS1 a_4200_2010# m1_692_760# c1 vss n_w0p5_l0p5
+XXT_XS3 a_4200_2010# m1_692_1240# c3 vss n_w0p5_l0p5
+XXT_XU2_0 vsn m1_1372_760# vg vss n_w1_l2
+XXPD vdd vdd a_4200_2010# a_4200_2010# p_w1_l2
+XXT_XU2_1 vsn m1_1372_760# vg vss n_w1_l2
+XXT_XU2_2 vsn m1_1372_760# vg vss n_w1_l2
+XXND aux aux vss vss n_w2_l4
+XXT_XU0_0 vsn m1_2552_1250# vg vss n_w1_l2
+XXT_XU2_3 vsn m1_1372_760# vg vss n_w1_l2
+XXT_XB0 vsn a_4200_2010# vg vss n_w1_l2
+XXT_XB2 vsn a_4200_2010# vg vss n_w1_l2
+XXT_XB1 vsn a_4200_2010# vg vss n_w1_l2
+.ends
+

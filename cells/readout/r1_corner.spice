@@ -1,0 +1,24 @@
+* R1 corner block (tile box 262,14 - 302,54): pad driver + its bias receiver + Vreset buffer + vsrc buffer.
+* Layout: layout/readout/ (r1_corner). Requires readout/readout.spice, vreset/vreset_buf.spice and
+* vsrc/vsrc_buf.spice.
+*
+* Ports
+*   abus   probe bus from the array (pad follower gate; weak pull-down inside pad_psf)
+*   pad    -> ua[1] (via the TT analog mux)
+*   en_b   pad driver enable, active low (3.3 V logic)
+*   ibias  R1 bias input = B1 ib_r1 (bias_master: sinks I_nd/2 = 4 uA nominal OUT of this node)
+*          into a pfet diode W0.4/L1. Sets vbp for the pad driver (XPB W40/L1: x100 = 400 uA,
+*          gated by en_b) and the Vreset buffer tail (W3/L1: x7.5 = 30 uA, always on).
+*          400 uA (was 200): GF COB puts a whole breakout board (50-200 pF) on ua[1]; see
+*          layout/readout/README.md (pad-load sweep).
+*   vrin   Vreset DAC tap (unbuffered VDAC output, 0.9-1.5 V)
+*   vreset buffered Vreset line (array column line + D1)
+*   vth_ref B1 VDAC2 tap (unbuffered 6-bit string tap, 0.35-0.75 V)
+*   vsrc   buffered AH detector source rail (13 array slots + D1 soma det_ah + 2 pdet); vsrc_buf tail
+*          W0.22/L2 (~1.1 uA) and pull-up W1.6/L1 (~16 uA) also hang off the receiver's vbp.
+.subckt r1_corner abus pad en_b ibias vrin vreset vth_ref vsrc vdd vss
+XPR ibias ibias vdd vdd pfet_03v3 W=0.4u L=1u
+XPAD abus pad en_b ibias vdd vss pad_psf
+XVB vrin vreset ibias vdd vss vreset_buf
+XVS vth_ref vsrc ibias vdd vss vsrc_buf
+.ends r1_corner

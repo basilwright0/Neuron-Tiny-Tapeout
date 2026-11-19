@@ -1,0 +1,75 @@
+
+Circuit 1 cell nfet_03v3 and Circuit 2 cell nfet_03v3 are black boxes.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes nfet_03v3 and nfet_03v3 are equivalent.
+
+Circuit 1 cell pfet_03v3 and Circuit 2 cell pfet_03v3 are black boxes.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes pfet_03v3 and pfet_03v3 are equivalent.
+Flattening unmatched subcell n_w2p5_l0p5_nf4 in circuit r1_corner (0)(1 instance)
+Flattening unmatched subcell p_w0p22_l2_nf1 in circuit r1_corner (0)(1 instance)
+Flattening unmatched subcell p_w1p6_l1_nf1 in circuit r1_corner (0)(1 instance)
+Flattening unmatched subcell p_w0p4_l1_nf1 in circuit r1_corner (0)(1 instance)
+Flattening unmatched subcell p_w1_l1_nf3 in circuit r1_corner (0)(1 instance)
+Flattening unmatched subcell n_w2_l2_nf2 in circuit r1_corner (0)(2 instances)
+Flattening unmatched subcell p_w5_l0p5_nf4 in circuit r1_corner (0)(2 instances)
+Flattening unmatched subcell p_w5_l2_nf2 in circuit r1_corner (0)(2 instances)
+Flattening unmatched subcell p_w8_l7_nf1 in circuit r1_corner (0)(1 instance)
+Flattening unmatched subcell n_w1_l4_nf1 in circuit r1_corner (0)(2 instances)
+Flattening unmatched subcell p_w4_l1_nf10 in circuit r1_corner (0)(1 instance)
+Flattening unmatched subcell n_w0p22_l20_nf1 in circuit r1_corner (0)(1 instance)
+Flattening unmatched subcell p_w5_l0p28_nf2 in circuit r1_corner (0)(1 instance)
+Flattening unmatched subcell p_w5_l0p5_nf8 in circuit r1_corner (0)(1 instance)
+
+Class r1_corner (0):  Merged 32 parallel devices.
+Subcircuit summary:
+Circuit 1: r1_corner                       |Circuit 2: r1_corner                       
+-------------------------------------------|-------------------------------------------
+nfet_03v3 (11->6)                          |nfet_03v3 (6)                              
+pfet_03v3 (39->12)                         |pfet_03v3 (12)                             
+Number of devices: 18                      |Number of devices: 18                      
+Number of nets: 16                         |Number of nets: 16                         
+---------------------------------------------------------------------------------------
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: r1_corner                       |Circuit 2: r1_corner                       
+-------------------------------------------|-------------------------------------------
+abus                                       |abus                                       
+en_b                                       |en_b                                       
+vrin                                       |vrin                                       
+vth_ref                                    |vth_ref                                    
+vdd                                        |vdd                                        
+pad                                        |pad                                        
+vreset                                     |vreset                                     
+vss                                        |vss                                        
+ibias                                      |ibias                                      
+vsrc                                       |vsrc                                       
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes r1_corner and r1_corner are equivalent.
+
+Final result: Circuits match uniquely.
+.

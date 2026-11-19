@@ -1,0 +1,51 @@
+magic
+tech gf180mcuD
+magscale 1 5
+timestamp 1795062986
+<< checkpaint >>
+rect -1000 400 5000 6400
+rect 864 -1000 3464 400
+<< metal3 >>
+rect 1864 64 2464 1460
+rect 1864 36 1890 64
+rect 1918 36 1950 64
+rect 1978 36 2010 64
+rect 2038 36 2070 64
+rect 2098 36 2130 64
+rect 2158 36 2190 64
+rect 2218 36 2250 64
+rect 2278 36 2310 64
+rect 2338 36 2370 64
+rect 2398 36 2464 64
+rect 1864 0 2464 36
+<< via3 >>
+rect 1890 36 1918 64
+rect 1950 36 1978 64
+rect 2010 36 2038 64
+rect 2070 36 2098 64
+rect 2130 36 2158 64
+rect 2190 36 2218 64
+rect 2250 36 2278 64
+rect 2310 36 2338 64
+rect 2370 36 2398 64
+<< metal4 >>
+rect 1864 64 2464 100
+rect 1864 36 1890 64
+rect 1918 36 1950 64
+rect 1978 36 2010 64
+rect 2038 36 2070 64
+rect 2098 36 2130 64
+rect 2158 36 2190 64
+rect 2218 36 2250 64
+rect 2278 36 2310 64
+rect 2338 36 2370 64
+rect 2398 36 2464 64
+rect 1864 0 2464 36
+use r1_corner  r1_corner_0
+timestamp 1795062985
+transform 1 0 0 0 1 1400
+box 0 0 4000 4000
+<< labels >>
+flabel metal4 1864 0 2464 100 0 FreeSans 200 0 0 0 ua1
+port 1 nsew signal bidirectional
+<< end >>

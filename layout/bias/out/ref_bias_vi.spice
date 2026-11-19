@@ -1,0 +1,40 @@
+.subckt bias_vi vgln vglp en ib_x2 el vreset_src vth_cmp vth_ref vbn_prb ib_r1 iint vdd vss
+XN1 vgvi vglp tl vss nfet_03v3 W=4u L=2u
+XN2 oa x tl vss nfet_03v3 W=4u L=2u
+XP1 oa oa vdd vdd pfet_03v3 W=2u L=2u
+XP2 vgvi oa vdd vdd pfet_03v3 W=2u L=2u
+XNT tl vbt vss vss nfet_03v3 W=2u L=2u
+XPB vbt vgvi vdd vdd pfet_03v3 W=0.5u L=4u
+XNB vbt vbt vss vss nfet_03v3 W=2u L=2u
+XPS ns vgln vdd vdd pfet_03v3 W=0.5u L=10u
+XNS ns vbt vss vss nfet_03v3 W=8u L=2u
+XMS1 vgvi ns su vss nfet_03v3 W=0.5u L=1u
+XMS2 su en vss vss nfet_03v3 W=0.5u L=1u
+XPOFF vgvi en vdd vdd pfet_03v3 W=1u L=0.5u
+XMO mo vgvi vdd vdd pfet_03v3 W=16u L=2u
+XKO x vglp mo vdd pfet_03v3 W=16u L=1u
+XME me vgvi vdd vdd pfet_03v3 W=16u L=2u
+XKE el vglp me vdd pfet_03v3 W=16u L=1u
+XMR mr vgvi vdd vdd pfet_03v3 W=16u L=2u
+XKR vreset_src vglp mr vdd pfet_03v3 W=16u L=1u
+XMC mc vgvi vdd vdd pfet_03v3 W=16u L=2u
+XKC vth_cmp vglp mc vdd pfet_03v3 W=16u L=1u
+XMT mt vgvi vdd vdd pfet_03v3 W=4u L=2u
+XKT vth_ref vglp mt vdd pfet_03v3 W=4u L=1u
+XR00 x r01 vss ppolyf_u_1k r_width=1u r_length=14.19u
+XR01 r01 r02 vss ppolyf_u_1k r_width=1u r_length=14.19u
+XR02 r02 r03 vss ppolyf_u_1k r_width=1u r_length=14.19u
+XR03 r03 vss vss ppolyf_u_1k r_width=1u r_length=14.19u
+XPP vbn_prb vgvi vdd vdd pfet_03v3 W=0.8u L=2u
+XDB vbn_prb vbn_prb vss vss nfet_03v3 W=2u L=2u
+XOR0 ib_r1 vbn_prb vss vss nfet_03v3 W=2u L=2u
+XOX0 ibx vbn_prb vss vss nfet_03v3 W=2u L=2u
+XOR1 ib_r1 vbn_prb vss vss nfet_03v3 W=2u L=2u
+XOX1 ibx vbn_prb vss vss nfet_03v3 W=2u L=2u
+XOR2 ib_r1 vbn_prb vss vss nfet_03v3 W=2u L=2u
+XOX2 ibx vbn_prb vss vss nfet_03v3 W=2u L=2u
+XOR3 ib_r1 vbn_prb vss vss nfet_03v3 W=2u L=2u
+XOX3 ibx vbn_prb vss vss nfet_03v3 W=2u L=2u
+XSX2 ib_r1 ib_x2 ibx vss nfet_03v3 W=4u L=0.5u
+XPI iint vgvi vdd vdd pfet_03v3 W=0.8u L=2u
+.ends bias_vi

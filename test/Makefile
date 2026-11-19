@@ -1,4 +1,4 @@
-# cocotb + iverilog tests for the neuron_ctrl control plane rev C (rtl/).
+# cocotb + iverilog tests for the neuron_ctrl control plane rev E (rtl/).
 # Run from the repo root:  scripts/eda.sh "make -C test"
 # Works with cocotb 1.8 (MODULE/TOPLEVEL) and 2.x (COCOTB_TEST_MODULES/COCOTB_TOPLEVEL).
 
@@ -12,6 +12,9 @@ VERILOG_SOURCES += $(CURDIR)/tb.v \
                    $(RTL_DIR)/nc_sync.v \
                    $(RTL_DIR)/digital_lif.v
 COMPILE_ARGS += -g2005 -I$(RTL_DIR)
+ifdef TRIM_MASK
+COMPILE_ARGS += -Ptb.TRIM_MASK=$(shell printf %d 0x$(TRIM_MASK))
+endif
 
 TOPLEVEL = tb
 COCOTB_TOPLEVEL = tb

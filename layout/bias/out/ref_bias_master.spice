@@ -1,0 +1,61 @@
+.subckt bias_master pad in_n in_p vbp_st ua0_stim iint s0 s1 stim intref en en_b vdd vss
+XRS pad pin vss ppolyf_u_1k r_width=4u r_length=3.97u
+DDP pin vdd diode_pd2nw_03v3 area=10p pj=22u
+DDN vss pin diode_nd2ps_03v3 area=10p pj=22u
+XIENp en_b en vdd vdd pfet_03v3 W=1u L=0.28u
+XIENn en_b en vss vss nfet_03v3 W=0.5u L=0.28u
+XISTp stim_b stim vdd vdd pfet_03v3 W=1u L=0.28u
+XISTn stim_b stim vss vss nfet_03v3 W=0.5u L=0.28u
+XIIRp intref_b intref vdd vdd pfet_03v3 W=1u L=0.28u
+XIIRn intref_b intref vss vss nfet_03v3 W=0.5u L=0.28u
+XS0 nd s0 pin vss nfet_03v3 W=4u L=0.5u
+XS1 nx s1 pin vss nfet_03v3 W=8u L=0.5u
+XSTN ua0_stim stim pin vss nfet_03v3 W=2u L=0.5u
+XSTP ua0_stim stim_b pin vdd pfet_03v3 W=4u L=0.5u
+XSWI nd intref_b iint vdd pfet_03v3 W=2u L=0.5u
+XDX0 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX1 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX2 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX3 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX4 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX5 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX6 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX7 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX8 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX9 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX10 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX11 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX12 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX13 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX14 nx nx vss vss nfet_03v3 W=2u L=2u
+XDX15 nx nx vss vss nfet_03v3 W=2u L=2u
+XOX px nx vss vss nfet_03v3 W=2u L=2u
+XPX0 px px vdd vdd pfet_03v3 W=2u L=2u
+XQX0 nd px vdd vdd pfet_03v3 W=2u L=2u
+XPX1 px px vdd vdd pfet_03v3 W=2u L=2u
+XQX1 nd px vdd vdd pfet_03v3 W=2u L=2u
+XD0 nd nd vss vss nfet_03v3 W=2u L=2u
+XD1 nd nd vss vss nfet_03v3 W=2u L=2u
+XD2 nd nd vss vss nfet_03v3 W=2u L=2u
+XD3 nd nd vss vss nfet_03v3 W=2u L=2u
+XD4 nd nd vss vss nfet_03v3 W=2u L=2u
+XD5 nd nd vss vss nfet_03v3 W=2u L=2u
+XD6 nd nd vss vss nfet_03v3 W=2u L=2u
+XD7 nd nd vss vss nfet_03v3 W=2u L=2u
+XD8 nd nd vss vss nfet_03v3 W=2u L=2u
+XD9 nd nd vss vss nfet_03v3 W=2u L=2u
+XD10 nd nd vss vss nfet_03v3 W=2u L=2u
+XD11 nd nd vss vss nfet_03v3 W=2u L=2u
+XD12 nd nd vss vss nfet_03v3 W=2u L=2u
+XD13 nd nd vss vss nfet_03v3 W=2u L=2u
+XD14 nd nd vss vss nfet_03v3 W=2u L=2u
+XD15 nd nd vss vss nfet_03v3 W=2u L=2u
+XPDN nd en_b vss vss nfet_03v3 W=4u L=0.5u
+XON in_n nd vss vss nfet_03v3 W=2u L=2u
+XOP pd nd vss vss nfet_03v3 W=2u L=2u
+XOS vbp_st nd vss vss nfet_03v3 W=2u L=2u
+XPD0 pd pd vdd vdd pfet_03v3 W=2u L=2u
+XPO0 in_p pd vdd vdd pfet_03v3 W=2u L=2u
+XPD1 pd pd vdd vdd pfet_03v3 W=2u L=2u
+XPO1 in_p pd vdd vdd pfet_03v3 W=2u L=2u
+.ends bias_master

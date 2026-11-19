@@ -1,0 +1,109 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 0
+use n_w4_l2_f6  nnSE
+timestamp 1795060618
+transform 1 0 4800 0 1 1108
+box -1572 -468 1572 468
+use n_w2_l2_f2  nnSH01
+timestamp 1794973253
+transform 1 0 2824 0 1 2124
+box -564 -268 564 268
+use n_w2_l2_f2  nnSH24
+timestamp 1794973253
+transform 1 0 4064 0 1 2124
+box -564 -268 564 268
+use n_w2_l2  nnSH3
+timestamp 1794972987
+transform 1 0 5052 0 1 2124
+box -312 -268 312 268
+use n_w2_l2  nnSH5
+timestamp 1794972987
+transform 1 0 5788 0 1 2124
+box -312 -268 312 268
+use n_w2_l2_f2  nnSH6T
+timestamp 1794973253
+transform 1 0 6776 0 1 2124
+box -564 -268 564 268
+use n_w2_l2_f8  DN3
+timestamp 1794971373
+transform 1 0 2608 0 1 3140
+box -2076 -268 2076 268
+use n_w2_l2_f8  DN5
+timestamp 1794971373
+transform 1 0 6992 0 1 3140
+box -2076 -268 2076 268
+use n_w2_l1  FN3
+timestamp 1794973254
+transform 1 0 3136 0 1 3956
+box -212 -268 212 268
+use n_w2_l2  BN3
+timestamp 1794972987
+transform 1 0 4212 0 1 3956
+box -312 -268 312 268
+use n_w2_l1  FN5
+timestamp 1794973254
+transform 1 0 5288 0 1 3956
+box -212 -268 212 268
+use n_w2_l2  BN5
+timestamp 1794972987
+transform 1 0 6364 0 1 3956
+box -312 -268 312 268
+use p_w2_l1  FP3
+timestamp 1794973256
+transform 1 0 1680 0 1 5114
+box -274 -330 274 330
+use p_w2_l1  FP5
+timestamp 1794973256
+transform 1 0 4680 0 1 5114
+box -274 -330 274 330
+use p_w2_l1  FP6
+timestamp 1794973256
+transform 1 0 7680 0 1 5114
+box -274 -330 274 330
+use p_w2_l2  BP3
+timestamp 1794973258
+transform 1 0 3224 0 1 6852
+box -374 -330 374 330
+use p_w2_l2  BP5
+timestamp 1794973258
+transform 1 0 4800 0 1 6852
+box -374 -330 374 330
+use p_w2_l2  BP6
+timestamp 1794973258
+transform 1 0 6376 0 1 6852
+box -374 -330 374 330
+use p_w2_l2_f8  DP3
+timestamp 1794972636
+transform 1 0 2608 0 1 7730
+box -2138 -330 2138 330
+use p_w2_l2_f8  DP5
+timestamp 1794972636
+transform 1 0 6992 0 1 7730
+box -2138 -330 2138 330
+use p_w2_l2_f8  DP6
+timestamp 1794972636
+transform 1 0 4800 0 1 8608
+box -2138 -330 2138 330
+use p_w2_l2_f2  npSH01
+timestamp 1794973259
+transform 1 0 3192 0 1 9486
+box -626 -330 626 330
+use p_w2_l2_f2  npSH24
+timestamp 1794973259
+transform 1 0 4432 0 1 9486
+box -626 -330 626 330
+use p_w2_l2  npSH3
+timestamp 1794973258
+transform 1 0 5420 0 1 9486
+box -374 -330 374 330
+use p_w2_l2_f2  npSH5T
+timestamp 1794973259
+transform 1 0 6408 0 1 9486
+box -626 -330 626 330
+use p_w4_l2_f5  npSE
+timestamp 1795060619
+transform 1 0 4800 0 1 10564
+box -1382 -530 1382 530
+<< end >>

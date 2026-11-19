@@ -1,0 +1,198 @@
+* D1 dendritic neuron (gf180mcuD, 3.3 V devices): axon-hillock soma + 2 dendritic subunits.
+* Requires (include first): neuron/membrane.spice, neuron/lif.spice, readout/readout.spice,
+* neuron/synapse.spice, dendrite/dtrim.spice.
+* Layout: layout/dendrite/ (dend_d1). Design notes: cells/dendrite/README.md.
+*
+* Topology (reference: model/reference.py Compartments.star(2) / chain(3), S = 100):
+*   soma  = lif_ah (200 fF mcap, leak_ota_deg, det_ah + Cfb 8 fF, refrac): spike channel 13
+*   d1,d2 = 200 fF mcap + leak_ota_deg (same leak as the soma)
+*   axial coupling = bidirectional transconductor: two follower OTAs back to back (ax_pair),
+*     I(a<-b) = Iax*tanh((Vb-Va)/VL), g_ax = 6.2 S/A * Iax (same g/Ib as the leak), VL ~ 155 mV
+*     soma-d1 always on; d2 pair's far end switched to soma (star, chain=0) or d1 (chain=1)
+*   plateau per subunit (dplat): all-or-none regenerative, enabled by pl_en, with a timer that
+*     ends it after T_plat; re-arms when the subunit falls back below threshold.
+*
+* Config bits (regmap ANA[5:4] = PLATEAU_EN[1:0]; D2 does not exist on this chip):
+*   pl_en  = PLATEAU_EN[0]: plateau nonlinearity on in both subunits (all-or-none, CS EXP-08)
+*   chain  = PLATEAU_EN[1]: topology, 0 = depth-1 star (soma-d1, soma-d2), 1 = chain soma-d1-d2
+*
+* Probe taps (prb_nsf wf=4u lf=2u, like the array slots): sel0 = soma vm (PROBE_SUB 0),
+*   sel1 = d2 (PROBE_SUB 1), sel2 = d1 (PROBE_SUB 2).
+*
+* Bias (all are gate lines from B1 masters, like the array):
+*   el, vsrc, vreset, vbn_leak, vbp_st, vbn_ref, vbn_prb, en : shared with the neuron array
+*   vbn_ax : NEW, axial coupling tail (nfet master W/L 2/4), Iax = g_ax / 6.2 S/A (645 pA = 4 nS)
+*   Plateau strength, duration and Ep are fixed ratios of vbn_leak; the plateau threshold
+*   detector shares vsrc (calibrated AH rail) and vbp_st with the soma's detector.
+
+* --------------------------------------------------------------- ax_pair ---
+* Axial conductance between x and y: two back-to-back follower OTAs (leak_ota_deg, membrane.spice;
+* same devices incl. the 2026-11-19 headroom fix: inputs 4/1, degeneration diodes 8/1).
+* I(into x) = Iax*tanh((Vy-Vx)/VL), and the mirror image into y: a symmetric conductance
+* g_ax = 6.2 S/A * Iax for |Vx-Vy| < ~80 mV, saturating at +-Iax beyond ~150 mV.
+* Hold: each OTA output reaches its compartment through a pfet switch (off while hold = 1), as the
+* leak does through the synapse's XHL. The OTA keeps running as a follower, so on release its output
+* sits at the far compartment's voltage (small kick); an off pfet leaks fA (a tail switch leaves the
+* output pfet leaking pA into the node).
+.subckt ax_ota_h out in vbn hold vdd vss
+XMT  t   vbn vss vss nfet_03v3 W=2u L=4u
+XM1  a   in  s1  vss nfet_03v3 W=4u L=1u
+XD1  s1  s1  t   vss nfet_03v3 W=8u L=1u
+XM2  o   o   s2  vss nfet_03v3 W=4u L=1u
+XD2  s2  s2  t   vss nfet_03v3 W=8u L=1u
+XP1  a   a   vdd vdd pfet_03v3 W=2u L=4u
+XP2  o   a   vdd vdd pfet_03v3 W=2u L=4u
+XHO  out hold o  vdd pfet_03v3 W=1u L=0.28u
+.ends ax_ota_h
+.subckt ax_pair x y vbn hold vdd vss
+XA x y vbn hold vdd vss ax_ota_h
+XB y x vbn hold vdd vss ax_ota_h
+.ends ax_pair
+
+* ------------------------------------------------------------------ pdet ---
+* Plateau threshold detector: det_ah (lif.spice) without Cfb. Starved inverter on vd whose nfet
+* source sits on vsrc (the per-die calibrated AH threshold rail), so the plateau threshold tracks
+* the soma threshold; XNI is half the soma's W/L, which puts the trip ~20-25 mV above it
+* (~EL + 100 mV). Output xb is full swing, high while vd is above threshold. ~10 nA at rest.
+* Trim hook (nibble 7): dend_d1 port vsrcp feeds this rail for both subunits (tied to vsrc until
+* the trim cell exists; the trim then supplies vsrc + offset). Trip moves ~1:1 with the rail.
+.subckt pdet vd xb vsrc vbp_st vdd vss
+XPS s   vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XPI n1  vd  s   vdd pfet_03v3 W=1u L=0.5u
+XNI n1  vd  vsrc vss nfet_03v3 W=1u L=1u
+XS2 s2  vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XP2 p   n1  s2  vdd pfet_03v3 W=1u L=0.28u
+XN2 p   n1  vsrc vss nfet_03v3 W=0.22u L=2u
+* third stage pull-up starved from vbp_st (XS3), as det_ah since 2026-11-19: unstarved it crowbarred
+* tens of uA into vsrc at every crossing (sim/tb/dendrite/tb_pdet_q.py). XN3 stays on vsrc.
+XS3 s3  vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XP3 pb  p   s3  vdd pfet_03v3 W=1u L=0.28u
+XN3 pb  p   vsrc vss nfet_03v3 W=0.5u L=0.28u
+XON xb  pb  vss vss nfet_03v3 W=0.5u L=0.28u
+XOP xb  pb  vdd vdd pfet_03v3 W=1u L=0.28u
+* hysteresis: while xb is high a second input nfet helps pull n1 down, so the detector releases
+* ~20 mV below its trip point (no re-trigger as the subunit decays through threshold)
+XNH n1  vd  h   vss nfet_03v3 W=1u L=1u
+XNE h   xb  vsrc vss nfet_03v3 W=1u L=0.28u
+.ends pdet
+
+* ----------------------------------------------------------------- dplat ---
+* Plateau nonlinearity of one subunit (vd): all-or-none, regenerative, finite duration.
+*   detector pdet -> xb (high while vd > threshold).
+*   timer: vt precharged to VDD while below threshold; discharged by Idur (= Ib_leak/2, W/L 1/4
+*     vs the leak tail's 1/2) while above; T_plat ~ Ct*(3.3 V - ~1 V)/Idur ~ 0.7 ms at S = 100
+*     (scales with the leak bias, i.e. with S).  Ct = 50 fF mcap.
+*   plateau current: 5T follower OTA toward vep (Ep), tail Ipl ~ 8*Ib_leak (2 x W/L 2 vs 1/2) through
+*     three series switches (L = 1 um: low off-leakage at ff/85 C); output to vd through the hold pfet XHP: xb (above threshold) AND vt (timer running) AND pl_en (config bit).
+*   After the timer expires the plateau stays off until vd has fallen below threshold (re-arm).
+.subckt dplat vd pl_en hold vep vsrc vbn_leak vbp_st vdd vss
+XDT  vd  xb  vsrc vbp_st vdd vss pdet
+XTP  vt  xb  vdd vdd pfet_03v3 W=1u L=0.28u
+XTS  vt  xb  ti  vss nfet_03v3 W=1u L=0.28u
+XTI  ti  vbn_leak vss vss nfet_03v3 W=1u L=4u
+XCT  vt  vss mcap wl=3.54u
+XOM1 oa  vep ot  vss nfet_03v3 W=2u L=2u
+XOM2 vo  vo  ot  vss nfet_03v3 W=2u L=2u
+XOP1 oa  oa  vdd vdd pfet_03v3 W=2u L=4u
+XOP2 vo  oa  vdd vdd pfet_03v3 W=2u L=4u
+XHP  vd  hold vo vdd pfet_03v3 W=1u L=0.28u
+XS1  ot  xb  o1  vss nfet_03v3 W=1u L=1u
+XS2  o1  vt  o2  vss nfet_03v3 W=1u L=1u
+XS3  o2  pl_en o3 vss nfet_03v3 W=1u L=1u
+XOTA o3  vbn_leak vss vss nfet_03v3 W=4u L=2u
+XOTB o3  vbn_leak vss vss nfet_03v3 W=4u L=2u
+.ends dplat
+
+* ---------------------------------------------------------------- vepgen ---
+* Plateau reversal Ep, referenced to el: an nfet diode (W/L 4, source on el) carrying Ib_leak
+* (pfet mirror). vep = el + Vgs ~ el + 0.74 V (tt 27 C; 0.52..0.92 V over corners/0-85 C).
+* Only gates load vep; Ib_leak flows into el.
+.subckt vepgen vep el vbn_leak vdd vss
+XS  m   vbn_leak vss vss nfet_03v3 W=2u L=4u
+XPD m   m   vdd vdd pfet_03v3 W=1u L=2u
+XPM vep m   vdd vdd pfet_03v3 W=1u L=2u
+XN  vep vep el  vss nfet_03v3 W=4u L=1u
+.ends vepgen
+
+* ---------------------------------------------------------------- soma_h ---
+* Soma = lif_ah (lif.spice) with its leak output vl reaching vm through a hold switch XHL (pfet, on
+* while hold = 0, as the slot's syn_in does), and vr brought out for the membrane reset.
+.subckt soma_h vm spk vr el vsrc vreset vbn_leak vbp_st vbn_ref hold vdd vss cfb=8f
+XC  vm vss mcap wl=7.07u
+XL  vl el vbn_leak vdd vss leak_ota_deg
+XHL vm hold vl vdd pfet_03v3 W=1u L=0.28u
+XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr vreset vbn_ref vdd vss refrac
+.ends soma_h
+
+* ---------------------------------------------------------------- bsteer ---
+* Stim B steering (D1_BSEL, regmap ANA[7]): bsel = 0 -> B into d1's synapse (b1, clustered with A);
+* bsel = 1 -> B into d2's synapse (b2, distributed). Transmission gates + pull-downs on the unused side.
+.subckt bsteer stb bsel b1 b2 vdd vss
+XI   bsel bselb vdd vss inv3
+XN1  b1 bselb stb vss nfet_03v3 W=0.5u L=0.28u
+XP1  b1 bsel  stb vdd pfet_03v3 W=1u L=0.28u
+XD1  b1 bsel  vss vss nfet_03v3 W=0.5u L=0.28u
+XN2  b2 bsel  stb vss nfet_03v3 W=0.5u L=0.28u
+XP2  b2 bselb stb vdd pfet_03v3 W=1u L=0.28u
+XD2  b2 bselb vss vss nfet_03v3 W=0.5u L=0.28u
+.ends bsteer
+
+* ---------------------------------------------------------------- dend_d1 ---
+* Ports:
+*   vs d1 d2       soma / subunit nodes (test nodes; inputs come through the synapses)
+*   spk            soma spike (spike channel 13)
+*   sel0 sel1 sel2 probe lines: soma (SUB 0), d2 (SUB 1), d1 (SUB 2)
+*   pl_en chain    PLATEAU_EN[0], PLATEAU_EN[1] (0 = star, 1 = chain)
+*   d1_bsel        ANA[7]: 0 = stim B into d1 (clustered with A), 1 = stim B into d2 (distributed)
+*   sta stb hold mreset  rt_out[0..3] (stim A, stim B, hold, membrane reset), 3.3 V logic
+*   vbp_syn        synapse weight line (p-IDAC; shared by both synapses)
+*   ta0..3 tb0..3  gap-trim bits, TRIM nibble 7 (d1 plateau threshold) and nibble 8 (d2); code 0 = -44 mV
+*   el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus : shared array lines
+*   vsrcp          plateau-detector source rail: tie to vsrc
+*   vbn_ax         axial coupling bias (new n-IDAC line)
+.subckt dend_d1 vs d1 d2 spk sel0 sel1 sel2 pl_en chain d1_bsel sta stb hold mreset vbp_syn
++ ta0 ta1 ta2 ta3 tb0 tb1 tb2 tb3 el vsrc vsrcp vreset vbn_leak vbp_st vbn_ref
++ vbn_prb vbn_ax en abus vdd vss cfb=8f wf=4u lf=2u
+* soma: axon-hillock LIF with hold switch; mreset pulls its refractory node up (as syn_in does)
+XS   vs spk vr el vsrc vreset vbn_leak vbp_st vbn_ref hold vdd vss soma_h cfb={cfb}
+XMR  vdd mreset vr vss nfet_03v3 W=0.5u L=0.28u
+* subunits: cap, leak (output dl through the synapse's hold switch), synapse, gap trim. The trim
+* injects into dl, not into the membrane, so hold (dl cut off) also stops the trim current.
+XC1  d1 vss mcap wl=7.07u
+XL1  dl1 el la1 vbn_leak vdd vss leak_ota_dega
+XY1  d1 dl1 vss sta b1 hold vss vbp_syn vdd vss syn_in
+XC2  d2 vss mcap wl=7.07u
+XL2  dl2 el la2 vbn_leak vdd vss leak_ota_dega
+XY2  d2 dl2 vss b2 vss hold vss vbp_syn vdd vss syn_in
+XB   stb d1_bsel b1 b2 vdd vss bsteer
+* axial coupling (outputs disconnected during hold)
+XA1  vs d1 vbn_ax hold vdd vss ax_pair
+* d2's link: its far end y2 is switched to the soma (star) or to d1 (chain). y2 is both the input
+* of the OTA driving d2 and the output of the OTA driving y2, so two switches retarget the pair.
+XI   chain chainb vdd vss inv3
+XA2  d2 y2 vbn_ax hold vdd vss ax_pair
+XWS  y2 chainb vs vss nfet_03v3 W=1u L=0.28u
+XWC  y2 chain  d1 vss nfet_03v3 W=1u L=0.28u
+* plateau
+XEP  vep el vbn_leak vdd vss vepgen
+XP1  d1 pl_en hold vep vsrcp vbn_leak vbp_st vdd vss dplat
+XP2  d2 pl_en hold vep vsrcp vbn_leak vbp_st vdd vss dplat
+* probe taps
+XT0  vs abus en sel0 vbn_prb vdd vss prb_nsf wf={wf} lf={lf}
+XT1  d2 abus en sel1 vbn_prb vdd vss prb_nsf wf={wf} lf={lf}
+XT2  d1 abus en sel2 vbn_prb vdd vss prb_nsf wf={wf} lf={lf}
+* plateau-threshold gap trims (trim_gap4w, dtrim.spice): d1 nibble 7 (ta), d2 nibble 8 (tb). They inject
+* into the leak output dl (not the membrane), so hold also stops them. Drawn in the layout's former keep-outs.
+XR1  la1 dl1 vbn_leak ta0 ta1 ta2 ta3 vdd vss trim_gap4w
+XR2  la2 dl2 vbn_leak tb0 tb1 tb2 tb3 vdd vss trim_gap4w
+.ends dend_d1
+
+* ---------------------------------------------------------------- dend_d1t ---
+* Former wrapper (trims outside dend_d1); kept as an alias so old decks still run. Same ports as dend_d1.
+.subckt dend_d1t vs d1 d2 spk sel0 sel1 sel2 pl_en chain d1_bsel sta stb hold mreset vbp_syn
++ ta0 ta1 ta2 ta3 tb0 tb1 tb2 tb3 el vsrc vsrcp vreset vbn_leak vbp_st vbn_ref
++ vbn_prb vbn_ax en abus vdd vss
+XD   vs d1 d2 spk sel0 sel1 sel2 pl_en chain d1_bsel sta stb hold mreset vbp_syn
++ ta0 ta1 ta2 ta3 tb0 tb1 tb2 tb3 el vsrc vsrcp vreset vbn_leak vbp_st vbn_ref vbn_prb vbn_ax en abus vdd vss dend_d1
+.ends dend_d1t

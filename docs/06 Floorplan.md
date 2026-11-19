@@ -12,12 +12,13 @@ The tile is 346.64 × 325.36 µm. The TT digital pins run along the top edge; th
 | Block | Box (x0, y0 – x1, y1) | Area | Need (est.) | Margin |
 |---|---|---|---|---|
 | C1 control macro (rev C, hardened) | 132, 134 – 314, 316 | 33.1k | 33.1k | fixed |
-| NA neuron array, 4 × 4 slots | 8, 136 – 120, 310 | 19.5k | ~16k | +22 % |
+| NA neuron array, 4 × 4 slots | 8, 136 – 120, 310 | 19.5k | 19.5k (S slot laid out) | 0 % |
 | D1 dendrite | 132, 14 – 194.5, 118 | 6.5k | ~6k | +8 % |
 | B1 bias + R1 pad driver + Vreset buffer | 205, 14 – 336, 118 | 13.6k | ~12.4k | +10 % |
-| T2 Tier-2 zone (A1 AdEx ×2, S1 SC dendrite; W1 if room) | 8, 14 – 120, 118 | 11.6k | ~10k | +16 % |
+| T2 Tier-2 zone (A1 AdEx ×2, S1 SC dendrite) | 8, 14 – 120, 104 | 10.1k | ~10k | +1 % |
+| TE leak-τ trims for the 3 P slots | 8, 106 – 120, 118 | 1.3k | ~0.6k | +124 % |
 
-Blocks take 84.4k µm² (75 %). The other 28k is routing channels, power stripes and guard gaps.
+Blocks take 84.2k µm² (75 %). The other 28.6k is routing channels, power stripes and guard gaps.
 
 **Why it's arranged this way:**
 - **Macro at the top, under the TT pins.** The digital pins drop straight into its north edge.
@@ -30,7 +31,7 @@ Blocks take 84.4k µm² (75 %). The other 28k is routing channels, power stripes
 | Channel | Box | Carries |
 |---|---|---|
 | CH_BOT | y 2–12, full width | ua[0]/ua[1] entry; bias lines to D1 and T2 |
-| CH_MID | y 120–132, full width | bias lines B1 → NA (west, then up into the array's bottom edge); probe bus `abus` NA → pad driver; DAC codes from the macro south edge down into B1; sc_clk to T2 |
+| CH_MID | y 120–132, full width | bias lines B1 → NA (west, then up into the array's bottom edge); probe bus `abus` NA → pad driver; τ-trim bits from the macro south edge west to TE, and the 3 trimmed leak-bias lines from TE up into the array's columns; DAC codes from the macro south edge down into B1; sc_clk to T2 |
 | CH_TOP | y 317–324 | jogs from the TT pins to the macro's north-edge pins (24 signals) |
 | CH_E | x 315–336, y 134–316 | rst_n, clk from their tile pins into the macro's east edge |
 
@@ -73,7 +74,7 @@ The groups are placed as a 4 × 4 Latin square: each group has one member in eac
 - **F (fixed geometry):** parameters set by device sizing.
 - **S (shared bias):** parameters from the shared bias lines.
 - **H (hybrid):** S plus a per-neuron threshold trim.
-- **P (programmable):** threshold trim plus EL (leak-offset) trim.
+- **P (programmable):** gap trim plus a leak-τ trim (decided 2026-11-18). It can be cut if area runs short (§4).
 
 The trim choice follows the week-1 Monte Carlo: threshold explains 62–88 % of rate variance and leak offset ~25 %; leak conductance explains only 3–5 %, so it gets no trim.
 
@@ -87,21 +88,32 @@ The trim choice follows the week-1 Monte Carlo: threshold explains 62–88 % of 
 - ch14 (AH50) and ch15 (AH800) appear on uio[6]/[7] only when OUT_MUX = 1, in place of the digital LIF spike and the config echo.
 - ch0 is S1, so digital LIF source 3 ("analog neuron 0") is a shared-group neuron.
 
-**Trim nibbles (NTRIM = 16; 11 used):**
+**Trim nibbles (NTRIM = 16; 12 used):**
 
-| Nibble | Trim |
-|---|---|
-| 0 | H1 threshold |
-| 1, 2 | P1 threshold, P1 EL |
-| 3 | H2 threshold |
-| 4, 5 | P2 threshold, P2 EL |
-| 6 | H3 threshold |
-| 7, 8 | P3 threshold, P3 EL |
-| 9 | CMP threshold |
-| 10 | D1 plateau threshold |
-| 11–15 | spare |
+| Nibble | Trim | Where the trim cell sits |
+|---|---|---|
+| 0 | H1 threshold | in slot |
+| 1 | P1 threshold | in slot |
+| 2 | H2 threshold | in slot |
+| 3 | P2 threshold | in slot |
+| 4 | H3 threshold | in slot |
+| 5 | P3 threshold | in slot |
+| 6 | CMP threshold | in slot |
+| 7 | D1 subunit d1 plateau threshold | in D1 |
+| 8 | D1 subunit d2 plateau threshold | in D1 |
+| 9–12 | spare | — |
+| 13, 14, 15 | P1, P2, P3 leak τ | TE strip below the array |
 
-The spares could become AH50/AH800 threshold trims, or NTRIM could be cut to 11 to save 20 latches (~1k µm² of cells). That saving only matters if the macro is ever re-sized.
+**P's second knob is a leak-τ trim, outside the array** (decided 2026-11-18).
+- **Why not EL:** the slot track found the in-slot gap trim already does exactly what an EL trim would. It shifts rest relative to threshold and reset, so an EL trim would only duplicate it.
+- **What it changes:** the τ trim sets each P neuron's leak conductance, roughly 0.7–2× nominal τ. That is an independent per-neuron parameter.
+- **Expected effect:** as mismatch correction it is expected to help little, since leak g explains 3–5 % of rate variance. The point is per-neuron programmability.
+- **Why outside the array:** a laid-out slot only has room for one trim cell.
+- **Where:** three `trim4_n` current trims (B1's verified cell) plus diode masters sit in the **TE strip** (8, 106 – 120, 118), directly under the array.
+- **How the bias gets up:** each P slot is in a different column (P2 col 0, P3 col 2, P1 col 3). Each master's gate voltage runs up that column on an extra full-height Metal2 track, `aux`, which every slot carries as a feed-through. The P slot (`slot_ah_p`) takes its leak-OTA tail gate from `aux` instead of the shared `vbn_leak`.
+- **Cut path:** if area runs short, a single generator flag turns the P slots back into H slots and removes the TE strip. That gives its 1.3k µm² back to T2. The group then becomes 6 hybrid neurons.
+- **Wiring the bits:** their nibbles are the last three, so the 12 bits are contiguous and leave the macro's south edge (§5).
+- **Spares:** the 4 spare nibbles could become AH50/AH800 threshold trims. Alternatively, NTRIM could be cut to save latches, which only matters if the macro is ever re-sized.
 
 **Probe:**
 - **Selection:** PROBE_SEL k picks spike channel k's slot (ch13 = D1).
@@ -114,13 +126,13 @@ The spares could become AH50/AH800 threshold trims, or NTRIM could be cut to 11 
 |---|---|---|
 | N | uio_out, uo_out, ui_in (24), in tile pin order | TT pins, through CH_TOP |
 | E | rst_n, clk, plus uio_oe/uio_in parked unrouted | CH_E |
-| W | spk_in (16), probe one-hot (16), rt_out (4), trims (64) = 100 | NA |
-| S | sc_clk, misc analog bits (12), bias DAC codes (66) = 79 | CH_MID → D1, B1, T2 |
+| W | spk_in (16), probe one-hot (16), rt_out (4), in-array trims (52) = 88 | NA |
+| S | sc_clk, τ trims (12), misc analog bits (12), bias DAC codes (66) = 91 | CH_MID → TE, D1, B1, T2 |
 
 - **Verified in hardening.** Re-hardened with this pin order in `rtl/librelane/runs/fp_pins/` at the same 182 × 182 µm box:
   - every pin is on its intended edge, with clk/rst_n at the top of the east edge;
   - DRC (route, Magic, KLayout), LVS and antenna are clean;
-  - ss setup slack is +2.09 ns at 25 ns;
+  - ss setup slack is +1.86 ns at 25 ns (re-run after moving the P-slot trim bits to the south edge);
   - the power straps are unchanged (VDD at local x 15.92/65.92/115.92/165.92).
 
   This run replaces `s182_d86_cts` as the macro to integrate.
@@ -132,14 +144,21 @@ The spares could become AH50/AH800 threshold trims, or NTRIM could be cut to 11 
 - **Neuron count is set by the 16 spike pins.** The plan's N1 ×8 + N2 ×2 + G1 4×4 became 12 group neurons + CMP + AH50 + AH800 + D1 soma.
   - 50 fF comparator variant dropped: the Monte Carlo showed 50 fF ≈ 200 fF for static mismatch.
   - Separate probed/unprobed pairs (P1) dropped: every slot has a follower, so loading is measured as "probe enabled vs disabled" on the same neuron.
-- **Tier-2 budget is 11.6k µm², not ~25k.** Plan order A1 → S1 → W1. D2 (second dendrite) no longer fits.
+- **Tier-2 budget is 10.1k µm², not ~25k.** That is A1 + S1 with no margin. W1 and D2 (second dendrite) no longer fit.
 - **Hybrid group's trim is a threshold trim, not a gain trim.** This needs a new voltage-offset trim cell. B1's existing `trim4` current trim is used for nothing in the array as now planned.
 
 ## 7. Risks to retire at G2 (Nov 22)
 
-1. **Slot size.** 1,218 µm² has to hold an axon-hillock LIF plus two trims (P slots) or an 800 fF cap (AH800, 200 µm² of cap alone). The first N1 layout settles this; NA has 22 % spare in the block.
+1. **Slot size.** *Update 2026-11-17:* the S slot is laid out at exactly 28 × 43.5 µm (`layout/slot/`). It is Magic and KLayout DRC clean and LVS-matched, and it reserves room for one 170 µm² trim and the synapse. It is routing-bound: routing takes 39 % of the slot, so the area is used up. The P slot (`slot_ah_p`) is also laid out, with an extra `aux` column line at x = 21.35, in the same box. It too is DRC clean and LVS-matched. Its second (leak-τ) trim lives outside the array (§4). Still open: AH800 needs a cap 4× larger. Original note: 1,218 µm² has to hold an axon-hillock LIF plus two trims (P slots) or an 800 fF cap (AH800, 200 µm² of cap alone). The first N1 layout settles this; NA has 22 % spare in the block.
 2. **B1 area.** The 10.2k µm² estimate is routing-bound and unverified. The 10 % margin can be grown by sliding the macro west, at the cost of the neuron array's width.
 3. **CH_TOP capacity** (§2).
-4. **TT questions for Discord:**
-   - Can project power stripes be shorter than full height (for an analog-only stripe set)?
-   - Are tie cells on uio_oe acceptable in an analog tile?
+4. **TT questions:** answered 2026-11-18 (`docs/07 TT Discord Answers.md`).
+   - Power ports must be full height.
+   - Tie-high cells on uio_oe are preferred.
+   - The macro inside the tile is fine.
+
+   New follow-ups:
+   - Secondary ESD on ua[0].
+   - Readout settling into a much larger board capacitance.
+   - Rewrite the config after every enable.
+   - Whether to move the analog section to VAPWR.

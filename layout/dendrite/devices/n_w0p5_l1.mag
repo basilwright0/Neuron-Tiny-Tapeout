@@ -1,0 +1,35 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 1795048151
+<< checkpaint >>
+rect -2212 -2118 2212 2118
+<< pwell >>
+rect -212 -118 212 118
+<< nmos >>
+rect -100 -50 100 50
+<< ndiff >>
+rect -188 37 -100 50
+rect -188 -37 -175 37
+rect -129 -37 -100 37
+rect -188 -50 -100 -37
+rect 100 37 188 50
+rect 100 -37 129 37
+rect 175 -37 188 37
+rect 100 -50 188 -37
+<< ndiffc >>
+rect -175 -37 -129 37
+rect 129 -37 175 37
+<< polysilicon >>
+rect -100 50 100 94
+rect -100 -94 100 -50
+<< metal1 >>
+rect -175 37 -129 48
+rect -175 -48 -129 -37
+rect 129 37 175 48
+rect 129 -48 175 -37
+<< properties >>
+string gencell nfet_03v3
+string library gf180mcu
+string parameters w 0.5 l 1 m 1 nf 1 diffcov 100 polycov 100 guard 0 glc 1 grc 1 gtc 0 gbc 0 tbcov 100 rlcov 100 topc 0 botc 0 poverlap 0 doverlap 1 lmin 0.28 wmin 0.22 class mosfet full_metal 1 compatible {nfet_03v3 nfet_05v0 nfet_06v0 nfet_06v0_nvt}
+<< end >>

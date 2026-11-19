@@ -1,0 +1,100 @@
+
+Circuit 1 cell pfet_03v3 and Circuit 2 cell pfet_03v3 are black boxes.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes pfet_03v3 and pfet_03v3 are equivalent.
+
+Circuit 1 cell nfet_03v3 and Circuit 2 cell nfet_03v3 are black boxes.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes nfet_03v3 and nfet_03v3 are equivalent.
+
+Circuit 1 cell ppolyf_u_1k and Circuit 2 cell ppolyf_u_1k are black boxes.
+Warning: Equate pins:  cell ppolyf_u_1k is a placeholder, treated as a black box.
+Warning: Equate pins:  cell ppolyf_u_1k is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: ppolyf_u_1k                     |Circuit 2: ppolyf_u_1k                     
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes ppolyf_u_1k and ppolyf_u_1k are equivalent.
+Flattening unmatched subcell p_w0p8_l2 in circuit bias_vi (0)(2 instances)
+Flattening unmatched subcell p_w4_l2_f4 in circuit bias_vi (0)(4 instances)
+Flattening unmatched subcell p_w0p5_l10 in circuit bias_vi (0)(1 instance)
+Flattening unmatched subcell n_w2_l2_f4 in circuit bias_vi (0)(2 instances)
+Flattening unmatched subcell p_w4_l1_f4 in circuit bias_vi (0)(4 instances)
+Flattening unmatched subcell p_w2_l2 in circuit bias_vi (0)(2 instances)
+Flattening unmatched subcell n_w4_l2_f2 in circuit bias_vi (0)(1 instance)
+Flattening unmatched subcell p_w1_l0p5 in circuit bias_vi (0)(1 instance)
+Flattening unmatched subcell n_w0p5_l1 in circuit bias_vi (0)(2 instances)
+Flattening unmatched subcell n_w2_l2 in circuit bias_vi (0)(3 instances)
+Flattening unmatched subcell p_w4_l2 in circuit bias_vi (0)(1 instance)
+Flattening unmatched subcell n_w4_l2 in circuit bias_vi (0)(2 instances)
+Flattening unmatched subcell p_w4_l1 in circuit bias_vi (0)(1 instance)
+Flattening unmatched subcell r_w1_l14p19 in circuit bias_vi (0)(4 instances)
+Flattening unmatched subcell p_w0p5_l4 in circuit bias_vi (0)(1 instance)
+Flattening unmatched subcell n_w4_l0p5 in circuit bias_vi (0)(1 instance)
+
+Class bias_vi (0):  Merged 31 parallel devices.
+Class bias_vi (0):  Merged 3 series devices.
+Class bias_vi (1):  Merged 6 parallel devices.
+Class bias_vi (1):  Merged 3 series devices.
+Subcircuit summary:
+Circuit 1: bias_vi                         |Circuit 2: bias_vi                         
+-------------------------------------------|-------------------------------------------
+pfet_03v3 (41->17)                         |pfet_03v3 (17)                             
+nfet_03v3 (18->11)                         |nfet_03v3 (17->11)                         
+ppolyf_u_1k (4->1)                         |ppolyf_u_1k (4->1)                         
+Number of devices: 29                      |Number of devices: 29                      
+Number of nets: 26                         |Number of nets: 26                         
+---------------------------------------------------------------------------------------
+Resolving symmetries by property value.
+Resolving symmetries by pin name.
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: bias_vi                         |Circuit 2: bias_vi                         
+-------------------------------------------|-------------------------------------------
+vglp                                       |vglp                                       
+vss                                        |vss                                        
+vgln                                       |vgln                                       
+vth_ref                                    |vth_ref                                    
+el                                         |el                                         
+vth_cmp                                    |vth_cmp                                    
+vreset_src                                 |vreset_src                                 
+ib_x2                                      |ib_x2                                      
+iint                                       |iint                                       
+en                                         |en                                         
+ib_r1                                      |ib_r1                                      
+vbn_prb                                    |vbn_prb                                    
+vdd                                        |vdd                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes bias_vi and bias_vi are equivalent.
+
+Final result: Circuits match uniquely.
+.

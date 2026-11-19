@@ -1,0 +1,133 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 0
+use r_w1_l14p19  XR00
+timestamp 1795060945
+transform 1 0 600 0 1 2281
+box -100 -1541 100 1541
+use r_w1_l14p19  XR01
+timestamp 1795060945
+transform 1 0 1040 0 1 2281
+box -100 -1541 100 1541
+use r_w1_l14p19  XR02
+timestamp 1795060945
+transform 1 0 1480 0 1 2281
+box -100 -1541 100 1541
+use r_w1_l14p19  XR03
+timestamp 1795060945
+transform 1 0 1920 0 1 2281
+box -100 -1541 100 1541
+use n_w4_l2  N1
+timestamp 1795060939
+transform 1 0 4440 0 1 1128
+box -312 -468 312 468
+use n_w4_l2  N2
+timestamp 1795060939
+transform 1 0 5176 0 1 1128
+box -312 -468 312 468
+use n_w2_l2  NT
+timestamp 1794972987
+transform 1 0 5912 0 1 1128
+box -312 -268 312 268
+use n_w2_l2  NB
+timestamp 1794972987
+transform 1 0 6648 0 1 1128
+box -312 -268 312 268
+use n_w4_l2_f2  NS
+timestamp 1795060940
+transform 1 0 7636 0 1 1128
+box -564 -468 564 468
+use n_w0p5_l1  MS1
+timestamp 1794971372
+transform 1 0 8524 0 1 1128
+box -212 -118 212 118
+use n_w0p5_l1  MS2
+timestamp 1794971372
+transform 1 0 9060 0 1 1128
+box -212 -118 212 118
+use n_w2_l2  DB
+timestamp 1794972987
+transform 1 0 4234 0 1 2364
+box -312 -268 312 268
+use n_w2_l2_f4  OR
+timestamp 1795060940
+transform 1 0 5726 0 1 2364
+box -1068 -268 1068 268
+use n_w2_l2_f4  OX
+timestamp 1795060940
+transform 1 0 7974 0 1 2364
+box -1068 -268 1068 268
+use n_w4_l0p5  SX2
+timestamp 1794972977
+transform 1 0 9316 0 1 2364
+box -162 -468 162 468
+use p_w2_l2  P1
+timestamp 1794973258
+transform 1 0 2302 0 1 4952
+box -374 -330 374 330
+use p_w2_l2  P2
+timestamp 1794973258
+transform 1 0 3118 0 1 4952
+box -374 -330 374 330
+use p_w0p5_l4  PB
+timestamp 1795060941
+transform 1 0 4134 0 1 4952
+box -574 -180 574 180
+use p_w0p5_l10  PS
+timestamp 1795060941
+transform 1 0 5950 0 1 4952
+box -1174 -180 1174 180
+use p_w1_l0p5  POFF
+timestamp 1795060942
+transform 1 0 7416 0 1 4952
+box -224 -230 224 230
+use p_w0p8_l2  PP
+timestamp 1795060942
+transform 1 0 8082 0 1 4952
+box -374 -210 374 210
+use p_w0p8_l2  PI
+timestamp 1795060942
+transform 1 0 8898 0 1 4952
+box -374 -210 374 210
+use p_w4_l2_f4  MO
+timestamp 1795060943
+transform 1 0 1820 0 1 6050
+box -1130 -530 1130 530
+use p_w4_l2_f4  ME
+timestamp 1795060943
+transform 1 0 4088 0 1 6050
+box -1130 -530 1130 530
+use p_w4_l2_f4  MR
+timestamp 1795060943
+transform 1 0 6356 0 1 6050
+box -1130 -530 1130 530
+use p_w4_l2_f4  MC
+timestamp 1795060943
+transform 1 0 8624 0 1 6050
+box -1130 -530 1130 530
+use p_w4_l2  MT
+timestamp 1795060943
+transform 1 0 10136 0 1 6050
+box -374 -530 374 530
+use p_w4_l1_f4  KO
+timestamp 1795060944
+transform 1 0 3120 0 1 7348
+box -730 -530 730 530
+use p_w4_l1_f4  KE
+timestamp 1795060944
+transform 1 0 4588 0 1 7348
+box -730 -530 730 530
+use p_w4_l1_f4  KR
+timestamp 1795060944
+transform 1 0 6056 0 1 7348
+box -730 -530 730 530
+use p_w4_l1_f4  KC
+timestamp 1795060944
+transform 1 0 7524 0 1 7348
+box -730 -530 730 530
+use p_w4_l1  KT
+timestamp 1795060945
+transform 1 0 8536 0 1 7348
+box -274 -530 274 530
+<< end >>

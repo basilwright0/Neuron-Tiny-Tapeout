@@ -1,0 +1,10 @@
+* NGSPICE file created from rx_p24.ext - technology: gf180mcuD
+
+.subckt p_w2_l4 a_400_n200# a_n400_n244# w_n574_n330# a_n488_n200#
+X0 a_400_n200# a_n400_n244# a_n488_n200# w_n574_n330# pfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=4u
+.ends
+
+.subckt rx_p24 line vdd vss
+XD line line vdd vdd p_w2_l4
+.ends
+

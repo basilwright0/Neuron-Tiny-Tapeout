@@ -1,0 +1,43 @@
+* trim_gap4: 4-bit per-neuron Vth-EL gap trim for the axon-hillock LIF (gf180mcuD, 3.3 V devices).
+*
+* Principle: an offset current into the leak OTA's output mirror shifts the resting point (EL_eff)
+* by dV = I_off / g, with g = G * I_b (G ~ 6.2 S/A for leak_ota_deg). The offset current is a
+* fraction of a mirror of the OTA's own tail current (same gate line vbn_leak), so dV = (I_off/I_b)/G
+* is independent of the speed S (I_b) -- the trim is portable across S = 10..1000.
+*
+* Current DAC: subthreshold Bult-Geelen MOS R-2R ladder, all gates on vbn_leak.
+*   unit R = W/L 0.5/1.5 (3 sq), 2R = 0.5/3 (6 sq); ladder input resistance R = 3 sq, series XRA+XRB
+*   16 sq: by square count T = I_b * 2sq/19sq ~ I_b/9.5 (tail = 2/4 = 2 sq); the 0.5 um wide devices
+*   are ~1.47x stronger per square than the 2 um tail in subthreshold, so T ~ I_b/6.8 (simulated).
+*   Legs: T/2, T/4, T/8, T/16; the T/16 termination is dumped to vdd.
+* Steering, per bit k (no inverters):
+*   b_k = 1: nfet XN_k connects leg k to node a (the OTA's mirror diode) -> the current is mirrored
+*            into vm: +I_k into vm;
+*   b_k = 0: pfet XP_k connects leg k to vm directly: -I_k from vm.
+*   I_off = (2c - 15) * T/16, c = b0 + 2 b1 + 4 b2 + 8 b3  -> 16 odd steps of T/8.
+*   Nominal: dV/step = (1/6.8)/8/6.18 S/A ~ 3.0 mV; range c=0..15 -> ~ -22 .. +22 mV of rest shift
+*   (code 15: rest up, i.e. the Vth-EL gap shrinks and the neuron fires faster). No code is exactly 0;
+*   codes 7/8 are ~ -/+1.5 mV.
+* All 8 switches are static (trim bits); legs stay saturated in both positions (a ~ 2.9 V, vm ~ 1.2 V).
+*
+* Ports: a vm vbn b0 b1 b2 b3 vdd vss
+.subckt trim_gap4 a vm vbn b0 b1 b2 b3 vdd vss
+XRA nr vbn vss vss nfet_03v3 W=0.5u L=4u
+XRB n1 vbn nr  vss nfet_03v3 W=0.5u L=4u
+XL3 o3 vbn n1  vss nfet_03v3 W=0.5u L=3u
+XR1 n2 vbn n1  vss nfet_03v3 W=0.5u L=1.5u
+XL2 o2 vbn n2  vss nfet_03v3 W=0.5u L=3u
+XR2 n3 vbn n2  vss nfet_03v3 W=0.5u L=1.5u
+XL1 o1 vbn n3  vss nfet_03v3 W=0.5u L=3u
+XR3 n4 vbn n3  vss nfet_03v3 W=0.5u L=1.5u
+XL0 o0 vbn n4  vss nfet_03v3 W=0.5u L=3u
+XLT vdd vbn n4 vss nfet_03v3 W=0.5u L=3u
+XN3 a  b3 o3 vss nfet_03v3 W=0.5u L=0.28u
+XN2 a  b2 o2 vss nfet_03v3 W=0.5u L=0.28u
+XN1 a  b1 o1 vss nfet_03v3 W=0.5u L=0.28u
+XN0 a  b0 o0 vss nfet_03v3 W=0.5u L=0.28u
+XP3 vm b3 o3 vdd pfet_03v3 W=1u L=0.28u
+XP2 vm b2 o2 vdd pfet_03v3 W=1u L=0.28u
+XP1 vm b1 o1 vdd pfet_03v3 W=1u L=0.28u
+XP0 vm b0 o0 vdd pfet_03v3 W=1u L=0.28u
+.ends trim_gap4

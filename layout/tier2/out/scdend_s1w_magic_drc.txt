@@ -1,0 +1,1 @@
+magic DRC, style drc(full), cell scdend_s1w: 0 error tiles

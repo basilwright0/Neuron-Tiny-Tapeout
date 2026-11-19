@@ -1,0 +1,65 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 1795060943
+<< checkpaint >>
+rect -3130 -2530 3130 2530
+<< nwell >>
+rect -1130 -530 1130 530
+<< pmos >>
+rect -956 -400 -556 400
+rect -452 -400 -52 400
+rect 52 -400 452 400
+rect 556 -400 956 400
+<< pdiff >>
+rect -1044 387 -956 400
+rect -1044 -387 -1031 387
+rect -985 -387 -956 387
+rect -1044 -400 -956 -387
+rect -556 387 -452 400
+rect -556 -387 -527 387
+rect -481 -387 -452 387
+rect -556 -400 -452 -387
+rect -52 387 52 400
+rect -52 -387 -23 387
+rect 23 -387 52 387
+rect -52 -400 52 -387
+rect 452 387 556 400
+rect 452 -387 481 387
+rect 527 -387 556 387
+rect 452 -400 556 -387
+rect 956 387 1044 400
+rect 956 -387 985 387
+rect 1031 -387 1044 387
+rect 956 -400 1044 -387
+<< pdiffc >>
+rect -1031 -387 -985 387
+rect -527 -387 -481 387
+rect -23 -387 23 387
+rect 481 -387 527 387
+rect 985 -387 1031 387
+<< polysilicon >>
+rect -956 400 -556 444
+rect -452 400 -52 444
+rect 52 400 452 444
+rect 556 400 956 444
+rect -956 -444 -556 -400
+rect -452 -444 -52 -400
+rect 52 -444 452 -400
+rect 556 -444 956 -400
+<< metal1 >>
+rect -1031 387 -985 398
+rect -1031 -398 -985 -387
+rect -527 387 -481 398
+rect -527 -398 -481 -387
+rect -23 387 23 398
+rect -23 -398 23 -387
+rect 481 387 527 398
+rect 481 -398 527 -387
+rect 985 387 1031 398
+rect 985 -398 1031 -387
+<< properties >>
+string gencell pfet_03v3
+string library gf180mcu
+string parameters w 4 l 2 m 1 nf 4 diffcov 100 polycov 100 guard 0 glc 1 grc 1 gtc 0 gbc 0 tbcov 100 rlcov 100 topc 0 botc 0 poverlap 0 doverlap 1 lmin 0.28 wmin 0.22 class mosfet full_metal 1 compatible {pfet_03v3 pfet_05v0 pfet_06v0}
+<< end >>

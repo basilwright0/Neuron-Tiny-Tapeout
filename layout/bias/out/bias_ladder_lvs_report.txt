@@ -1,0 +1,75 @@
+
+Circuit 1 cell pfet_03v3 and Circuit 2 cell pfet_03v3 are black boxes.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes pfet_03v3 and pfet_03v3 are equivalent.
+
+Circuit 1 cell nfet_03v3 and Circuit 2 cell nfet_03v3 are black boxes.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes nfet_03v3 and nfet_03v3 are equivalent.
+Flattening unmatched subcell p_w4_l2_f5 in circuit bias_ladder (0)(1 instance)
+Flattening unmatched subcell p_w2_l1 in circuit bias_ladder (0)(3 instances)
+Flattening unmatched subcell n_w4_l2_f6 in circuit bias_ladder (0)(1 instance)
+Flattening unmatched subcell n_w2_l2_f2 in circuit bias_ladder (0)(3 instances)
+Flattening unmatched subcell n_w2_l1 in circuit bias_ladder (0)(2 instances)
+Flattening unmatched subcell p_w2_l2_f8 in circuit bias_ladder (0)(3 instances)
+Flattening unmatched subcell n_w2_l2_f8 in circuit bias_ladder (0)(2 instances)
+Flattening unmatched subcell p_w2_l2 in circuit bias_ladder (0)(4 instances)
+Flattening unmatched subcell n_w2_l2 in circuit bias_ladder (0)(4 instances)
+Flattening unmatched subcell p_w2_l2_f2 in circuit bias_ladder (0)(3 instances)
+
+Class bias_ladder (0):  Merged 35 parallel devices.
+Class bias_ladder (1):  Merged 46 parallel devices.
+Subcircuit summary:
+Circuit 1: bias_ladder                     |Circuit 2: bias_ladder                     
+-------------------------------------------|-------------------------------------------
+pfet_03v3 (42->21)                         |pfet_03v3 (47->21)                         
+nfet_03v3 (34->20)                         |nfet_03v3 (40->20)                         
+Number of devices: 41                      |Number of devices: 41                      
+Number of nets: 29                         |Number of nets: 29                         
+---------------------------------------------------------------------------------------
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: bias_ladder                     |Circuit 2: bias_ladder                     
+-------------------------------------------|-------------------------------------------
+vgn5                                       |vgn5                                       
+vgp6                                       |vgp6                                       
+vsp                                        |vsp                                        
+vgln                                       |vgln                                       
+vss                                        |vss                                        
+vgp3                                       |vgp3                                       
+vgp5                                       |vgp5                                       
+vsn                                        |vsn                                        
+vdd                                        |vdd                                        
+in_n                                       |in_n                                       
+in_p                                       |in_p                                       
+vglp                                       |vglp                                       
+vgn3                                       |vgn3                                       
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes bias_ladder and bias_ladder are equivalent.
+
+Final result: Circuits match uniquely.
+.

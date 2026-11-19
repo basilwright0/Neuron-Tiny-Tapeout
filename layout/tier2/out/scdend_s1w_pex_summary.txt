@@ -1,0 +1,11 @@
+756 parasitic capacitors in scdend_s1w_pex.spice
+C(spk-vs) = 8.29 fF
+C(ca-vss) = 11.60 fF
+C(cl-vss) = 5.42 fF
+C(ca-d) = 0.20 fF
+C(ca-vs) = 0.30 fF
+vs   total =  21.38 fF; largest: spk 8.29, vss 6.09, d 1.79, vdd 1.35, el 0.76, a_488_5320# 0.56, a_3024_4060# 0.40, ca 0.30, m1_3716_1916# 0.29, m1_4750_1926# 0.22, a_788_4018# 0.18, m1_1446_3050# 0.14, vsrc 0.14, m1_4406_2052# 0.14
+d    total =  10.59 fF; largest: vss 3.08, vs 1.79, vdd 1.11, el 0.81, a_3024_4060# 0.61, a_2784_6414# 0.35, hold 0.28, m1_3716_1916# 0.25, vbn_prb 0.23, m1_4750_1926# 0.23, m1_3612_4340# 0.21, m1_4406_2052# 0.20, ca 0.20, m1_4910_19
+ca   total =  12.88 fF; largest: vss 11.60, spk 0.37, vs 0.30, vbn_prb 0.21, d 0.20, cl 0.12, a_7304_6414# 0.03, el 0.02, a_5424_4114# 0.02, sel2 0.00, mreset 0.00, sel0 0.00, vdd 0.00, m1_4066_6230# 0.00, vbn_leak 0.00
+cl   total =   7.55 fF; largest: vss 5.42, mreset 0.56, a_7304_6414# 0.29, vbn_prb 0.26, sel2 0.19, spk 0.17, a_5424_4114# 0.16, el 0.16, ca 0.12, m1_4066_6230# 0.10, vbn_leak 0.08, vs 0.02, vdd 0.01, vsrc 0.01, d 0.00, vbp_st 0.00, 
+spk  total =  24.95 fF; largest: vs 8.29, vss 5.23, vdd 3.69, mreset 1.47, el 0.90, vsrc 0.89, vreset 0.74, vbp_syn 0.72, ca 0.37, sta 0.37, vbn_prb 0.36, m1_176_6220# 0.26, cl 0.17, a_1880_6414# 0.17, stb 0.15, a_2784_6414# 0.12, se

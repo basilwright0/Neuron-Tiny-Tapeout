@@ -2,6 +2,7 @@
 *   I_out = I_ref * (8 + c)/16 , c = c0+2c1+4c2+8c3  -> 0.50x .. 1.4375x (c=8 -> 1.00x)
 *   Units 1/2 um (2 um^2): 8 always-on + 1,2,4,8 switched (drain switches).
 *   trim_ref_p/_n: the shared 16-unit diode that defines I_ref -> gate line vg.
+*   Not used by the floorplan of 2026-11-17 (threshold trims are voltage trims); kept for benches.
 * Ports trim4_p: out vg vsp c0 c1 c2 c3 vdd vss  (sources current into out)
 * Ports trim4_n: out vg vsn c0 c1 c2 c3 vdd vss  (sinks current from out)
 * Ports trim_ref_p: vg vsp vdd   (input current is drawn out of vg)

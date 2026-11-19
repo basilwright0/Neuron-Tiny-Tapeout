@@ -1,0 +1,96 @@
+* bias_ladder: two Bult-Geelen MOS R-2R ladders with fixed taps + tap diodes (block B1), rev C
+* n-ladder (gates at vgln, input in_n) has nodes 0..6; the shunts at nodes 3,5,6 feed 8-unit pfet diodes
+*   (drain-boosted by a source follower) -> p gate lines vgp<k> (source vsp) for idac_p.
+* p-ladder (gates at vglp, input in_p) has nodes 0..5; taps 3,5 -> nfet diodes -> vgn<k> (source vsn) for idac_n.
+* Node k shunt current = I_in/2^(k+1) = tap diode current; idac LSB = I_in/2^(k+4)  (I_in = I_nd/16).
+* (The BSIM split ratio is ~1.93 per halving, so real taps are ~5 % per halving larger.)
+* Ports: in_n in_p vgn3 vgn5 vgp3 vgp5 vgp6 vsn vsp vgln vglp vdd vss
+.subckt bias_ladder in_n in_p vgn3 vgn5 vgp3 vgp5 vgp6 vsn vsp vgln vglp vdd vss
+XnnSH0 vdd vgln in_n vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE0_0 nn1 vgln in_n vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE0_1 nn1 vgln in_n vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSH1 vdd vgln nn1 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE1_0 nn2 vgln nn1 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE1_1 nn2 vgln nn1 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSH2 vdd vgln nn2 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE2_0 nn3 vgln nn2 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE2_1 nn3 vgln nn2 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSH3 xp3 vgln nn3 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE3_0 nn4 vgln nn3 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE3_1 nn4 vgln nn3 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSH4 vdd vgln nn4 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE4_0 nn5 vgln nn4 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE4_1 nn5 vgln nn4 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSH5 xp5 vgln nn5 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE5_0 nn6 vgln nn5 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSE5_1 nn6 vgln nn5 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnSH6 xp6 vgln nn6 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnnTERM vdd vgln nn6 vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSH0 vss vglp in_p vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSE0_0 np1 vglp in_p vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSE0_1 np1 vglp in_p vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSH1 vss vglp np1 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSE1_0 np2 vglp np1 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSE1_1 np2 vglp np1 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSH2 vss vglp np2 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSE2_0 np3 vglp np2 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSE2_1 np3 vglp np2 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSH3 xn3 vglp np3 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSE3_0 np4 vglp np3 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSE3_1 np4 vglp np3 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSH4 vss vglp np4 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSE4_0 np5 vglp np4 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSE4_1 np5 vglp np4 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpSH5 xn5 vglp np5 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XnpTERM vss vglp np5 vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP3_0 xp3 vgp3 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP3_1 xp3 vgp3 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP3_2 xp3 vgp3 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP3_3 xp3 vgp3 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP3_4 xp3 vgp3 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP3_5 xp3 vgp3 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP3_6 xp3 vgp3 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP3_7 xp3 vgp3 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XFP3 vss xp3 vgp3 vgp3 pfet_03v3 W=2u L=1u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XBP3 vgp3 vgp6 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP5_0 xp5 vgp5 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP5_1 xp5 vgp5 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP5_2 xp5 vgp5 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP5_3 xp5 vgp5 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP5_4 xp5 vgp5 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP5_5 xp5 vgp5 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP5_6 xp5 vgp5 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP5_7 xp5 vgp5 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XFP5 vss xp5 vgp5 vgp5 pfet_03v3 W=2u L=1u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XBP5 vgp5 vgp6 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP6_0 xp6 vgp6 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP6_1 xp6 vgp6 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP6_2 xp6 vgp6 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP6_3 xp6 vgp6 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP6_4 xp6 vgp6 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP6_5 xp6 vgp6 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP6_6 xp6 vgp6 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDP6_7 xp6 vgp6 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XFP6 vss xp6 vgp6 vgp6 pfet_03v3 W=2u L=1u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XBP6 vgp6 vgp6 vsp vdd pfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN3_0 xn3 vgn3 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN3_1 xn3 vgn3 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN3_2 xn3 vgn3 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN3_3 xn3 vgn3 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN3_4 xn3 vgn3 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN3_5 xn3 vgn3 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN3_6 xn3 vgn3 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN3_7 xn3 vgn3 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XFN3 vdd xn3 vgn3 vss nfet_03v3 W=2u L=1u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XBN3 vgn3 vgn5 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN5_0 xn5 vgn5 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN5_1 xn5 vgn5 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN5_2 xn5 vgn5 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN5_3 xn5 vgn5 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN5_4 xn5 vgn5 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN5_5 xn5 vgn5 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN5_6 xn5 vgn5 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XDN5_7 xn5 vgn5 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XFN5 vdd xn5 vgn5 vss nfet_03v3 W=2u L=1u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+XBN5 vgn5 vgn5 vsn vss nfet_03v3 W=2u L=2u ad=1.2p as=1.2p pd=5.2u ps=5.2u
+.ends bias_ladder

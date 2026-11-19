@@ -1,0 +1,51 @@
+* LVS reference for slot_ah_800: flattened from cells/neuron/slot.spice by layout/slot/flatten.py
+* Cfb (MOM capacitor, value from PEX) omitted: XD.CFB
+.subckt slot_ah_800 vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn sta stb hold mreset
+XXC_XC vss vm vss vss nfet_03v3 W=7.07u L=7.07u
+XXC2_XC vss vm vss vss nfet_03v3 W=11.7u L=12.4u
+XXL_XMT XL.t vbn_leak vss vss nfet_03v3 W=2u L=4u
+XXL_XM1 la el XL.s1 vss nfet_03v3 W=4u L=1u
+XXL_XD1 XL.s1 XL.s1 XL.t vss nfet_03v3 W=8u L=1u
+XXL_XM2 vl vl XL.s2 vss nfet_03v3 W=4u L=1u
+XXL_XD2 XL.s2 XL.s2 XL.t vss nfet_03v3 W=8u L=1u
+XXL_XP1 la la vdd vdd pfet_03v3 W=2u L=4u
+XXL_XP2 vl la vdd vdd pfet_03v3 W=2u L=4u
+XXD_XPS XD.s vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XXD_XPI XD.n1 vm XD.s vdd pfet_03v3 W=1u L=0.5u
+XXD_XNI XD.n1 vm vsrc vss nfet_03v3 W=1u L=0.5u
+XXD_XS2 XD.s2 vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XXD_XP2 XD.p XD.n1 XD.s2 vdd pfet_03v3 W=1u L=0.28u
+XXD_XN2 XD.p XD.n1 vsrc vss nfet_03v3 W=0.22u L=2u
+XXD_XS3 XD.s3 vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XXD_XP3 XD.pb XD.p XD.s3 vdd pfet_03v3 W=1u L=0.28u
+XXD_XN3 XD.pb XD.p vsrc vss nfet_03v3 W=0.5u L=0.28u
+XXD_Xi4_XN spk XD.pb vss vss nfet_03v3 W=0.5u L=0.28u
+XXD_Xi4_XP spk XD.pb vdd vdd pfet_03v3 W=1u L=0.28u
+XXR_Xi_XN XR.spkb spk vss vss nfet_03v3 W=0.5u L=0.28u
+XXR_Xi_XP XR.spkb spk vdd vdd pfet_03v3 W=1u L=0.28u
+XXR_XPC vr XR.spkb vdd vdd pfet_03v3 W=1u L=0.28u
+XXR_XNR vr vbn_ref vss vss nfet_03v3 W=2u L=4u
+XXR_XCR_XC vss vr vss vss nfet_03v3 W=3.54u L=3.54u
+XXR_XSW vm vr vreset vss nfet_03v3 W=0.5u L=0.5u
+XXPM_XMF vdd vm XPM.prb vss nfet_03v3 W=4u L=2u
+XXPM_XME XPM.prb en XPM.s vss nfet_03v3 W=1u L=0.28u
+XXPM_XMB XPM.s vbn_prb vss vss nfet_03v3 W=2u L=2u
+XXPM_XSC XPM.prb en XPM.mc vss nfet_03v3 W=1u L=0.28u
+XXPM_XSW XPM.mc rsel XPM.m vss nfet_03v3 W=1u L=0.28u
+XXPM_XSB XPM.m sub_b abus vss nfet_03v3 W=1u L=0.28u
+XXPR_XMF vdd vr XPR.prb vss nfet_03v3 W=4u L=2u
+XXPR_XME XPR.prb en XPR.s vss nfet_03v3 W=1u L=0.28u
+XXPR_XMB XPR.s vbn_prb vss vss nfet_03v3 W=2u L=2u
+XXPR_XSC XPR.prb en XPR.mc vss nfet_03v3 W=1u L=0.28u
+XXPR_XSW XPR.mc rsel XPR.m vss nfet_03v3 W=1u L=0.28u
+XXPR_XSB XPR.m sub abus vss nfet_03v3 W=1u L=0.28u
+XXS_XPH XS.h hold vdd vdd pfet_03v3 W=1u L=2u
+XXS_XWA XS.da vbp_syn XS.h vdd pfet_03v3 W=2u L=4u
+XXS_XWB XS.db vbp_syn XS.h vdd pfet_03v3 W=2u L=4u
+XXS_XNA XS.da sta vm vss nfet_03v3 W=0.5u L=0.28u
+XXS_XNB XS.db stb vm vss nfet_03v3 W=0.5u L=0.28u
+XXS_XQA vss sta XS.da vdd pfet_03v3 W=1u L=0.28u
+XXS_XQB vss stb XS.db vdd pfet_03v3 W=1u L=0.28u
+XXS_XHL vm hold vl vdd pfet_03v3 W=1u L=0.28u
+XXS_XMR vdd mreset vr vss nfet_03v3 W=0.5u L=0.28u
+.ends slot_ah_800

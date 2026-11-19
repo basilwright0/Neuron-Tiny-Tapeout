@@ -1,4 +1,4 @@
-// nc_cfg.v -- rev C write-only configuration port of neuron_ctrl (shift register + latch-enable decode).
+// nc_cfg.v -- rev C/E write-only configuration port of neuron_ctrl (shift register + latch-enable decode).
 //
 // SCK (rising edge) shifts DATA into a 13-bit shift register, MSB first:
 // frame = {ADDR[4:0], DATA[7:0]}. Only the last 13 bits before LOAD count.
@@ -18,7 +18,7 @@ module nc_cfg (
     input  wire                  sck,
     input  wire                  sdi,
     input  wire                  load,
-    output wire [25:0]           le,       // latch enable per byte address
+    output wire [22:0]           le,       // latch enable per byte address (width = NREG)
     output wire [7:0]            data,     // frame DATA field -> latch D inputs
     output wire                  echo
 );

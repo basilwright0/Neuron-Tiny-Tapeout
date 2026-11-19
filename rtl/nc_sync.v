@@ -1,4 +1,4 @@
-// nc_sync.v -- synchronizers, reset bridge, latch/clock-gate cells and SC divider for neuron_ctrl.
+// nc_sync.v -- synchronizers, reset bridge, latch and clock-gate cells for neuron_ctrl.
 `default_nettype none
 
 // 2-flop synchronizer. Async reset to RST_VAL.
@@ -76,28 +76,6 @@ module nc_cg (
     always @(*) if (!clk) en_l = en;
     assign gclk = clk & en_l;
 `endif
-endmodule
-
-// SC clock divider: synchronous (ripple-free) 15-bit counter, cleared while
-// div = 0; sc_clk = re-registered counter bit div-1 -> period 2^div clk, 50 %.
-// The counter has no async reset (cheaper dffq): div = 0 during reset, so it
-// is cleared synchronously by the first clk edge of the reset.
-module nc_scdiv (
-    input  wire       clk,
-    input  wire       rst_n,
-    input  wire [3:0] div,
-    output reg        sc_clk
-);
-    reg [14:0] cnt;
-    always @(posedge clk) begin
-        if (div == 4'd0) cnt <= 15'd0;
-        else             cnt <= cnt + 1'b1;
-    end
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n)            sc_clk <= 1'b0;
-        else if (div == 4'd0)  sc_clk <= 1'b0;
-        else                   sc_clk <= cnt[div - 1'b1];
-    end
 endmodule
 
 `default_nettype wire

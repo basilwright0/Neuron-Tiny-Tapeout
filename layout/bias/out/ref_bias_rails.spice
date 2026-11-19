@@ -1,0 +1,16 @@
+.subckt bias_rails vsn vsp vgln vglp en_b vdd vss
+XR0 top vsp vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR1 vsp vsp_vgln1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR2 vsp_vgln1 vsp_vgln2 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR3 vsp_vgln2 vsp_vgln3 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR4 vsp_vgln3 vgln vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR5 vgln vgln_vglp1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR6 vgln_vglp1 vglp vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR7 vglp vglp_vsn1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR8 vglp_vsn1 vglp_vsn2 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR9 vglp_vsn2 vsn vss ppolyf_u_1k r_width=1u r_length=14.555u
+XR10 vsn vss vss ppolyf_u_1k r_width=1u r_length=14.555u
+XHDR top en_b vdd vdd pfet_03v3 W=4u L=0.5u
+XC1 vss vsn vss vss pfet_03v3 W=10u L=10u
+XC2 vsp vdd vsp vsp pfet_03v3 W=10u L=10u
+.ends bias_rails

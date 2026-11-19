@@ -1,0 +1,81 @@
+* S1 switched-capacitor dendrite (gf180mcuD, 3.3 V devices): axon-hillock soma + one passive
+* dendritic compartment whose leak and axial conductances are switched-capacitor (SC) resistors.
+* Requires (include first): neuron/membrane.spice, neuron/lif.spice, readout/readout.spice,
+* neuron/synapse.spice.
+* Layout: layout/tier2/ (scdend_s1). Results and area: docs/research/T2-area-estimate.md; tb: sim/tb/tier2/.
+*
+* Reference: model/reference.py Compartments (2 compartments, soma = 0), with
+*   g_ax = f_sc * C_A  (axial, soma <-> d)      C_A = 10 fF MOM
+*   gL_d = f_sc * C_L  (dendrite leak to el)    C_L =  5 fF MOM
+*   f_sc = sc_clk frequency = clk / 2^SC_DIV (CLKD[3:0]).  g_ax : gL_d = 2 : 1 for every SC_DIV.
+*   S = 100 point (g_ax = 4 nS = the D1 default, gL_d = 2 nS = the soma's): f_sc = 400 kHz
+*   (clk 50 MHz, SC_DIV 7 -> 391 kHz; clk 10 MHz, SC_DIV 5 -> 313 kHz).
+* SC resistor = "parallel" type: a capacitor to vss whose top plate is toggled between the two nodes by
+* two nfet switches on the non-overlapping phases p1 / p2 (one charge packet C*dV per sc_clk period).
+* Parasitic capacitance of the toggled node (switch junctions, wiring) simply adds to C (calibrated).
+* The leak capacitor sees the dendrite through dl and the synapse's hold switch (XY.XHL), so hold = 1
+* freezes the dendrite's leak like the array's; the axial path stays connected.
+* sc_clk stopped (SC_DIV = 0, low): p2 = 1, p1 = 0 -> both capacitors park on el / vs; d is then
+* isolated (floating, only junction leakage); the soma is a plain LIF with 10 fF extra on vs.
+*
+* Bias lines: el, vsrc, vreset, vbn_leak, vbp_st, vbn_ref, vbn_prb, vbp_syn, en, abus (all shared with the
+* array); no new line. Clock: sc_clk from the control macro (already exists, CH_MID).
+* Probe taps (prb_nsf wf=4u lf=2u): sel0 = soma vs (PROBE_SUB 0), sel2 = dendrite d (PROBE_SUB 2).
+* Soma spike: spk. The synapse (syn_in, stim A/B) drives the dendrite d.
+
+* ------------------------------------------------------------------- nor2 ---
+.subckt nor2 a b y vdd vss
+XP1  m   a   vdd vdd pfet_03v3 W=1u L=0.28u
+XP2  y   b   m   vdd pfet_03v3 W=1u L=0.28u
+XN1  y   a   vss vss nfet_03v3 W=0.5u L=0.28u
+XN2  y   b   vss vss nfet_03v3 W=0.5u L=0.28u
+.ends nor2
+
+* ----------------------------------------------------------------- sc_nov ---
+* Non-overlapping two-phase generator (cross-coupled NOR + 2-inverter delays): p1 high while ck high,
+* p2 high while ck low, both low for ~2 gate delays around each edge.
+.subckt sc_nov ck p1 p2 vdd vss
+Xi0  ck  ckb vdd vss inv3
+XO1  ckb p2  a1  vdd vss nor2
+Xd1  a1  b1  vdd vss inv3
+Xd2  b1  p1  vdd vss inv3
+XO2  ck  p1  a2  vdd vss nor2
+Xd3  a2  b2  vdd vss inv3
+Xd4  b2  p2  vdd vss inv3
+.ends sc_nov
+
+* ---------------------------------------------------------------- s1_soma ---
+* lif_ah (lif.spice) with the refractory node vr brought out (membrane reset through the synapse's XMR).
+.subckt s1_soma vm spk vr el vsrc vreset vbn_leak vbp_st vbn_ref vdd vss cfb=8f
+XC   vm  vss mcap wl=7.07u
+XL   vm  el vbn_leak vdd vss leak_ota_deg
+XD   vm  spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR   spk vm vr vreset vbn_ref vdd vss refrac
+.ends s1_soma
+
+* -------------------------------------------------------------- scdend_s1 ---
+* Ports:
+*   vs d           soma / dendrite node (test nodes)
+*   spk            soma spike
+*   sel0 sel2      probe: soma (PROBE_SUB 0), dendrite (PROBE_SUB 2)
+*   sc_clk         SC clock from the control macro
+*   sta stb hold mreset   rt_out[0..3] (synapse on the dendrite; mreset resets the soma)
+*   vbp_syn el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus : shared array lines
+* MOM capacitors CA / CL are ideal here; the LVS reference omits them (values from PEX).
+.subckt scdend_s1 vs d spk sel0 sel2 sc_clk sta stb hold mreset vbp_syn el vsrc vreset vbn_leak vbp_st
++ vbn_ref vbn_prb en abus vdd vss cfb=8f csa=10f csl=5f
+XS   vs  spk vr el vsrc vreset vbn_leak vbp_st vbn_ref vdd vss s1_soma cfb={cfb}
+XCD  d   vss mcap wl=7.07u
+XY   d   dl vr sta stb hold mreset vbp_syn vdd vss syn_in
+XN   sc_clk p1 p2 vdd vss sc_nov
+* leak: C_L toggled between dl (-> d through the hold switch) and el
+XL1  dl  p1  cl  vss nfet_03v3 W=0.22u L=0.28u
+XL2  el  p2  cl  vss nfet_03v3 W=0.22u L=0.28u
+CL   cl  vss {csl}
+* axial: C_A toggled between d and vs
+XA1  d   p1  ca  vss nfet_03v3 W=0.22u L=0.28u
+XA2  vs  p2  ca  vss nfet_03v3 W=0.22u L=0.28u
+CA   ca  vss {csa}
+XT0  vs  abus en sel0 vbn_prb vdd vss prb_nsf wf=4u lf=2u
+XT2  d   abus en sel2 vbn_prb vdd vss prb_nsf wf=4u lf=2u
+.ends scdend_s1

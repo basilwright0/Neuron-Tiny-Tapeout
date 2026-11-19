@@ -1,0 +1,10 @@
+* LVS reference for slot_ref: flattened from cells/neuron/slot.spice by layout/slot/flatten.py
+* Cfb (MOM capacitor, value from PEX) omitted: 
+.subckt slot_ref rsel sub el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn
+XXPM_XMF vdd el XPM.prb vss nfet_03v3 W=4u L=2u
+XXPM_XME XPM.prb en XPM.s vss nfet_03v3 W=1u L=0.28u
+XXPM_XMB XPM.s vbn_prb vss vss nfet_03v3 W=2u L=2u
+XXPM_XSC XPM.prb en XPM.mc vss nfet_03v3 W=1u L=0.28u
+XXPM_XSW XPM.mc rsel XPM.m vss nfet_03v3 W=1u L=0.28u
+XXPM_XSB XPM.m sub abus vss nfet_03v3 W=1u L=0.28u
+.ends slot_ref

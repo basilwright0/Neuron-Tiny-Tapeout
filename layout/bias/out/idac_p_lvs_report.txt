@@ -1,0 +1,70 @@
+
+Circuit 1 cell pfet_03v3 and Circuit 2 cell pfet_03v3 are black boxes.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes pfet_03v3 and pfet_03v3 are equivalent.
+
+Circuit 1 cell nfet_03v3 and Circuit 2 cell nfet_03v3 are black boxes.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes nfet_03v3 and nfet_03v3 are equivalent.
+Flattening unmatched subcell p_w2_l2_f8 in circuit idac_p (0)(3 instances)
+Flattening unmatched subcell p_w1_l0p28_f2 in circuit idac_p (0)(5 instances)
+Flattening unmatched subcell n_w0p5_l0p28_f2 in circuit idac_p (0)(5 instances)
+Flattening unmatched subcell p_w2_l2_f7 in circuit idac_p (0)(1 instance)
+Flattening unmatched subcell p_w0p5_l0p5_f2 in circuit idac_p (0)(5 instances)
+
+Class idac_p (0):  Merged 26 parallel devices.
+Class idac_p (1):  Merged 26 parallel devices.
+Subcircuit summary:
+Circuit 1: idac_p                          |Circuit 2: idac_p                          
+-------------------------------------------|-------------------------------------------
+pfet_03v3 (51->25)                         |pfet_03v3 (51->25)                         
+nfet_03v3 (10)                             |nfet_03v3 (10)                             
+Number of devices: 35                      |Number of devices: 35                      
+Number of nets: 27                         |Number of nets: 27                         
+---------------------------------------------------------------------------------------
+Resolving symmetries by property value.
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: idac_p                          |Circuit 2: idac_p                          
+-------------------------------------------|-------------------------------------------
+vcas                                       |vcas                                       
+vss                                        |vss                                        
+b4                                         |b4                                         
+b3                                         |b3                                         
+b2                                         |b2                                         
+b1                                         |b1                                         
+b0                                         |b0                                         
+vdd                                        |vdd                                        
+g                                          |g                                          
+out                                        |out                                        
+vsp                                        |vsp                                        
+dump                                       |dump                                       
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes idac_p and idac_p are equivalent.
+
+Final result: Circuits match uniquely.
+.

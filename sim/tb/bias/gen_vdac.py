@@ -19,7 +19,7 @@ L = [f"* B1 vdac {a.mode} corner={a.corner} temp={a.temp}", f".include {P}/desig
      f".lib {P}/sm141064.ngspice {mos}", f".lib {P}/sm141064.ngspice {res}",
      ".include /work/cells/bias/bias_all.spice", f".temp {a.temp}",
      ".option gmin=1e-15 reltol=1e-5", f"Vdd vdd 0 {a.vdd}",
-     f"Xs {taps} vdd 0 vref_string64"]
+     "Ven en_b 0 0", f"Xs {taps} en_b vdd 0 vref_string64"]
 def bits(name, code):
     return [f"V{name}{b} {name}{b} 0 {a.vdd if (code >> b) & 1 else 0}" for b in range(6)]
 def dac(i, cn, out):

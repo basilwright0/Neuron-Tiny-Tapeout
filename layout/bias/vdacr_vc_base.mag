@@ -1,0 +1,101 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 0
+use p_w1_l1  IB0p
+timestamp 1795071262
+transform 1 0 1148 0 1 1090
+box -274 -230 274 230
+use p_w1_l1  IB1p
+timestamp 1795071262
+transform 1 0 2124 0 1 1090
+box -274 -230 274 230
+use p_w1_l1  IB2p
+timestamp 1795071262
+transform 1 0 3100 0 1 1090
+box -274 -230 274 230
+use p_w1_l1  IB3p
+timestamp 1795071262
+transform 1 0 4076 0 1 1090
+box -274 -230 274 230
+use p_w1_l1  IB4p
+timestamp 1795071262
+transform 1 0 5052 0 1 1090
+box -274 -230 274 230
+use n_w0p5_l1  IB0n
+timestamp 1794971372
+transform 1 0 988 0 1 2076
+box -212 -118 212 118
+use n_w0p5_l1  IB1n
+timestamp 1794971372
+transform 1 0 2044 0 1 2076
+box -212 -118 212 118
+use n_w0p5_l1  IB2n
+timestamp 1794971372
+transform 1 0 3100 0 1 2076
+box -212 -118 212 118
+use n_w0p5_l1  IB3n
+timestamp 1794971372
+transform 1 0 4156 0 1 2076
+box -212 -118 212 118
+use n_w0p5_l1  IB4n
+timestamp 1794971372
+transform 1 0 5212 0 1 2076
+box -212 -118 212 118
+use n_w4_l0p28_f2  SW0
+timestamp 1795060336
+transform 1 0 1916 0 1 2962
+box -220 -468 220 468
+use n_w4_l0p28_f2  SW1
+timestamp 1795060336
+transform 1 0 2508 0 1 2962
+box -220 -468 220 468
+use n_w4_l0p28_f2  SW2
+timestamp 1795060336
+transform 1 0 3100 0 1 2962
+box -220 -468 220 468
+use n_w4_l0p28_f2  SW3
+timestamp 1795060336
+transform 1 0 3692 0 1 2962
+box -220 -468 220 468
+use n_w4_l0p28_f2  SW4
+timestamp 1795060336
+transform 1 0 4284 0 1 2962
+box -220 -468 220 468
+use r_w1_l12p86  XRB0
+timestamp 1795062244
+transform 1 0 600 0 1 5458
+box -100 -1408 100 1408
+use r_w1_l12p86  XRB1
+timestamp 1795062244
+transform 1 0 1040 0 1 5458
+box -100 -1408 100 1408
+use r_w1_l12p86  XRB2
+timestamp 1795062244
+transform 1 0 1480 0 1 5458
+box -100 -1408 100 1408
+use r_w1_l12p86  XRB3
+timestamp 1795062244
+transform 1 0 1920 0 1 5458
+box -100 -1408 100 1408
+use r_w2_l1p315  XRS0
+timestamp 1795062541
+transform 1 0 2460 0 1 4304
+box -200 -254 200 254
+use r_w2_l2p625  XRS1
+timestamp 1795062542
+transform 1 0 3100 0 1 4435
+box -200 -385 200 385
+use r_w1_l2p59  XRS2
+timestamp 1795062246
+transform 1 0 3640 0 1 4431
+box -100 -381 100 381
+use r_w1_l5p175  XRS3
+timestamp 1795062246
+transform 1 0 4080 0 1 4690
+box -100 -640 100 640
+use r_w1_l10p35  XRS4
+timestamp 1795062247
+transform 1 0 4520 0 1 5207
+box -100 -1157 100 1157
+<< end >>

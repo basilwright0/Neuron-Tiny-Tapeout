@@ -1,0 +1,10 @@
+* NGSPICE file created from rx_n1.ext - technology: gf180mcuD
+
+.subckt n_w2_l4 a_400_n200# a_n400_n244# a_n488_n200# VSUBS
+X0 a_400_n200# a_n400_n244# a_n488_n200# VSUBS nfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=4u
+.ends
+
+.subckt rx_n1 line vdd vss
+XD line line vss vss n_w2_l4
+.ends
+

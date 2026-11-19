@@ -1,6 +1,8 @@
 // neuron_ctrl.v -- digital control plane of the TTGF26c analog neuron test
-// chip, rev C (minimal: write-only config latches + digital LIF; everything
-// else lives in the demo-board RP2040/RP2350 PIO firmware).
+// chip, rev E (rev D minus the SC clock divider and the IDAC range decode;
+// bias_b1 rev C fixed-range DAC ports; AdEx probe line; TRIM_MASK default
+// 16'hC1FD). Write-only config latches + digital LIF; everything else lives
+// in the demo-board RP2040/RP2350 PIO firmware.
 // See docs/regmap.md for the map, the write protocol and the timing contract.
 //
 // Pins (TT naming):
@@ -16,14 +18,17 @@
 //   SCK  : 13-bit shift register only (no reset)                    (nc_cfg)
 //   none : config latches, enable = LOAD & (addr == a); async reset
 //          straight from the rst_n pin, so config works without clk
-//   clk  : reset bridge, LIF tick/event synchronizers, LIF_EN sync, digital LIF,
-//          SC clock divider.
+//   clk  : reset bridge, LIF tick/event synchronizers, LIF_EN sync, digital LIF.
 `default_nettype none
 
 module neuron_ctrl #(
     parameter LIF_W = 12,   // digital LIF state width (8..12)
-    parameter NTRIM = 16    // neurons with a 4-bit threshold trim (even, 2..16)
+    parameter NTRIM = 16,   // trim nibbles in the map / on cfg_out (even, 2..16)
+    parameter [15:0] TRIM_MASK = 16'hC1FD  // nibble n has latches only if TRIM_MASK[n];
+                                           // others read 0 and drive 0 on cfg_out.
+                                           // C1FD: nibbles 0, 2-8, 14, 15 (docs/08 §5)
 ) (
+`include "nc_bias_ports.vh"                      // lines to bias_b1 (generated)
     input  wire                  clk,
     input  wire                  rst_n,
     /* verilator lint_off SYNCASYNCNET */  // ui_in[0] (SCK) and the LIF event mux clock flops
@@ -34,10 +39,15 @@ module neuron_ctrl #(
     output wire [7:0]            uio_out,
     output wire [7:0]            uio_oe,
     input  wire [15:0]           spk_in,           // async spikes from analog neurons
-    output wire [78+4*NTRIM-1:0] cfg_out,          // packed analog config (nc_regmap.vh CFG_*)
-    output wire [15:0]           probe_sel_onehot, // AND(PROBE_EN, decode(PROBE_SEL))
-    output wire [3:0]            rt_out,           // ui_in[6:3] & RT_EN
-    output wire                  sc_clk            // SC-dendrite clock, clk / 2^SC_DIV
+    output wire [7+4*NTRIM-1:0]  cfg_out,          // GRP_EN, PLATEAU_EN, D1_CHAIN, D1_BSEL, trims (CFG_*)
+    output wire [3:0]            probe_rsel,       // array row of the selected slot
+    output wire [3:0]            probe_en_c,       // PROBE_EN & (column of the selected slot == c)
+    output wire                  probe_sub,        // PROBE_SUB[0]   (array vm/vr tap)
+    output wire                  probe_sub_b,      // ~PROBE_SUB[0]
+    output wire                  probe_sel_d1,     // PROBE_EN & SEL == 13 & SUB != 3 (D1, outside the array)
+    output wire                  probe_sel_adex,   // PROBE_EN & SEL == 3  & SUB != 3 (AdEx, outside the array)
+    output wire [1:0]            probe_sub_raw,    // PROBE_SUB[1:0] (D1 / AdEx tap select)
+    output wire [3:0]            rt_out            // ui_in[6:3] & RT_EN
 );
 `include "nc_regmap.vh"
 
@@ -57,81 +67,140 @@ module neuron_ctrl #(
 
     // ------------------------------------------------------------ config latches
     // One transparent-high latch (latrnq) per stored bit; reset straight from
-    // the rst_n pin (no clk needed). regs = byte image, 0 where no storage
-    // (logic uses regs only for digital fields; analog fields read cfg_out).
-    // Analog bits are latched straight onto their cfg_out bit (packing per
-    // nc_regmap.vh CFG_*), so the latch Q pin drives the port net itself.
+    // the rst_n pin (no clk needed). regs = byte image, 0 where no storage.
+    // Every bit that leaves the macro unchanged is latched with its Q pin on
+    // the port net itself (no feed-through buffer after flattening):
+    //   cfg_out bits and PROBE_SUB here, IDAC / VDAC codes / BIAS_EN / IB_X2 in
+    //   nc_bias_if.vh. In synthesis regs is 0 for those bits.
+`ifdef NC_GF180_CELLS
+`define NC_LAT(xI, xQ, xA, xB) gf180mcu_fd_sc_mcu7t5v0__latrnq_1 xI (.RN(rst_n), .E(le[xA]), .D(f_data[xB]), .Q(xQ));
+`else
+`define NC_LAT(xI, xQ, xA, xB) nc_latch xI (.rst_n(rst_n), .en(le[xA]), .d(f_data[xB]), .q(xQ));
+`endif
     /* verilator lint_off WIDTHEXPAND */
-    function integer cfg_idx;          // cfg_out bit of byte ra / bit rb, -1 = digital only
+    function integer cfg_idx;          // cfg_out bit of byte ra / bit rb, -1 = none
         input integer ra, rb;
         begin
             cfg_idx = -1;
-            if (ra <= A_IDAC0 + 5)                 cfg_idx = CFG_IDAC + 8 * ra + rb;
-            else if (ra <= A_VDAC0 + 2) begin
-                if (rb < 6)                        cfg_idx = CFG_VDAC + 6 * (ra - A_VDAC0) + rb;
-            end else if (ra == A_ANA) begin
+            if (ra == A_ANA) begin
                 if (rb < 4)                        cfg_idx = CFG_GRP + rb;
-                else if (rb < 6)                   cfg_idx = CFG_PLAT + rb - 4;
-                else if (rb == 6)                  cfg_idx = CFG_BIAS;
-            end else if (ra == A_PROBE) begin
-                if (rb == 4 || rb == 5)            cfg_idx = CFG_PSUB + rb - 4;
-                else if (rb == 6)                  cfg_idx = CFG_PEN;
-            end else if (ra == A_MODE) begin
-                if (rb < 2)                        cfg_idx = CFG_UA0 + rb;
+                else if (rb == 4)                  cfg_idx = CFG_PLAT;
+                else if (rb == 5)                  cfg_idx = CFG_CHAIN;
+                else if (rb == 7)                  cfg_idx = CFG_BSEL;
             end else if (ra >= A_TRIM0)            cfg_idx = CFG_TRIM + 8 * (ra - A_TRIM0) + rb;
+        end
+    endfunction
+    function integer is_bias;          // 1: bit latched in nc_bias_if.vh
+        input integer ra, rb;
+        begin
+            is_bias = ((ra < A_IDAC + 5) || (ra == A_VDAC && rb < 6)     // A_IDAC = 0
+                    || (ra == A_ANA && rb == 6) || (ra == A_MODE && rb == 3)) ? 1 : 0;
+        end
+    endfunction
+    function integer trim_on;          // 1: trim nibble n has storage
+        input integer n;
+        begin
+            trim_on = (n >= 0 && n < NTRIM && n < 16) ? TRIM_MASK[n % 16] : 0;
         end
     endfunction
     /* verilator lint_on WIDTHEXPAND */
 
+    localparam integer TRIM_BASE = {27'd0, A_TRIM0};
     wire [8*NREG-1:0] regs;
     genvar ri, bi;
     generate
         for (ri = 0; ri < NREG; ri = ri + 1) begin : g_reg
-            localparam integer TI = 2 * (ri - 18);   // first trim neuron in this byte (18 = A_TRIM0)
+            localparam integer TI = 2 * (ri - TRIM_BASE);   // first trim nibble in this byte
             for (bi = 0; bi < 8; bi = bi + 1) begin : g_bit
                 localparam integer CI = cfg_idx(ri, bi);
-                if (REG_USED[8*ri+bi] && (ri < A_TRIM0 || TI + bi / 4 < NTRIM)) begin : g_l
-                    if (CI >= 0) begin : g_a
-`ifdef NC_GF180_CELLS   // cell instantiated here (no wrapper) so Q is the port net itself
-                        gf180mcu_fd_sc_mcu7t5v0__latrnq_1 u_l (.RN(rst_n), .E(le[ri]), .D(f_data[bi]), .Q(cfg_out[CI]));
-`else
-                        nc_latch u_l (.rst_n(rst_n), .en(le[ri]), .d(f_data[bi]), .q(cfg_out[CI]));
-`endif
-`ifdef SYNTHESIS          // byte image of analog bits only for simulation/tests:
+                localparam integer BB = is_bias(ri, bi);
+                localparam integer PS = (ri == A_PROBE && (bi == 4 || bi == 5)) ? 1 : 0;
+                if (BB != 0) begin : g_b
+                    // latch and regs image in nc_bias_if.vh
+                end else if (REG_USED[8*ri+bi] && (ri < A_TRIM0 || trim_on(TI + bi / 4) != 0)) begin : g_l
+                    if (CI >= 0) begin : g_c
+                        `NC_LAT(u_l, cfg_out[CI], ri, bi)
+`ifdef SYNTHESIS          // byte image of these bits only for simulation/tests:
                         assign regs[8*ri+bi] = 1'b0;   // no alias of the port net in the netlist
 `else
                         assign regs[8*ri+bi] = cfg_out[CI];
 `endif
-                    end else begin : g_d
-`ifdef NC_GF180_CELLS
-                        gf180mcu_fd_sc_mcu7t5v0__latrnq_1 u_l (.RN(rst_n), .E(le[ri]), .D(f_data[bi]), .Q(regs[8*ri+bi]));
+                    end else if (PS != 0) begin : g_p
+                        `NC_LAT(u_l, probe_sub_raw[bi-4], ri, bi)
+`ifdef SYNTHESIS
+                        assign regs[8*ri+bi] = 1'b0;
 `else
-                        nc_latch u_l (.rst_n(rst_n), .en(le[ri]), .d(f_data[bi]), .q(regs[8*ri+bi]));
+                        assign regs[8*ri+bi] = probe_sub_raw[bi-4];
 `endif
+                    end else begin : g_d
+                        `NC_LAT(u_l, regs[8*ri+bi], ri, bi)
                     end
                 end else begin : g_0
                     assign regs[8*ri+bi] = 1'b0;
+                    if (CI >= 0 && CI < 7 + 4 * NTRIM) begin : g_t     // masked trim nibble: tie off
+                        assign cfg_out[CI] = 1'b0;
+                    end
                 end
             end
         end
     endgenerate
 
+    // bias_b1 lines: pass-through latches and master lines
+`include "nc_bias_if.vh"
+
     wire [3:0] probe_sel = regs[8*A_PROBE +: 4];
-    wire       probe_en  = cfg_out[CFG_PEN];
+    wire       probe_en  = regs[8*A_PROBE+6];
     wire       out_mux   = regs[8*A_MODE+2];
     wire [3:0] rt_en     = regs[8*A_MODE+4 +: 4];
-    wire [3:0] sc_div    = regs[8*A_CLKD  +: 4];
-    wire       l_en_a    = regs[8*A_CLKD+4];
-    wire [1:0] l_src     = regs[8*A_CLKD+5 +: 2];
+    wire       l_en_a    = regs[8*A_LIF_CTL];
+    wire [1:0] l_src     = regs[8*A_LIF_CTL+1 +: 2];
 
-    // ------------------------------------------------------------ probe one-hot
-    // Combinational from the latches. Firmware: PROBE_EN=0, change SEL, PROBE_EN=1.
+    // ------------------------------------------------------------ probe (row x column)
+    // Spike channel k -> array slot (row, col) = floorplan/floorplan.py slot_map()
+    // (row 0 = bottom). ch3 (AdEx) and ch13 (D1) are outside the array:
+    // probe_sel_adex / probe_sel_d1. Slot (0,3) is a dummy and is never
+    // selected. PROBE_SUB = 3 selects the REF follower in slot (0,0) whatever SEL is.
+    // Combinational from the latches. Firmware: PROBE_EN=0, change SEL/SUB, PROBE_EN=1.
+    reg [1:0] p_row, p_col;
+    reg       p_arr;
+    always @(*) begin
+        p_arr = 1'b1;
+        case (probe_sel)
+            4'd0:    {p_row, p_col} = {2'd0, 2'd1};   // S1
+            4'd1:    {p_row, p_col} = {2'd1, 2'd2};   // F1
+            4'd2:    {p_row, p_col} = {2'd0, 2'd2};   // H1
+            4'd4:    {p_row, p_col} = {2'd1, 2'd3};   // S2
+            4'd5:    {p_row, p_col} = {2'd2, 2'd3};   // F2
+            4'd6:    {p_row, p_col} = {2'd1, 2'd0};   // H2
+            4'd7:    {p_row, p_col} = {2'd2, 2'd0};   // P2
+            4'd8:    {p_row, p_col} = {2'd3, 2'd0};   // S3
+            4'd9:    {p_row, p_col} = {2'd3, 2'd1};   // F3
+            4'd10:   {p_row, p_col} = {2'd2, 2'd1};   // H3
+            4'd11:   {p_row, p_col} = {2'd3, 2'd2};   // P3
+            4'd12:   {p_row, p_col} = {2'd1, 2'd1};   // CMP
+            4'd14:   {p_row, p_col} = {2'd2, 2'd2};   // AH50
+            4'd15:   {p_row, p_col} = {2'd3, 2'd3};   // AH800
+            default: begin                             // 3 AdEx, 13 D1: not in the array
+                {p_row, p_col} = 4'd0;
+                p_arr = 1'b0;
+            end
+        endcase
+        if (probe_sub_raw == 2'd3) begin              // REF follower, slot (0,0)
+            {p_row, p_col} = 4'd0;
+            p_arr = 1'b1;
+        end
+    end
     genvar pi;
     generate
-        for (pi = 0; pi < 16; pi = pi + 1) begin : g_probe
-            assign probe_sel_onehot[pi] = probe_en & (probe_sel == pi);
+        for (pi = 0; pi < 4; pi = pi + 1) begin : g_probe
+            assign probe_rsel[pi] = p_arr & (p_row == pi);
+            assign probe_en_c[pi] = probe_en & p_arr & (p_col == pi);
         end
     endgenerate
+    assign probe_sel_d1   = probe_en & ~p_arr &  probe_sel[3];   // SEL 13
+    assign probe_sel_adex = probe_en & ~p_arr & ~probe_sel[3];   // SEL 3
+    assign probe_sub    = probe_sub_raw[0];
+    assign probe_sub_b  = ~probe_sub_raw[0];
 
     assign rt_out = ui_in[6:3] & rt_en;
 
@@ -199,9 +268,6 @@ module neuron_ctrl #(
         .spike(lif_spike), .v(lif_v), .ref_cnt(lif_ref),
         .pending(lif_pend), .busy(lif_busy)
     );
-
-    // ------------------------------------------------------------ SC clock divider
-    nc_scdiv u_scdiv (.clk(clk), .rst_n(rstn), .div(sc_div), .sc_clk(sc_clk));
 
     // ------------------------------------------------------------ outputs
     assign uo_out  = spk_in[7:0];
