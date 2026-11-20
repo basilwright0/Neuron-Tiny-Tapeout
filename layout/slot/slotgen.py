@@ -24,7 +24,7 @@ CELL = os.environ.get("SLOT_CELL", "slot_ah")   # slot_ah (S), slot_ah_h (H: + g
 # all slot variants (cells/neuron/slot.spice); same frame, column lines and row-band track assignment
 SLOTS = ("slot_ah", "slot_ah_h", "slot_ah_p", "slot_ah_f", "slot_cmp_h", "slot_ah_50", "slot_ah_800",
          "slot_ref", "slot_dummy")
-TRIM = CELL in ("slot_ah_h", "slot_ah_p", "slot_cmp_h")
+TRIM = CELL in ("slot_ah_h", "slot_ah_p")          # slot_cmp_h has no gap trim since 2026-11-20
 CMP = CELL == "slot_cmp_h"            # comparator LIF: det_cmp instead of det_ah, no Cfb MOM
 HAS_MOM = CELL not in ("slot_cmp_h", "slot_ref")
 _SUB = flatten.parse()
@@ -119,7 +119,9 @@ PLACE = {
     # detector chain: each stage's pmos (row A, in the n-well) right above its nmos
     "XD.XNI": (9.30, 17.60), "XD.XN2": (11.80, 17.60), "XD.XN3": (14.20, 17.60), "XD.Xi4.XN": (16.10, 17.60),
     "XR.Xi.XN": (17.80, 17.60), "XR.XSW": (12.80, 8.20),
-    "XD.XS3": (6.60, 22.90), "XD.XPI": (9.30, 22.90), "XD.XP2": (11.80, 22.90), "XD.XP3": (14.20, 22.90), "XD.Xi4.XP": (16.10, 22.90),
+    "XD.XS3": (6.60, 22.90), "XD.XPI": (9.30, 22.90),
+    # det_ah keeper XK (2026-11-19 reset fix): mid-row of the main n-well between XP3/Xi4 (row A) and row B
+    "XD.XK": (15.20, 25.00), "XD.XP2": (11.80, 22.90), "XD.XP3": (14.20, 22.90), "XD.Xi4.XP": (16.10, 22.90),
     "XR.Xi.XP": (17.80, 22.90), "XR.XPC": (19.40, 22.90),
     # row B: leak pmos mirror + detector starve sources (vbp_st)
     "XL.XP1": (4.40, 27.10), "XL.XP2": (10.00, 27.10), "XD.XPS": (14.20, 27.10), "XD.XS2": (17.40, 27.10),
@@ -156,23 +158,28 @@ if TRIM:
         "XS.XHL": (1.80, 31.30),
     })
 if CELL == "slot_ah_800":
-    # 2nd membrane cap (mcap_r 11.7 x 12.4) in the S slot's former trim space, gate head DOWN (below the row
+    # 2nd membrane cap (mcap_r 11.7 x 11.6; was 12.4 long until the 2026-11-19 reroute: XS.db had no room) in the S slot's former trim space, gate head DOWN (below the row
     # band, y 30.15), Metal1 vss shield over it; the hold switch XHL moves to row A of the main n-well.
-    PLACE.update({"XC2.XC": (7.64, 36.45), "XS.XHL": (3.40, 22.90)})
+    PLACE.update({"XC2.XC": (7.24, 36.45), "XS.XHL": (3.40, 22.90)})
 if CMP:
     # det_cmp: input pair (2/1) in row A raised to y 23.4, hysteresis switch XH1 left of it over XH2 (bump),
     # tail XPT / inverter starve Xi1.XS in row B (the det_ah XPS / XS2 spots), nfet mirror XN1/XN2 in the
     # former MOM area, the inverters where det_ah's last stages were.
+    # 2026-11-19 re-placement (the first one never routed): input pair at the right end of row A next to the
+    # aux (vth_cmp) column, nfet mirror right under it, tail XPT right above it; inverters, hysteresis switch
+    # and the refractory pfets shifted left in row A; XH2 stays in the bump under the rail.
     PLACE.update({
-        "XD.XM1": (9.30, 23.40), "XD.XM2": (11.80, 23.40), "XD.XH1": (6.80, 22.90),
-        "XD.Xi1.XP": (14.20, 22.90), "XD.Xi2.XP": (16.10, 22.90),
-        "XD.XPT": (14.20, 27.10), "XD.Xi1.XS": (17.40, 27.10),
-        "XD.Xi1.XN": (14.20, 17.60), "XD.Xi2.XN": (16.10, 17.60),
-        "XD.XN1": (3.00, 16.30), "XD.XN2": (6.40, 16.30), "XD.XH2": (4.84, 19.85),
+        "XD.XM1": (16.10, 23.40), "XD.XM2": (18.60, 23.40),
+        "XD.XH1": (7.30, 22.90), "XD.Xi1.XP": (9.00, 22.90), "XD.Xi2.XP": (10.70, 22.90),
+        "XR.Xi.XP": (12.40, 22.90), "XR.XPC": (14.10, 22.90),
+        "XD.XPT": (17.40, 27.10), "XD.Xi1.XS": (14.20, 27.10),
+        "XD.Xi1.XN": (8.60, 17.60), "XD.Xi2.XN": (10.30, 17.60), "XR.Xi.XN": (12.00, 17.60),
+        "XD.XN1": (14.60, 17.60), "XD.XN2": (18.00, 17.60), "XD.XH2": (4.84, 19.85),
     })
 HEAD_DOWN = {"XC2.XC"}                # devices whose gate head is drawn below the diffusion
 # Metal1 vss shield plates (AH800: over XC2, from above its gate head to the top ring)
-PLATES = [(0.60, 30.60, 14.28, 43.50)] if CELL == "slot_ah_800" else []
+# y0 30.66: the plate is "wide metal" (> 10 um), so M1.2b needs 0.30 um to the XC2 gate-head pad (top 30.34)
+PLATES = [(0.60, 30.66, 13.48, 43.50)] if CELL == "slot_ah_800" else []
 FLIP = {"XPM.XSW", "XPR.XSW", "XR.XNR", "XS.XWA", "XS.XWB", "XS.XPH", "XS.XQA", "XS.XQB"}
 if PROBE_CHAIN:
     FLIP |= {"XPM.XSC", "XPM.XSB", "XPR.XSB"}
@@ -183,11 +190,13 @@ if TRIM:
 
 ROUTE_FIRST = ["vm", "vr", "spk"]
 ROUTE_LAST = ["vdd", "vss"]
-ITERS = 60
+ITERS = int(os.environ.get("ROUTE_ITERS", "60"))      # negotiation iterations per schedule
 SCHEDULES = [(1.3, 0.5), (1.6, 0.3), (1.2, 0.7), (1.45, 0.4), (1.3, 0.3)]
 if os.environ.get("SCHED_ROTATE"):          # try the negotiation schedules in a different order
     _k = int(os.environ["SCHED_ROTATE"]) % len(SCHEDULES)
     SCHEDULES = SCHEDULES[_k:] + SCHEDULES[:_k]
+if os.environ.get("MAX_SCHED"):            # try only the first n schedules (with a larger ROUTE_ITERS)
+    SCHEDULES = SCHEDULES[:int(os.environ["MAX_SCHED"])]
 
 
 # ============================================================================ device library
@@ -498,6 +507,9 @@ def add_forbids(R, mom):
         R.add_forbid(("m3",), r)
     # vm must stay out of the metal3 feed-through band
     R.add_forbid(("m1", "m2"), (BAND[0], BAND[1] - 0.3, BAND[2], BAND[3]), only={"vm"})
+    # wide-metal (M1.2b, 0.30 um) halo right of the Metal1 shield plates
+    for pl in PLATES:
+        R.add_forbid(("m1",), (pl[2], pl[1], pl[2] + 0.32, pl[3]), allowed={"vss"})
     # MOM: only its own nets
     if mom:
         R.add_forbid(("m1", "m2", "m3"), mom["box"], allowed={"vm", "spk"})
@@ -544,7 +556,9 @@ def route(L, obst, mom):
             print(f"  !! {net}: terminal(s) {empty} have no grid node")
         nets[net] = [t for t in tn if t]
     order = [n for n in ROUTE_FIRST if n in nets]
-    order += sorted((n for n in nets if n not in ROUTE_FIRST + ROUTE_LAST), key=lambda n: (n.count(".") == 0, n))
+    if os.environ.get("ROUTE_FIRST_PREFIX"):     # e.g. "XT." routes the trim-internal nets right after vm/vr/spk
+        order += sorted(n for n in nets if n.startswith(os.environ["ROUTE_FIRST_PREFIX"]) and n not in order)
+    order += sorted((n for n in nets if n not in ROUTE_FIRST + ROUTE_LAST and n not in order), key=lambda n: (n.count(".") == 0, n))
     order += [n for n in ROUTE_LAST if n in nets]
     # negotiated-congestion schedules tried in turn until one converges with no conflicts
     for k, (pm, hs) in enumerate(SCHEDULES):
@@ -590,6 +604,15 @@ def fill_notches(obst, wires):
         for _ in range(3):
             # close sub-spacing gaps, then widen min-width necks the fill may leave
             closed = closed.sized(d, d, 2).sized(-d, -d, 2)
+            # same-net corner-to-corner gaps the closing leaves (2026-11-19): bridge each remaining same-net
+            # spacing violation with a box over the gap, at least min-width in both directions
+            for ep in closed.space_check(d).each():
+                bb = ep.bbox()
+                cx, cy = bb.center().x, bb.center().y
+                w2 = max(bb.width(), minw) // 2 + 1
+                h2 = max(bb.height(), minw) // 2 + 1
+                closed.insert(kdb.Box(cx - w2, cy - h2, cx + w2, cy + h2))
+            closed.merge()
             eps = list(closed.width_check(minw).each())
             for ep in eps:
                 bb = ep.bbox()
@@ -609,6 +632,15 @@ def fill_notches(obst, wires):
                     others.insert(kdb.Box(*(round(v / dbu) for v in r)))
         sp = int(round(SPACE[lay] / dbu))
         add = add - others.sized(sp, sp, 2)
+        # clipping can leave a min-width neck in net + fill: widen it where that stays clear of other nets
+        fin = (reg + add).merged()
+        for ep in fin.width_check(minw).each():
+            bb = ep.bbox()
+            cx, cy = bb.center().x, bb.center().y
+            w2 = max(bb.width(), minw) // 2 + 1
+            h2 = max(bb.height(), minw) // 2 + 1
+            add.insert(kdb.Box(cx - w2, cy - h2, cx + w2, cy + h2))
+        add = (add - others.sized(sp, sp, 2)).merged()
         for bx in add.each_merged():
             for t in kdb.Region(bx).decompose_trapezoids(1):
                 pts = [p for p in t.each_point_hull()]
@@ -718,7 +750,9 @@ def main():
                 n = "aux"
                 cx, w = (r[0] + r[2]) / 2, r[2] - r[0]
                 if lo <= cx <= hi and (l in ("v1", "v2", "m2") or w <= 0.41):
-                    r = (r[0] + dx, r[1], r[2] + dx, r[3])         # landing via + pads move to aux
+                    # landing via + pads move to aux, centred on the aux column (H's pads may sit off the
+                    # vbn_leak centre; shifted as-is they came 0.25 um from el's pads)
+                    r = (round(COLX["aux"] - w / 2, 3), r[1], round(COLX["aux"] + w / 2, 3), r[3])
                 elif l in ("m1", "m3") and r[2] > COLX["aux"] + 0.2:
                     if r[0] >= COLX["aux"] + 0.2:
                         continue

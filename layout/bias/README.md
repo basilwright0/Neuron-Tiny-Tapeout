@@ -1,18 +1,7 @@
-> **RESUME HERE (paused 2026-11-19 ~02:45, B1 rev C)**
-> - **Schematic (cells/bias):** rev C is final; `bias_b1.spice` reads "REV C PORTS STABLE" (identical to the draft the control block hardened).
->   - The vbp_w fixes are in: rx_p05 receiver for ~1 nA LSB / ~32 nA FS at the AdEx device, and the idac_n switch level vgln.
->   - Also in: tap followers biased from vsp/vsn, and resistor-DAC input inverters at L = 1 um (antenna).
-> - **Leaves:** all DRC 0 (magic + KLayout) and LVS match with the current netlists (idac_p/n, bias_ladder, bias_master, bias_vi, vdacr_el/vr/vc/vt, bias_rails, rx_*).
-> - **Notched option-(a) top level** (`topgen.py b1f`, frame 271.5 x 115 at tile origin (73.5, 12), notches N1 (R1) and N2 (tau trim), Metal3-free corridor above N1):
->   - Placement is final.
->   - The previous full route (before the L = 1 um inverter change) gave magic DRC 0, **LVS match**, KLayout 8 x ANT.4 on one long Metal3 line (r2_b0). The inverter change fixes that.
->   - The re-route with the new vdacr leaves was **stopped at iteration 29/30** (1 benign same-net vss flag) before it wrote anything. The bias_b1.mag/gds on disk are the older route over the newer leaves: **not verified, do not use**.
-> - **241.9 x 103.2 fallback (`b1c`):** routed and DRC clean, but never LVS-clean. Its runs were hit by the stale vdacr_vt and the notch-fill bug fixed since. Superseded by the frame layout.
-> - **Next steps:**
->   1. `scripts/eda.sh "cd layout/bias && ROUTE_QUICK=30 CELLS='bias_b1' bash build.sh"` (~45-60 min on a loaded machine). Expect magic 0, LVS "Circuits match uniquely", KLayout 0.
->   2. If an ANT.4 remains: check the net with the route-cache snippet from the session (`out/route_cache_bias_b1.json`, Metal3 length per net) and lengthen that leaf's input gate.
->   3. Fill `{TOPRES}` in docs/research/B1-bias-report.md section C.7 with the final DRC/LVS line, then report to the integrator.
->   - Sims are done (sim/tb/bias/out/revc: summary.txt, tran_summary.txt, pex_summary.txt). The last vdacr inverter change is DC-neutral and wasn't re-simulated.
+> **Status 2026-11-20 (B1 rev C, final):** `bias_b1` in the integrator's frame (tile x 80-345, y 12-127, 265 x 115 um, notches N1 R1 / N2 tau-trim, Metal3-free corridor above N1).
+> - Magic DRC 0, KLayout DRC 0, LVS match; frame compliance checked (`chk_frame.py`); top-level PEX spot check done.
+> - Rebuild: `scripts/eda.sh "cd layout/bias && bash build.sh"`, then `ROUTE_QUICK=30 CELLS=bias_b1`.
+> - Details: docs/research/B1-bias-report.md "Rev C" C.7.
 
 # B1 bias generator layout (gf180mcuD, 3.3 V devices)
 

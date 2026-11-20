@@ -1,0 +1,115 @@
+* NGSPICE file created from slot_cmp_h.ext - technology: gf180mcuD
+
+.subckt p_w2_l4 a_400_n200# a_n400_n244# w_n574_n330# a_n488_n200#
+X0 a_400_n200# a_n400_n244# a_n488_n200# w_n574_n330# pfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=4u
+.ends
+
+.subckt n_w1_l0p28 a_28_n100# a_n28_n144# a_n116_n100# VSUBS
+X0 a_28_n100# a_n28_n144# a_n116_n100# VSUBS nfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=0.28u
+.ends
+
+.subckt n_w2_l2 a_n288_n200# a_200_n200# a_n200_n244# VSUBS
+X0 a_200_n200# a_n200_n244# a_n288_n200# VSUBS nfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=2u
+.ends
+
+.subckt n_w2_l4 a_400_n200# a_n400_n244# a_n488_n200# VSUBS
+X0 a_400_n200# a_n400_n244# a_n488_n200# VSUBS nfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=4u
+.ends
+
+.subckt n_w4_l1 a_n188_n400# a_100_n400# a_n100_n444# VSUBS
+X0 a_100_n400# a_n100_n444# a_n188_n400# VSUBS nfet_03v3 ad=1.76p pd=8.88u as=1.76p ps=8.88u w=4u l=1u
+.ends
+
+.subckt n_w0p5_l0p28 a_n28_n94# a_n116_n50# a_28_n50# VSUBS
+X0 a_28_n50# a_n28_n94# a_n116_n50# VSUBS nfet_03v3 ad=0.22p pd=1.88u as=0.22p ps=1.88u w=0.5u l=0.28u
+.ends
+
+.subckt n_w0p5_l0p5 a_n138_n50# a_50_n50# a_n50_n94# VSUBS
+X0 a_50_n50# a_n50_n94# a_n138_n50# VSUBS nfet_03v3 ad=0.22p pd=1.88u as=0.22p ps=1.88u w=0.5u l=0.5u
+.ends
+
+.subckt p_w1_l0p28 w_n202_n230# a_28_n100# a_n28_n144# a_n116_n100#
+X0 a_28_n100# a_n28_n144# a_n116_n100# w_n202_n230# pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=0.28u
+.ends
+
+.subckt n_w4_l2 a_n288_n400# a_200_n400# a_n200_n444# VSUBS
+X0 a_200_n400# a_n200_n444# a_n288_n400# VSUBS nfet_03v3 ad=1.76p pd=8.88u as=1.76p ps=8.88u w=4u l=2u
+.ends
+
+.subckt p_w1_l2 w_n374_n230# a_n288_n100# a_200_n100# a_n200_n144#
+X0 a_200_n100# a_n200_n144# a_n288_n100# w_n374_n230# pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=2u
+.ends
+
+.subckt n_w7p07_l7p07 a_707_n707# a_n795_n707# a_n707_n751# VSUBS
+X0 a_707_n707# a_n707_n751# a_n795_n707# VSUBS nfet_03v3 ad=3.1108p pd=15.02u as=3.1108p ps=15.02u w=7.07u l=7.07u
+.ends
+
+.subckt n_w1_l2 a_n288_n100# a_200_n100# a_n200_n144# VSUBS
+X0 a_200_n100# a_n200_n144# a_n288_n100# VSUBS nfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=2u
+.ends
+
+.subckt n_w3p54_l3p54 a_354_n354# a_n354_n398# a_n442_n354# VSUBS
+X0 a_354_n354# a_n354_n398# a_n442_n354# VSUBS nfet_03v3 ad=1.5576p pd=7.96u as=1.5576p ps=7.96u w=3.54u l=3.54u
+.ends
+
+.subckt p_w2_l1 a_100_n200# a_n100_n244# w_n274_n330# a_n188_n200#
+X0 a_100_n200# a_n100_n244# a_n188_n200# w_n274_n330# pfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=1u
+.ends
+
+.subckt p_w1_l6 w_n774_n230# a_n688_n100# a_600_n100# a_n600_n144#
+X0 a_600_n100# a_n600_n144# a_n688_n100# w_n774_n230# pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=6u
+.ends
+
+.subckt slot_cmp_h vss vbp_syn vdd el aux vbn_leak vsrc vbp_st vbn_prb vbn_ref en
++ vreset abus spk sta stb hold mreset rsel sub sub_b vm
+XXL_XP1 a_480_5620# a_480_5620# vdd vdd p_w2_l4
+XXPM_XSW m1_4052_1572# rsel m1_3704_1572# vss n_w1_l0p28
+XXL_XP2 a_1632_2940# a_480_5620# vdd vdd p_w2_l4
+XXPR_XMB vss m1_4822_1769# vbn_prb vss n_w2_l2
+XXL_XMT m1_201_2312# vbn_leak vss vss n_w2_l4
+XXL_XM1 a_288_2940# a_480_5620# el vss n_w4_l1
+XXS_XWA m1_4902_6422# vbp_syn vdd m1_3652_6020# p_w2_l4
+XXR_Xi_XN spk vss a_2784_4734# vss n_w0p5_l0p28
+XXL_XM2 a_2080_2940# a_1632_2940# a_1632_2940# vss n_w4_l1
+XXS_XWB m1_4902_6422# vbp_syn vdd m1_2260_6410# p_w2_l4
+XXR_XNR vss vbn_ref a_2510_1690# vss n_w2_l4
+XXPR_XME m1_2448_868# en m1_4822_1769# vss n_w1_l0p28
+XXR_XSW vreset vm a_2510_1690# vss n_w0p5_l0p5
+XXR_Xi_XP vdd a_2784_4734# spk vdd p_w1_l0p28
+XXPR_XMF m1_2448_868# vdd a_2510_1690# vss n_w4_l2
+XXS_XQA vdd m1_3652_6020# sta vss p_w1_l0p28
+XXS_XQB vdd m1_2260_6410# stb vss p_w1_l0p28
+XXS_XNA sta vm m1_3652_6020# vss n_w0p5_l0p28
+XXS_XNB stb vm m1_2260_6410# vss n_w0p5_l0p28
+XXD_XPT vdd vdd m1_3528_4930# vbp_st p_w1_l2
+XXL_XD2a m1_201_2312# a_2080_2940# a_2080_2940# vss n_w4_l1
+XXPM_XSB abus sub_b m1_4052_1572# vss n_w1_l0p28
+XXL_XD2b m1_201_2312# a_2080_2940# a_2080_2940# vss n_w4_l1
+XXL_XD1a m1_201_2312# a_288_2940# a_288_2940# vss n_w4_l1
+XXPM_XSC m1_3704_1572# en m1_3360_972# vss n_w1_l0p28
+XXC_XC vss vss vm vss n_w7p07_l7p07
+XXS_XPH vdd m1_4902_6422# vdd hold p_w1_l2
+XXD_Xi1_XN a_1684_3624# vss a_1424_4734# vss n_w0p5_l0p28
+XXL_XD1b m1_201_2312# a_288_2940# a_288_2940# vss n_w4_l1
+XXPR_XSW m1_2972_1572# rsel m1_2280_960# vss n_w1_l0p28
+XXD_XN1 a_2720_3620# vss a_2720_3620# vss n_w1_l2
+XXR_XCR_XC vss a_2510_1690# vss vss n_w3p54_l3p54
+XXD_XN2 vss a_1684_3624# a_2720_3620# vss n_w1_l2
+XXD_XM1 a_2720_3620# vm vdd m1_3528_4930# p_w2_l1
+XXD_Xi1_XP vdd a_1424_4734# a_1684_3624# m1_1680_4540# p_w1_l0p28
+XXD_XM2 a_1684_3624# aux vdd m1_3528_4930# p_w2_l1
+XXPM_XMB vss m1_4822_412# vbn_prb vss n_w2_l2
+XXD_Xi1_XS vdd vdd m1_1680_4540# vbp_st p_w1_l2
+XXR_XPC vdd a_2510_1690# a_2784_4734# vdd p_w1_l0p28
+XXD_XH1 vdd a_1684_3624# a_1424_4734# m1_1340_4540# p_w1_l0p28
+XXPM_XME m1_3360_972# en m1_4822_412# vss n_w1_l0p28
+XXD_XH2 vdd vdd m1_1340_4540# vbp_st p_w1_l6
+XXPM_XMF m1_3360_972# vdd vm vss n_w4_l2
+XXS_XHL vdd vm hold a_1632_2940# p_w1_l0p28
+XXD_Xi2_XN a_1424_4734# vss spk vss n_w0p5_l0p28
+XXS_XMR mreset a_2510_1690# vdd vss n_w0p5_l0p28
+XXD_Xi2_XP vdd spk a_1424_4734# vdd p_w1_l0p28
+XXPR_XSB abus sub m1_2972_1572# vss n_w1_l0p28
+XXPR_XSC m1_2448_868# en m1_2280_960# vss n_w1_l0p28
+.ends
+

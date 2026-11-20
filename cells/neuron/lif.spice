@@ -71,6 +71,11 @@ XN2 p   n1  vsrc vss nfet_03v3 W=0.22u L=2u
 XS3 s3  vbp_st vdd vdd pfet_03v3 W=1u L=2u
 XP3 pb  p   s3  vdd pfet_03v3 W=1u L=0.28u
 XN3 pb  p   vsrc vss nfet_03v3 W=0.5u L=0.28u
+* 2026-11-19 reset fix (AdEx track, sim/tb/tier2/tb_det_zero.py): with all biases off (vbp_st un-driven) XS3 is off,
+* pb floated ~1.5 V and Xi4 drew ~63 uA. XK is a weak keeper on pb gated by spk: it latches pb high / spk low
+* at bias-off and power-up (sim/tb/tb_slot_detoff.py: spk < 50 mV, Idd < 1 nA at vm = 0, all corners) and is off
+* while spk is high, so it only fights XN3 during the ~ns output transition.
+XK  pb  spk vdd vdd pfet_03v3 W=0.22u L=1u
 Xi4 pb  spk vdd vss inv3
 CFB spk vm {cfb}
 .ends det_ah

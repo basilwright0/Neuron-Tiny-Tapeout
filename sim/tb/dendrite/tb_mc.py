@@ -47,7 +47,7 @@ com = (a[:, 0] + a[:, 3]) / 2
 dif = a[:, 0] - a[:, 3]
 L.append(f"{'common (d1+d2)/2 (mV>EL)':30s} {com.mean():8.1f} {com.std(ddof=1):8.2f}")
 L.append(f"{'difference d1-d2 (mV)':30s} {dif.mean():8.1f} {dif.std(ddof=1):8.2f}")
-TR = 49.3   # trim_gap4w (cells/dendrite/dtrim.spice, lr 0.6u) half span at 27 C: -43.8 .. +54.8 mV rest shift, mean step 6.6 mV
+TR = 47.5   # trim_gap4w (lr 0.6u) half span at 27 C with the 2026-11-19 OTA and EL 1.3 V: -41.4 .. +53.6 mV
 for k, nm in ((1, "d1"), (4, "d2")):
     g = a[:, k] - a[:, k].mean()
     sg = g.std(ddof=1)

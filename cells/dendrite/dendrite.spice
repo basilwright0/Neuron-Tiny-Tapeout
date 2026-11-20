@@ -68,6 +68,14 @@ XN2 p   n1  vsrc vss nfet_03v3 W=0.22u L=2u
 XS3 s3  vbp_st vdd vdd pfet_03v3 W=1u L=2u
 XP3 pb  p   s3  vdd pfet_03v3 W=1u L=0.28u
 XN3 pb  p   vsrc vss nfet_03v3 W=0.5u L=0.28u
+* reset keeper (as det_ah's XK, 2026-11-19): with all biases off XS3 is off and pb would float, so the
+* output inverter would crowbar and xb sit mid-rail; XK holds pb high while xb is low (sim/tb/dendrite/tb_doff.py)
+XK  pb  xb  vdd vdd pfet_03v3 W=0.22u L=1u
+* XQ: weak unstarved pull-up on pb (gate p). The keeper alone does not set the state: at ss/0, ss/27 and sf/0 with
+* biases off pb came up low, xb high, keeper off, and the output inverter drew 30-40 uA (tb_pdet_off.py, variant
+* k1). With XQ: xb = 0 and Idd < 1 nA at all 15 corners for vd low (vd = 1.4 V: xb = 3.3 V, Idd <= 0.45 uA).
+* Normal operation: trip +0.8 mV, vsrc charge per crossing +0.2 pC (tb_pdet_kq.py).
+XQ  pb  p   vdd vdd pfet_03v3 W=0.22u L=4u
 XON xb  pb  vss vss nfet_03v3 W=0.5u L=0.28u
 XOP xb  pb  vdd vdd pfet_03v3 W=1u L=0.28u
 * hysteresis: while xb is high a second input nfet helps pull n1 down, so the detector releases
@@ -87,7 +95,9 @@ XNE h   xb  vsrc vss nfet_03v3 W=1u L=0.28u
 *   After the timer expires the plateau stays off until vd has fallen below threshold (re-arm).
 .subckt dplat vd pl_en hold vep vsrc vbn_leak vbp_st vdd vss
 XDT  vd  xb  vsrc vbp_st vdd vss pdet
-XTP  vt  xb  vdd vdd pfet_03v3 W=1u L=0.28u
+* XTP long L (was 0.28): xb only reaches ~3.2 V at ff/85, and the short pfet's leakage then slowed the timer
+* (plateau 2.3 ms / 27 spikes at ff/85; 1.6 ms / 17 with L = 2)
+XTP  vt  xb  vdd vdd pfet_03v3 W=1u L=2u
 XTS  vt  xb  ti  vss nfet_03v3 W=1u L=0.28u
 XTI  ti  vbn_leak vss vss nfet_03v3 W=1u L=4u
 XCT  vt  vss mcap wl=3.54u

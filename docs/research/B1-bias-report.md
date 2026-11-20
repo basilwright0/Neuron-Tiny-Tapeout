@@ -106,18 +106,24 @@ Rules learned:
 - The resistor-DAC code inverters use L = 1 um. With 0.28 um gates, a ~300 um top-level Metal3 code line exceeded the Metal3 antenna ratio (ANT.4, 400) in the standalone block. In the chip the control macro's drivers would also discharge these lines.
 - Top-level notch fill must not merge a subcell's internal metal. All of it carries one placeholder net, and closing at 0.29 um bridged different leaf nets at minimum spacing. Fixed in `cellgen.fill_notches`; this was the cause of the first top-level LVS failures.
 
-**`bias_b1` assembly** in the integrator's frame: origin tile (73.5, 12), **271.5 x 115 um**.
-- Notches: N1 = local x 188.5-228.5, y 0-42 for the R1 corner; N2 = local x 0-29.5, y 104-115 for the tau-trim cell.
-- No Metal3 from this block in the feed-through corridor above N1 (local x 202.5-228.5, y 42-115). It carries R1's vreset/abus/en_b/vsrc and vdd/vss straps; the integrator draws them. The rails cell sits under that corridor, and its pins leave on Metal2.
-- Pins:
-  - analog outputs on the top edge, local x 32-59 (tile 105.5-132.5);
-  - code inputs on the top edge, local x 100-201, and the UA0/BIAS_EN/ib_x2 lines at local x 232-262;
-  - vth_ref / vreset_src / ib_r1 on the N1 top edge at R1's pin x (local 190.5 / 193.1 / 200.8, y = 42);
-  - ua[0] on the bottom edge, local x 250.8-256.8 (tile 324.3-330.3); the ESD sits in the master just west of it;
-  - vdd / vss on the east edge.
+**`bias_b1` assembly** in the integrator's frame: origin tile (80, 12), **265 x 115 um** (tile x 80-345, y 12-127; D1 occupies tile x 8-78).
+- Notches: N1 = local x 182-222, y 0-42 for the R1 corner; N2 = local x 0-23, y 104-115 for the tau-trim cell. Both are empty on every layer (checked on the GDS, `layout/bias/chk_frame.py`).
+- No Metal3 from this block in the corridor above N1 (local x 196-222, y 42-115), checked. It carries R1's vreset/abus/en_b/vsrc and vdd/vss straps; the integrator draws them. The rails cell sits partly under the corridor, and its pins leave on Metal2.
+- Pins (Metal3):
+  - analog outputs on the top edge, local x 26-49.4 (tile 106-129.4; pitch 2.6 in the order vbn_leak, vbn_ref, vbp_syn, vbp_st, vbn_prb, el, vth_cmp, vbn_ax, vbp_w, ua0_stim_out);
+  - code inputs on the top edge, local x 100-194 (tile 180-274);
+  - the six UA0/BIAS_EN/ib_x2 lines at local x 232-262;
+  - vth_ref / vreset_src / ib_r1 on the N1 top edge at R1's pin x (local 184.0 / 186.6 / 194.3, y = 42);
+  - ua[0] on the bottom edge, local x 244.3-250.3 (tile 324.3-330.3); the ESD sits in the master just west of it;
+  - vdd / vss on the east edge (local y 50 / 56).
 - Routing is Metal2/Metal3 only; the Metal4 stripes may cross the block.
-- Areas: frame 31.2k um^2, of which 29.2k um^2 excluding the notches. That is x1.55 of the leaf sum, set by the frame rather than by routing. The compact version (241.9 x 103.2 = 25.0k, x1.33, no notches) was also routed: DRC clean; its LVS was blocked by the stale vdacr_vt, fixed after it was superseded.
-{TOPRES}
+- Areas: frame 30.5k um^2, 28.5k um^2 excluding the notches. That is x1.51 of the 18.8k leaf sum, set by the frame rather than by routing. Unconstrained, the block packs to 241.9 x 103.2 = 25.0k (x1.33).
+- **Result (final, 2026-11-20):** `bias_b1` 265 x 115 um: **magic DRC 0, KLayout DRC 0 (no density), netgen LVS "Circuits match uniquely"** against `cells/bias/bias_b1.spice`.
+- **Top-level PEX** (`sim/tb/bias/gen_pex_top.py`, `out/revc/pex_top_summary.txt`; extracted bias_b1 with all coupling caps vs the schematic; tt 27 C; S = 10 / 100 / 1000; codes 0 / mid / full):
+  - el, vreset_src, vth_cmp within 0.7 mV;
+  - vth_ref +3.9 ... +8.4 mV (the +1.1 % gain of the leaf check);
+  - current-line gate voltages within +-2 mV, i.e. <= ~6 % in current (worst: vbp_syn at S = 10);
+  - ib_r1 4.08 -> 4.12 uA; vbn_prb +0.9 mV.
 
 **PEX spot check** (tt 27 C; `sim/tb/bias/gen_pex_revc.py`, `out/revc/pex_summary.txt`): extracted `bias_vi` + `vdacr_el` + `vdacr_vt` (all coupling caps) next to the schematic cells.
 - el agrees within 0.8 mV at every code.
@@ -126,7 +132,6 @@ Rules learned:
 
 ### C.8 Open / not done
 
-- **Top-level PEX** was not run (leaf-level spot check only). The inter-block wiring is short and the lines are DC, but the subthreshold current lines should be re-checked with the extracted block if time allows.
 - **S = 1000 p-line compression** (vbp_syn, vbp_w ~0.8x of linear) remains, absorbed by the code.
 - **Monte Carlo** of the rev C DACs was not run. The IDAC units, steering and receivers are unchanged from rev A/B, where the MC numbers apply. The resistor DACs are monotonic by construction, so their mismatch shows up as gain/offset, which is calibrated.
 - **ESD** is unchanged from rev B and was simulated only in DC.

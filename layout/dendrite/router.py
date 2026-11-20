@@ -14,7 +14,9 @@ import heapq
 import math
 from collections import defaultdict
 
-SPACE = {"m1": 0.23, "m2": 0.28, "v1": 0.26}     # gf180mcuD min spacing (um)
+SPACE = {"m1": 0.23, "m2": 0.28, "v1": 0.26, "m3": 0.28, "v2": 0.26}     # gf180mcuD min spacing (um)
+LAYERS = ("m1", "m2", "v1", "m3", "v2")
+USE_M3 = __import__("os").environ.get("ROUTE_M3", "1") == "1"   # route on Metal3 too (via2 from Metal2)
 HW = 0.15            # wire half-width (0.30 wide on M1 and M2)
 PAD = 0.20           # via1 landing pad half-size (0.40 x 0.40 on M1 and M2)
 CUT = 0.13           # via1 cut half-size (0.26)
@@ -70,14 +72,17 @@ class Index:
 class Router:
     def __init__(self, xs, ys):
         self.xs, self.ys = list(xs), list(ys)
-        self.static = {l: Index() for l in ("m1", "m2", "v1")}
-        self.dyn = {l: Index() for l in ("m1", "m2", "v1")}
+        self.static = {l: Index() for l in LAYERS}
+        self.dyn = {l: Index() for l in LAYERS}
         self.forbid = []          # (layer, rect, allowed, only): overlap forbidden
         self.hist = defaultdict(float)
         self.netshapes = defaultdict(list)    # net -> [(layer, key)]
         self.netpaths = defaultdict(list)     # net -> [path]
-        self.cost = {("m1", "h"): 1.5, ("m1", "v"): 2.5, ("m2", "v"): 1.0, ("m2", "h"): 1.2, "via": 0.6}
+        self.cost = {("m1", "h"): 1.5, ("m1", "v"): 2.5, ("m2", "v"): 1.0, ("m2", "h"): 1.2, "via": 0.6,
+                     ("m3", "h"): 1.1, ("m3", "v"): 1.4, "via2": 0.8}
         self.pres = 1.0
+        self.hw = float(__import__('os').environ.get('ROUTE_HW', '1.0'))   # A* heuristic weight (>1: faster, inadmissible)
+        self.no_m3 = set()          # nets kept off Metal3 (gate-only nets on long Metal3 lines: antenna)
         self.margin = 5.0          # A* window margin around a net's terminals (um); None = whole grid
 
     # ------------------------------------------------------------------ shapes
@@ -96,7 +101,7 @@ class Router:
             if overlap_area(r, rect) > 0:
                 return False
         for r, n in self.static[layer].near(rect, sp):
-            if layer == "v1" and n == net and r != rect and rgap(r, rect) < sp - 1e-9:
+            if layer in ("v1", "v2") and n == net and r != rect and rgap(r, rect) < sp - 1e-9:
                 return False
             if n != net and rgap(r, rect) < sp - 1e-9:
                 return False
@@ -106,7 +111,7 @@ class Router:
         sp = SPACE[layer]
         hit = set()
         for r, n in self.dyn[layer].near(rect, sp):
-            if layer == "v1" and n == net and r != rect and rgap(r, rect) < sp - 1e-9:
+            if layer in ("v1", "v2") and n == net and r != rect and rgap(r, rect) < sp - 1e-9:
                 hit.add(n + "#self")
             elif n != net and rgap(r, rect) < sp - 1e-9:
                 hit.add(n)
@@ -118,14 +123,16 @@ class Router:
         y1, y2 = sorted((self.ys[a[2]], self.ys[b[2]]))
         return (x1 - HW, y1 - HW, x2 + HW, y2 + HW)
 
-    def via_shapes(self, i, j):
+    def via_shapes(self, i, j, upper=False):
         x, y = self.xs[i], self.ys[j]
         pad = (x - PAD, y - PAD, x + PAD, y + PAD)
+        if upper:
+            return [("m2", pad), ("m3", pad), ("v2", (x - CUT, y - CUT, x + CUT, y + CUT))]
         return [("m1", pad), ("m2", pad), ("v1", (x - CUT, y - CUT, x + CUT, y + CUT))]
 
     def move_shapes(self, a, b):
         if a[0] != b[0]:
-            return self.via_shapes(a[1], a[2])
+            return self.via_shapes(a[1], a[2], upper="m3" in (a[0], b[0]))
         return [(a[0], self.seg_rect(a, b))]
 
     # ------------------------------------------------------------------ one net
@@ -168,7 +175,7 @@ class Router:
 
             def h(n):
                 x, y = self.xs[n[1]], self.ys[n[2]]
-                return min(max(0, b[0] - x, x - b[2]) + max(0, b[1] - y, y - b[3]) for b in boxes)
+                return self.hw * min(max(0, b[0] - x, x - b[2]) + max(0, b[1] - y, y - b[3]) for b in boxes)
 
             dist, prev, pq = {}, {}, []
             for n in tree:
@@ -186,7 +193,13 @@ class Router:
                 if nexp > max_expand:
                     break
                 l, i, j = n
-                nbrs = [(("m2" if l == "m1" else "m1", i, j), self.cost["via"])]
+                if l == "m1":
+                    nbrs = [(("m2", i, j), self.cost["via"])]
+                elif l == "m2":
+                    nbrs = [(("m1", i, j), self.cost["via"])] + (
+                        [(("m3", i, j), self.cost["via2"])] if USE_M3 and net not in self.no_m3 else [])
+                else:
+                    nbrs = [(("m2", i, j), self.cost["via2"])]
                 for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                     i2, j2 = i + di, j + dj
                     if 0 <= i2 < len(self.xs) and 0 <= j2 < len(self.ys) and (
@@ -244,7 +257,7 @@ class Router:
 
     def conflict_list(self):
         out = []
-        for l in ("m1", "m2", "v1"):
+        for l in LAYERS:
             sp = SPACE[l]
             for k, (r, n) in list(self.dyn[l].items.items()):
                 for r2, n2 in self.dyn[l].near(r, sp):
@@ -254,11 +267,11 @@ class Router:
 
     def conflicts(self):
         bad = set()
-        for l in ("m1", "m2", "v1"):
+        for l in LAYERS:
             sp = SPACE[l]
             for k, (r, n) in list(self.dyn[l].items.items()):
                 for r2, n2 in self.dyn[l].near(r, sp):
-                    if (n2 != n or (l == "v1" and r2 != r)) and rgap(r, r2) < sp - 1e-9:
+                    if (n2 != n or (l in ("v1", "v2") and r2 != r)) and rgap(r, r2) < sp - 1e-9:
                         bad.add(n)
                         bad.add(n2)
         return bad
@@ -277,7 +290,7 @@ class Router:
                 else:
                     unrouted.discard(net)
             bad = self.conflicts()
-            log(f"  iter {it:2d}: pres={self.pres:7.2f} conflicts={len(bad):2d} unrouted={len(unrouted)} "
+            log(f"  iter {it:2d} [{__import__('time').strftime('%H:%M:%S')}]: pres={self.pres:7.2f} conflicts={len(bad):2d} unrouted={len(unrouted)} "
                 f"{sorted(bad | unrouted)}")
             if not bad and not unrouted:
                 break

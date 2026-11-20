@@ -35,7 +35,7 @@ common = dict(vdd="vdd", vss="0", VSUBS="0", vbn_prb="vbp", en="hi", rsel="hi")
 ref = dict(common, el="vin", sub="hi", abus="abr")
 s = dict(common, vm="vin", sub_b="hi", sub="0", abus="abs", el="elx", vbn_leak="0", vbp_st="vdd", vbp_syn="vdd",
          vsrc="0", vreset="0", vbn_ref="0", aux="0", sta="0", stb="0", hold="hi", mreset="0", spk="spk")
-body = f"""{include(*sb.LIBS)}
+body = f"""{include('neuron/membrane.spice') if PEX else include(*sb.LIBS)}
 Vdd vdd 0 3.3
 Vhi hi 0 3.3
 Vex elx 0 1.2

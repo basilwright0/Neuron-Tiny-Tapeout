@@ -47,7 +47,7 @@ XM vb vb vdd vdd pfet_03v3 W={w} L={l}
 
 * ---------------------------------------------------------------- mcap_r ---
 * Rectangular membrane capacitor (same device as mcap): C ~= 4.0e-3 * W*L fF (W, L in um).
-* Used by slot_ah_800 to fill the S slot's former trim space (11.7 x 12.4 -> ~580 fF).
+* Used by slot_ah_800 to fill the S slot's former trim space (11.7 x 11.6 -> ~540 fF).
 .subckt mcap_r top vss w=7.07u l=7.07u
 XC vss top vss vss nfet_03v3 W={w} L={l}
 .ends mcap_r

@@ -27,3 +27,7 @@ layout/*/out/pex_*/
 layout/*/out/ext/
 layout/*/out/pex/
 *.ext
+
+# trial routes and precheck copies
+layout/slot/out/o2r*/
+gds/*.v

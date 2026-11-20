@@ -1,0 +1,94 @@
+
+Circuit 1 cell pfet_03v3 and Circuit 2 cell pfet_03v3 are black boxes.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes pfet_03v3 and pfet_03v3 are equivalent.
+
+Circuit 1 cell nfet_03v3 and Circuit 2 cell nfet_03v3 are black boxes.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes nfet_03v3 and nfet_03v3 are equivalent.
+Flattening unmatched subcell p_w2_l4 in circuit slot_ah_50 (0)(4 instances)
+Flattening unmatched subcell p_w0p22_l1 in circuit slot_ah_50 (0)(1 instance)
+Flattening unmatched subcell n_w1_l0p28 in circuit slot_ah_50 (0)(8 instances)
+Flattening unmatched subcell n_w2_l4 in circuit slot_ah_50 (0)(2 instances)
+Flattening unmatched subcell n_w2_l2 in circuit slot_ah_50 (0)(2 instances)
+Flattening unmatched subcell n_w4_l1 in circuit slot_ah_50 (0)(6 instances)
+Flattening unmatched subcell n_w0p5_l0p28 in circuit slot_ah_50 (0)(6 instances)
+Flattening unmatched subcell p_w1_l0p5 in circuit slot_ah_50 (0)(1 instance)
+Flattening unmatched subcell n_w0p5_l0p5 in circuit slot_ah_50 (0)(1 instance)
+Flattening unmatched subcell p_w1_l0p28 in circuit slot_ah_50 (0)(8 instances)
+Flattening unmatched subcell n_w1_l0p5 in circuit slot_ah_50 (0)(1 instance)
+Flattening unmatched subcell n_w4_l2 in circuit slot_ah_50 (0)(2 instances)
+Flattening unmatched subcell p_w1_l2 in circuit slot_ah_50 (0)(4 instances)
+Flattening unmatched subcell n_w3p54_l3p54 in circuit slot_ah_50 (0)(2 instances)
+Flattening unmatched subcell n_w0p22_l2 in circuit slot_ah_50 (0)(1 instance)
+
+Cell slot_ah_50 (0) disconnected node: aux
+Cell slot_ah_50 (1) disconnected node: aux
+Class slot_ah_50 (0):  Merged 2 parallel devices.
+Cell slot_ah_50 (0) disconnected node: aux
+Cell slot_ah_50 (1) disconnected node: aux
+Subcircuit summary:
+Circuit 1: slot_ah_50                      |Circuit 2: slot_ah_50                      
+-------------------------------------------|-------------------------------------------
+pfet_03v3 (18)                             |pfet_03v3 (18)                             
+nfet_03v3 (31->29)                         |nfet_03v3 (29)                             
+Number of devices: 47                      |Number of devices: 47                      
+Number of nets: 45                         |Number of nets: 45                         
+---------------------------------------------------------------------------------------
+Resolving symmetries by property value.
+Resolving symmetries by pin name.
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: slot_ah_50                      |Circuit 2: slot_ah_50                      
+-------------------------------------------|-------------------------------------------
+vm                                         |vm                                         
+vbn_leak                                   |vbn_leak                                   
+el                                         |el                                         
+vbn_ref                                    |vbn_ref                                    
+vreset                                     |vreset                                     
+sub                                        |sub                                        
+sub_b                                      |sub_b                                      
+mreset                                     |mreset                                     
+vbp_st                                     |vbp_st                                     
+vsrc                                       |vsrc                                       
+vss                                        |vss                                        
+vbn_prb                                    |vbn_prb                                    
+rsel                                       |rsel                                       
+abus                                       |abus                                       
+hold                                       |hold                                       
+vbp_syn                                    |vbp_syn                                    
+sta                                        |sta                                        
+stb                                        |stb                                        
+spk                                        |spk                                        
+vdd                                        |vdd                                        
+en                                         |en                                         
+aux                                        |aux                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes slot_ah_50 and slot_ah_50 are equivalent.
+
+Final result: Circuits match uniquely.
+.

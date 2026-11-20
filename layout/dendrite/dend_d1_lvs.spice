@@ -19,6 +19,7 @@ XXS_XD_XN2 XS.XD.p XS.XD.n1 vsrc vss nfet_03v3 W=0.22u L=2u
 XXS_XD_XS3 XS.XD.s3 vbp_st vdd vdd pfet_03v3 W=1u L=2u
 XXS_XD_XP3 XS.XD.pb XS.XD.p XS.XD.s3 vdd pfet_03v3 W=1u L=0.28u
 XXS_XD_XN3 XS.XD.pb XS.XD.p vsrc vss nfet_03v3 W=0.5u L=0.28u
+XXS_XD_XK XS.XD.pb spk vdd vdd pfet_03v3 W=0.22u L=1u
 XXS_XD_Xi4_XN spk XS.XD.pb vss vss nfet_03v3 W=0.5u L=0.28u
 XXS_XD_Xi4_XP spk XS.XD.pb vdd vdd pfet_03v3 W=1u L=0.28u
 XXS_XR_Xi_XN XS.XR.spkb spk vss vss nfet_03v3 W=0.5u L=0.28u
@@ -119,11 +120,13 @@ XXP1_XDT_XN2 XP1.XDT.p XP1.XDT.n1 vsrcp vss nfet_03v3 W=0.22u L=2u
 XXP1_XDT_XS3 XP1.XDT.s3 vbp_st vdd vdd pfet_03v3 W=1u L=2u
 XXP1_XDT_XP3 XP1.XDT.pb XP1.XDT.p XP1.XDT.s3 vdd pfet_03v3 W=1u L=0.28u
 XXP1_XDT_XN3 XP1.XDT.pb XP1.XDT.p vsrcp vss nfet_03v3 W=0.5u L=0.28u
+XXP1_XDT_XK XP1.XDT.pb XP1.xb vdd vdd pfet_03v3 W=0.22u L=1u
+XXP1_XDT_XQ XP1.XDT.pb XP1.XDT.p vdd vdd pfet_03v3 W=0.22u L=4u
 XXP1_XDT_XON XP1.xb XP1.XDT.pb vss vss nfet_03v3 W=0.5u L=0.28u
 XXP1_XDT_XOP XP1.xb XP1.XDT.pb vdd vdd pfet_03v3 W=1u L=0.28u
 XXP1_XDT_XNH XP1.XDT.n1 d1 XP1.XDT.h vss nfet_03v3 W=1u L=1u
 XXP1_XDT_XNE XP1.XDT.h XP1.xb vsrcp vss nfet_03v3 W=1u L=0.28u
-XXP1_XTP XP1.vt XP1.xb vdd vdd pfet_03v3 W=1u L=0.28u
+XXP1_XTP XP1.vt XP1.xb vdd vdd pfet_03v3 W=1u L=2u
 XXP1_XTS XP1.vt XP1.xb XP1.ti vss nfet_03v3 W=1u L=0.28u
 XXP1_XTI XP1.ti vbn_leak vss vss nfet_03v3 W=1u L=4u
 XXP1_XCT_XC vss XP1.vt vss vss nfet_03v3 W=3.54u L=3.54u
@@ -146,11 +149,13 @@ XXP2_XDT_XN2 XP2.XDT.p XP2.XDT.n1 vsrcp vss nfet_03v3 W=0.22u L=2u
 XXP2_XDT_XS3 XP2.XDT.s3 vbp_st vdd vdd pfet_03v3 W=1u L=2u
 XXP2_XDT_XP3 XP2.XDT.pb XP2.XDT.p XP2.XDT.s3 vdd pfet_03v3 W=1u L=0.28u
 XXP2_XDT_XN3 XP2.XDT.pb XP2.XDT.p vsrcp vss nfet_03v3 W=0.5u L=0.28u
+XXP2_XDT_XK XP2.XDT.pb XP2.xb vdd vdd pfet_03v3 W=0.22u L=1u
+XXP2_XDT_XQ XP2.XDT.pb XP2.XDT.p vdd vdd pfet_03v3 W=0.22u L=4u
 XXP2_XDT_XON XP2.xb XP2.XDT.pb vss vss nfet_03v3 W=0.5u L=0.28u
 XXP2_XDT_XOP XP2.xb XP2.XDT.pb vdd vdd pfet_03v3 W=1u L=0.28u
 XXP2_XDT_XNH XP2.XDT.n1 d2 XP2.XDT.h vss nfet_03v3 W=1u L=1u
 XXP2_XDT_XNE XP2.XDT.h XP2.xb vsrcp vss nfet_03v3 W=1u L=0.28u
-XXP2_XTP XP2.vt XP2.xb vdd vdd pfet_03v3 W=1u L=0.28u
+XXP2_XTP XP2.vt XP2.xb vdd vdd pfet_03v3 W=1u L=2u
 XXP2_XTS XP2.vt XP2.xb XP2.ti vss nfet_03v3 W=1u L=0.28u
 XXP2_XTI XP2.ti vbn_leak vss vss nfet_03v3 W=1u L=4u
 XXP2_XCT_XC vss XP2.vt vss vss nfet_03v3 W=3.54u L=3.54u

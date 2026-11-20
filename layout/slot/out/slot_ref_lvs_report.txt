@@ -1,0 +1,66 @@
+
+Circuit 1 cell nfet_03v3 and Circuit 2 cell nfet_03v3 are black boxes.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes nfet_03v3 and nfet_03v3 are equivalent.
+Flattening unmatched subcell n_w1_l0p28 in circuit slot_ref (0)(4 instances)
+Flattening unmatched subcell n_w2_l2 in circuit slot_ref (0)(1 instance)
+Flattening unmatched subcell n_w4_l2 in circuit slot_ref (0)(1 instance)
+
+Cell slot_ref (0) disconnected node: vbp_syn
+Cell slot_ref (0) disconnected node: aux
+Cell slot_ref (0) disconnected node: vbn_leak
+Cell slot_ref (0) disconnected node: vsrc
+Cell slot_ref (0) disconnected node: vbp_st
+Cell slot_ref (0) disconnected node: vbn_ref
+Cell slot_ref (0) disconnected node: vreset
+Cell slot_ref (1) disconnected node: vsrc
+Cell slot_ref (1) disconnected node: vreset
+Cell slot_ref (1) disconnected node: vbn_leak
+Cell slot_ref (1) disconnected node: vbp_st
+Cell slot_ref (1) disconnected node: vbn_ref
+Cell slot_ref (1) disconnected node: aux
+Cell slot_ref (1) disconnected node: vbp_syn
+Subcircuit summary:
+Circuit 1: slot_ref                        |Circuit 2: slot_ref                        
+-------------------------------------------|-------------------------------------------
+nfet_03v3 (6)                              |nfet_03v3 (6)                              
+Number of devices: 6                       |Number of devices: 6                       
+Number of nets: 12                         |Number of nets: 12                         
+---------------------------------------------------------------------------------------
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: slot_ref                        |Circuit 2: slot_ref                        
+-------------------------------------------|-------------------------------------------
+vss                                        |vss                                        
+vdd                                        |vdd                                        
+el                                         |el                                         
+vbn_prb                                    |vbn_prb                                    
+rsel                                       |rsel                                       
+sub                                        |sub                                        
+abus                                       |abus                                       
+en                                         |en                                         
+vbp_syn                                    |vbp_syn                                    
+aux                                        |aux                                        
+vbn_leak                                   |vbn_leak                                   
+vsrc                                       |vsrc                                       
+vbp_st                                     |vbp_st                                     
+vbn_ref                                    |vbn_ref                                    
+vreset                                     |vreset                                     
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes slot_ref and slot_ref are equivalent.
+
+Final result: Circuits match uniquely.
+.

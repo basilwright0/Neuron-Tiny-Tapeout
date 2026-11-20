@@ -45,7 +45,7 @@ COLS.append(("vdd", round(SPINE_X0 + len(SPINE) * PITCH + 0.15, 3), 0.60))
 M3_X0 = 30.0
 M3LINES = [("en", [9.6, 50.4, 75.8]), ("pl_en", [47.6, 73.0]), ("chain", [16.6]), ("sel1", [75.2]),
            ("d1_bsel", [98.3]), ("sta", [48.2]), ("stb", [98.3]), ("hold", [29.0, 48.8, 74.8, 93.4]),
-           ("ta0", [35.45]), ("ta1", [35.45]), ("ta2", [35.45]), ("ta3", [35.45]),
+           ("ta0", [33.3]), ("ta1", [33.3]), ("ta2", [33.3]), ("ta3", [33.3]),
            ("tb0", [98.3]), ("tb1", [98.3]), ("tb2", [98.3]), ("tb3", [98.3])]
 # Metal3 lines at their own x (net, x, [drop y]): vbp_syn runs down next to the two synapses
 M3X = [("vbp_syn", 22.60, [48.4, 73.8])]
@@ -53,7 +53,7 @@ M3X = [("vbp_syn", 22.60, [48.4, 73.8])]
 PIN_ONLY = set()
 # Internal Metal3 jumpers for the local nets that cross a routing region (all have a drain on them,
 # so no antenna issue): (net, [drop y]); they sit right of the digital lines, between the drops only.
-M3INT = [("b1", [49.4, 98.3]), ("la1", [35.45, 50.0]), ("dl1", [35.45, 47.6]),
+M3INT = [("b1", [49.4, 98.3]), ("la1", [33.3, 50.0]), ("dl1", [33.3, 47.6]),
          ("la2", [75.8, 93.4]), ("dl2", [75.2, 98.3])]
 # Feeds: vertical Metal2 lines for the only local nets that cross compartment regions
 # (net, x, y0, y1): d1 down to its axial pair in the soma region, vep up to the plateau OTAs,
@@ -67,8 +67,7 @@ VSS_STRIPES = [38.0, 63.4]
 # n-wells (x0, y0, x1, y1[, rail]): an n-tap VDD rail runs along each well's bottom edge; rail 'full'
 # (default) = whole cell width (reaches both edges and the spine vdd), 'local' = only under the well,
 # 'none' = no rail (the well is an extension of the one below it).
-# Soma well: full width up to y 29.0, then only left of x 34.5 up to 33.0 (pocket for trim-1 nmos).
-NWELLS = [(1.40, 24.0, XF, 29.0), (1.40, 28.9, 34.5, 33.0, "none"),
+NWELLS = [(1.40, 24.0, XF, 33.0),
           (1.40, 56.7, XF, 61.6), (1.40, 82.1, XF, 87.0), (1.40, 93.6, XF, 98.6),
           (9.90, 42.8, 21.9, 49.6, "local"), (9.90, 68.2, 21.9, 75.0, "local")]
 NTAP = 0.60
@@ -99,16 +98,14 @@ ROWS = [
     # ---------------- soma region
     (1.6, 0.9, ["XS.XC.XC", "XT0.XMF", "XT0.XME", "XT0.XMB", "XT0.XSW", "XS.XR.XCR.XC", "XS.XR.XNR",
                 "XS.XR.XSW", "XS.XR.Xi.XN", "XEP.XS"]),
-    (11.6, 0.9, ota("XS.XL") + ota("XA1.XA") + ["XI.XN", "XS.XD.Xi4.XN"]),
-    (18.4, 0.9, ["XS.XD.XNI", "XS.XD.XN2", "XS.XD.XN3", "XWS", "XWC", "XEP.XN", "XMR"] + ota("XA1.XB")),
+    (11.6, 0.9, ota("XS.XL") + ota("XA1.XA") + ["XS.XD.Xi4.XN"]),
+    (18.4, 0.9, ["XS.XD.XNI", "XS.XD.XN2", "XS.XD.XN3", "XWS", "XI.XN", "XWC", "XEP.XN", "XMR"] + ota("XA1.XB")),
     (25.6, 2.0, ["XS.XL.XP1", "XS.XL.XP2", "XA1.XA.XP1", "XA1.XA.XP2", "XA1.XA.XHO", "XA1.XB.XP1", "XA1.XB.XP2",
-                 "XA1.XB.XHO", "XEP.XPD", "XEP.XPM", "XS.XD.XS3"]),
+                 "XA1.XB.XHO", "XEP.XPD", "XEP.XPM", "XS.XD.XS3", "XS.XD.XK"]),
     (30.4, 2.0, ["XS.XD.XPS", "XS.XD.XPI", "XS.XD.XS2", "XS.XD.XP2", "XS.XD.XP3", "XS.XD.Xi4.XP",
                  "XS.XR.Xi.XP", "XS.XR.XPC", "XI.XP", "XS.XHL"] + trim("XR1", "pmos")),
-    # trim 1 (d1, nibble 7) nmos: ladder in the pocket right of the soma well and above it, switches above
-    (30.2, 35.8, trim("XR1", "lad")[:5]),
-    (33.8, 25.6, trim("XR1", "lad")[5:]),
-    (36.2, 25.6, trim("XR1", "sw")),
+    # trim 1 (d1, nibble 7): ladder + switches in one row in the free band above the soma well
+    (34.8, 2.0, trim("XR1", "lad") + trim("XR1", "sw")),
     # ---------------- d2's axial pair + trim-2 switches, top well (d2 pair pmos, steering pmos, trim-2 pmos),
     # steering nmos + trim-2 ladder
     (88.6, 0.9, ota("XA2.XA") + ota("XA2.XB") + trim("XR2", "sw")),
@@ -118,8 +115,10 @@ ROWS = [
 ]
 
 
-def sub_rows(y0, P, L, C, T, Y, extra=()):
-    """d1/d2 compartment: cap, synapse (own n-well), timer/detector rows, leak+plateau OTA row, pmos row."""
+def sub_rows(y0, P, L, C, T, Y):
+    """d1/d2 compartment: cap, synapse (own n-well), timer/detector rows, leak+plateau OTA row, pmos row;
+    the subunit's gap trim R fills the right side (switches after the timer, ladder in a row between timer and
+    detector and after the detector, pmos switches in the short top pmos row)."""
     return [
         (y0, 0.9, [f"{C}.XC"]),
         (y0 + 0.6, 10.5, [f"{Y}.XNA", f"{Y}.XNB", f"{Y}.XMR"]),
@@ -127,12 +126,14 @@ def sub_rows(y0, P, L, C, T, Y, extra=()):
         (y0 + 8.0, 10.5, [f"{Y}.XPH", f"{Y}.XQA", f"{Y}.XQB", f"{Y}.XHL"]),
         (y0, 22.5, [f"{P}.XCT.XC", f"{P}.XTI", f"{P}.XTS", f"{P}.XS1", f"{P}.XS2", f"{P}.XS3"]),
         (y0 + 6.0, 22.5, 1.5, [f"{P}.XDT.XNI", f"{P}.XDT.XN2", f"{P}.XDT.XN3", f"{P}.XDT.XON",
-                               f"{P}.XDT.XNH", f"{P}.XDT.XNE"] + list(extra)),
+                               f"{P}.XDT.XNH", f"{P}.XDT.XNE"]),
         (y0 + 11.6, 0.9, ota(L) + [f"{P}.XOM1", f"{P}.XOM2",
                                    f"{P}.XOTA", f"{P}.XOTB", f"{T}.XMF", f"{T}.XME", f"{T}.XMB", f"{T}.XSW"]),
-        (y0 + 18.8, 2.0, 1.2, [f"{L}.XP1", f"{L}.XP2", f"{P}.XOP1", f"{P}.XOP2", f"{P}.XHP", f"{P}.XTP",
+        (y0 + 18.8, 2.0, 0.9, [f"{L}.XP1", f"{L}.XP2", f"{P}.XOP1", f"{P}.XOP2", f"{P}.XHP", f"{P}.XTP",
                                f"{P}.XDT.XPS", f"{P}.XDT.XPI", f"{P}.XDT.XS2", f"{P}.XDT.XP2", f"{P}.XDT.XS3",
                                f"{P}.XDT.XP3", f"{P}.XDT.XOP"]),
+        # detector reset keeper + pull-up: a short second pmos row in the top of the same well
+        (y0 + 21.0, 44.5, [f"{P}.XDT.XK", f"{P}.XDT.XQ"]),
     ]
 
 
@@ -144,7 +145,14 @@ FLIP = {f"{o}.{d}" for o in ("XS.XL", "XL1", "XL2", "XA1.XA", "XA1.XB", "XA2.XA"
 FLIP |= {f"{p}.{d}" for p in ("XP1", "XP2") for d in ("XOM1", "XOTB")}
 
 
-ROUTE_FIRST = ["vs", "d1", "d2", "spk"]
+# gate-only nets that already ride a long Metal3 line: keep the router off Metal3 for them (antenna ANT.16:
+# ta1 failed with 3 um^2 of routed Metal3 on top of its 71 um line)
+NO_M3 = {f"t{s}{k}" for s in "ab" for k in range(4)}
+# synapse internal nodes: route first and keep them short (charge sharing on da/db costs EPSP; a first
+# M3 route let them wander 30-50 um and the post-layout EPSP dropped ~25 %)
+SYN_LOCAL = [f"XY{k}.{n}" for k in (1, 2) for n in ("da", "db", "h")]
+NO_M3 |= set(SYN_LOCAL)
+ROUTE_FIRST = SYN_LOCAL + ["vs", "d1", "d2", "spk"]
 ROUTE_LAST = ["vdd", "vss"]
 ITERS = 40
 SCHEDULES = [(1.3, 0.5), (1.6, 0.3), (1.2, 0.7), (1.45, 0.4), (1.3, 0.3)]
@@ -229,9 +237,13 @@ def placement(lib, devs):
 class Layout:
     def __init__(self):
         self.paint, self.labels, self.nets = [], [], {}
+        self.m3 = []          # (m3|v2, rect, net): Metal3 / via2 drawn by the generator (router obstacles)
 
-    def p(self, layer, r):
-        self.paint.append((layer, tuple(snap(v) for v in r)))
+    def p(self, layer, r, net=None):
+        r = tuple(snap(v) for v in r)
+        self.paint.append((layer, r))
+        if layer in ("metal3", "via2"):
+            self.m3.append(({"metal3": "m3", "via2": "v2"}[layer], r, net))
 
     def term(self, net, shapes):
         self.nets.setdefault(net, []).append(shapes)
@@ -339,39 +351,39 @@ def build():
     # Metal3 digital lines with via2 drops onto Metal2 pads (one router terminal per net)
     for k, (net, drops) in enumerate(M3LINES):
         x = round(M3_X0 + k * PITCH, 3)
-        L.p("metal3", (x - 0.15, min(drops) - 0.30, x + 0.15, H))
+        L.p("metal3", (x - 0.15, min(drops) - 0.30, x + 0.15, H), net)
         L.labels.append((net, "metal3", (x - 0.15, H - 0.5, x + 0.15, H - 0.1), "signal"))
         pads = []
         for y in drops:
             pr = (x - 0.19, y - 0.25, x + 0.19, y + 0.25)
             L.p("metal2", pr)
-            L.p("via2", (x - 0.14, y - 0.14, x + 0.14, y + 0.14))
-            L.p("metal3", pr)
+            L.p("via2", (x - 0.14, y - 0.14, x + 0.14, y + 0.14), net)
+            L.p("metal3", pr, net)
             obst.append(("m2", pr, net))
             pads.append(("m2", pr))
         if net not in PIN_ONLY:
             L.term(net, pads)
     for net, x, drops in M3X:
-        L.p("metal3", (x - 0.15, min(drops) - 0.30, x + 0.15, H))
+        L.p("metal3", (x - 0.15, min(drops) - 0.30, x + 0.15, H), net)
         L.labels.append((net, "metal3", (x - 0.15, H - 0.5, x + 0.15, H - 0.1), "signal"))
         pads = []
         for y in drops:
             pr = (x - 0.19, y - 0.25, x + 0.19, y + 0.25)
             L.p("metal2", pr)
-            L.p("via2", (x - 0.14, y - 0.14, x + 0.14, y + 0.14))
-            L.p("metal3", pr)
+            L.p("via2", (x - 0.14, y - 0.14, x + 0.14, y + 0.14), net)
+            L.p("metal3", pr, net)
             obst.append(("m2", pr, net))
             pads.append(("m2", pr))
         L.term(net, pads)
     for k, (net, drops) in enumerate(M3INT):
         x = round(M3_X0 + (len(M3LINES) + k) * PITCH, 3)
-        L.p("metal3", (x - 0.15, min(drops) - 0.30, x + 0.15, max(drops) + 0.30))
+        L.p("metal3", (x - 0.15, min(drops) - 0.30, x + 0.15, max(drops) + 0.30), net)
         pads = []
         for y in drops:
             pr = (x - 0.19, y - 0.25, x + 0.19, y + 0.25)
             L.p("metal2", pr)
-            L.p("via2", (x - 0.14, y - 0.14, x + 0.14, y + 0.14))
-            L.p("metal3", pr)
+            L.p("via2", (x - 0.14, y - 0.14, x + 0.14, y + 0.14), net)
+            L.p("metal3", pr, net)
             obst.append(("m2", pr, net))
             pads.append(("m2", pr))
             if any(r[0] <= x <= r[2] and r[1] <= y <= r[3] for r in KEEPOUT.values()):
@@ -396,6 +408,7 @@ def build():
     for name, r in KEEPOUT.items():
         L.p("comment", r)
         L.labels.append((name, "comment", (r[0] + 0.5, r[3] - 1.0, r[0] + 0.5, r[3] - 1.0), None))
+    obst += [(l, r, n) for l, r, n in L.m3]
     return L, insts, obst, mom, lib, devs, ports
 
 
@@ -415,8 +428,8 @@ def spine_segments(L, net, x, y0, y1, obst):
             pr = (x - 0.19, vy - pad / 2, x + 0.19, vy + pad / 2)
             L.p("metal2", pr)
             obst.append(("m2", pr, net))
-            L.p("via2", (x - 0.14, vy - 0.14, x + 0.14, vy + 0.14))
-        L.p("metal3", (x - 0.19, yb - pad, x + 0.19, yb + gap + pad))
+            L.p("via2", (x - 0.14, vy - 0.14, x + 0.14, vy + 0.14), net)
+        L.p("metal3", (x - 0.19, yb - pad, x + 0.19, yb + gap + pad), net)
     segs.append((x - 0.15, y, x + 0.15, y1))
     for g in segs:
         L.p("metal2", g)
@@ -452,7 +465,7 @@ def mom_cap(L, obst):
     for net, rs in shapes.items():
         for r in rs:
             for lay in ("metal1", "metal2", "metal3"):
-                L.p(lay, r)
+                L.p(lay, r, net)
             obst.append(("m1", r, net))
             obst.append(("m2", r, net))
         b = rs[0]
@@ -463,7 +476,7 @@ def mom_cap(L, obst):
             if vx + 0.14 > b[2] - 0.06:
                 break
             L.p("via1", (vx - 0.13, vy - 0.13, vx + 0.13, vy + 0.13))
-            L.p("via2", (vx - 0.14, vy - 0.14, vx + 0.14, vy + 0.14))
+            L.p("via2", (vx - 0.14, vy - 0.14, vx + 0.14, vy + 0.14), net)
             obst.append(("v1", (vx - 0.13, vy - 0.13, vx + 0.13, vy + 0.13), net))
         L.term(net, [("m1", b), ("m2", b)])
     return dict(box=(x0, y0, x0 + width, top[3]), shapes=shapes)
@@ -502,7 +515,7 @@ def add_forbids(R, mom):
     for n, net in BIGCAPS.items():
         cx, cy = PLACE[n]
         R.add_forbid(("m1", "m2"), (cx - 3.6, cy - 3.6, cx + 3.6, cy + 3.6), allowed={net, "vss"})
-    R.add_forbid(("m1", "m2"), mom["box"], allowed={"vs", "spk"})
+    R.add_forbid(("m1", "m2", "m3"), mom["box"], allowed={"vs", "spk"})
     for r in ((0, 0, W, RING + 0.15), (0, H - RING - 0.15, W, H), (0, 0, RING + 0.15, H), (W - RING - 0.15, 0, W, H)):
         R.add_forbid(("m1",), r, allowed={"vss"})
     for r in ((0, 0, W, RING), (0, H - RING, W, H), (0, 0, RING, H), (W - RING, 0, W, H)):
@@ -519,6 +532,7 @@ def route(L, obst, mom):
 
         def fresh():
             R = Router(xs, ys)
+            R.no_m3 = NO_M3
             for lay, r, net in list(obst) + done:
                 R.add_shape(lay, r, net)
             add_forbids(R, mom)
@@ -594,7 +608,7 @@ def fill_notches(obst, wires):
     dbu = 0.005
     per = {}
     for lay, r, net in list(obst) + list(wires):
-        if lay in ("m1", "m2") and net is not None:
+        if lay in ("m1", "m2", "m3") and net is not None:
             per.setdefault((lay, net), []).append(r)
     out = []
     for (lay, net), rs in per.items():
@@ -603,7 +617,7 @@ def fill_notches(obst, wires):
             reg.insert(kdb.Box(*(round(v / dbu) for v in r)))
         reg.merge()
         d = int(round(SPACE[lay] / 2 / dbu)) + 1
-        minw = int(round({"m1": 0.23, "m2": 0.28}[lay] / dbu))
+        minw = int(round({"m1": 0.23, "m2": 0.28, "m3": 0.28}[lay] / dbu))
         closed = reg.dup()
         for _ in range(3):
             closed = closed.sized(d, d, 2).sized(-d, -d, 2)
@@ -624,13 +638,26 @@ def fill_notches(obst, wires):
                 xs = [p.x * dbu for p in pts]
                 ys = [p.y * dbu for p in pts]
                 out.append((lay, (snap(min(xs)), snap(min(ys)), snap(max(xs)), snap(max(ys))), net))
+    # closing fills must keep spacing to other nets (a sliver can land next to another net's gate pad)
+    from router import rgap as _rg
+    allsh0 = {}
+    for lay, r, net in list(obst) + list(wires):
+        allsh0.setdefault(lay, []).append((r, net))
+    keep = []
+    for lay, f, net in out:
+        bad = [n for r, n in allsh0.get(lay, []) if n != net and _rg(f, r) < SPACE[lay] - 1e-9]
+        if bad:
+            print(f"  !! closing fill {lay} {net} {f} dropped (too close to {bad[0]})")
+        else:
+            keep.append((lay, f, net))
+    out = keep
     # Same-net spacing violations left after the closing (diagonal corner-to-corner gaps, which a
     # square-corner closing cannot bridge): bridge each with a small box over the gap, provided it
     # keeps spacing to every other net.
     from router import rgap
     allsh = {}
     for lay, r, net in list(obst) + list(wires) + out:
-        if lay in ("m1", "m2"):
+        if lay in ("m1", "m2", "m3"):
             allsh.setdefault(lay, []).append((r, net))
     for (lay, net), rs in per.items():
         reg = kdb.Region()
@@ -649,7 +676,7 @@ def fill_notches(obst, wires):
             if all(n == net or rgap(f, r) >= sp - 1e-9 for r, n in allsh[lay]):
                 out.append((lay, f, net))
                 allsh[lay].append((f, net))
-            elif min(f0[2] - f0[0], f0[3] - f0[1]) >= {"m1": 0.23, "m2": 0.28}[lay] and all(
+            elif min(f0[2] - f0[0], f0[3] - f0[1]) >= {"m1": 0.23, "m2": 0.28, "m3": 0.28}[lay] and all(
                     n == net or rgap(f0, r) >= sp - 1e-9 for r, n in allsh[lay]):
                 out.append((lay, f0, net))
                 allsh[lay].append((f0, net))
@@ -684,8 +711,10 @@ def write_outputs(L, insts, wires):
            "tech unlock *"]
     order = ["nwell", "psubdiff", "nsubdiff", "polysilicon", "metal1", "metal2", "metal3",
              "psubdiffcont", "nsubdiffcont", "polycontact", "via1", "via2", "comment"]
-    lay = {"m1": "metal1", "m2": "metal2", "v1": "via1"}
-    allp = list(L.paint) + [(lay[l], r) for l, r, n in wires]
+    lay = {"m1": "metal1", "m2": "metal2", "v1": "via1", "m3": "metal3", "v2": "via2"}
+    # router via2 cuts are 0.26 (its spacing model); magic draws via2 at 0.28 minimum: grow them by 0.01 per side
+    grow = lambda l, r: (r[0] - 0.01, r[1] - 0.01, r[2] + 0.01, r[3] + 0.01) if l == "v2" else r
+    allp = list(L.paint) + [(lay[l], grow(l, r)) for l, r, n in wires]
     for layer in order:
         for l, r in allp:
             if l == layer:
@@ -719,7 +748,7 @@ def preview(L, insts, wires, path):
                 for r in rs:
                     ax.add_patch(Rectangle((r[0] + cx, r[1] + cy), r[2] - r[0], r[3] - r[1], fc=c, alpha=0.5, lw=0))
         ax.text(cx, cy, name, fontsize=3, ha="center", va="center")
-    lay = {"m1": "metal1", "m2": "metal2"}
+    lay = {"m1": "metal1", "m2": "metal2", "m3": "metal3"}
     for l, r in list(L.paint) + [(lay.get(l, l), r) for l, r, n in wires]:
         if l in col:
             ax.add_patch(Rectangle((r[0], r[1]), r[2] - r[0], r[3] - r[1], fc=col[l][0], alpha=col[l][1], lw=0))

@@ -2,7 +2,7 @@
 
 usage: python3 sim/tb/tier2/tb_adex.py [corner] [temp] [i_adw_pA]
 DC current steps into vm (ideal source, as the array f-I benches), 0.5 ms after start, 6 ms long.
-Adaptation on: vbp_adw master carries i_adw (default 8 nA); off: 0 (IDAC off).
+Adaptation on: vbp_w master carries i_adw (default 8 nA); off: 0 (IDAC off).
 Prints ISI sequences, first/last ISI, adaptation index; writes sim/results/tier2/adex_<corner>_<temp>.json
 and a plot adex_<corner>_<temp>.png.
 """

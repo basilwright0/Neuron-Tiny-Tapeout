@@ -15,7 +15,7 @@ from dcommon import *  # noqa
 corner = sys.argv[1] if len(sys.argv) > 1 else "typical"
 temp = int(sys.argv[2]) if len(sys.argv) > 2 else 27
 PEX = "pex" in sys.argv[3:]          # post-layout: dend_d1 from layout/dendrite/out/dend_d1_pex.spice
-NS = (2, 3, 4) if PEX else (1, 2, 3, 4, 6)
+NS = (2, 3, 4, 5, 6) if PEX else (1, 2, 3, 4, 6)
 
 
 def pex_dut():

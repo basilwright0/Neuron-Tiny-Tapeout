@@ -1,0 +1,3 @@
+work/*
+!work/routes.json
+__pycache__/

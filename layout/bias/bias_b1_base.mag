@@ -16,32 +16,36 @@ transform 0 -1 7690 1 0 13400
 box 0 0 6200 7264
 use idac_n  Xi4
 timestamp 0
-transform 1 0 8620 0 1 200
+transform 1 0 8600 0 1 200
 box 0 0 5080 7020
 use rx_n4  Xx0
 timestamp 0
-transform 1 0 8900 0 1 7720
+transform 1 0 8880 0 1 7460
 box 0 0 4528 1520
 use rx_n2  Xx1
 timestamp 0
-transform 1 0 8620 0 1 9720
+transform 1 0 8600 0 1 9200
 box 0 0 2720 1520
 use rx_n1  Xx3
 timestamp 0
-transform 1 0 11680 0 1 9720
+transform 1 0 11560 0 1 9200
 box 0 0 1816 1520
 use rx_p24  Xx2
 timestamp 0
-transform 1 0 8620 0 1 11720
+transform 1 0 8600 0 1 10940
 box 0 0 1816 2000
 use rx_p05  Xxst
 timestamp 0
-transform 1 0 10920 0 1 11720
+transform 1 0 10720 0 1 10940
 box 0 0 1816 1800
 use rx_p05  Xx4
 timestamp 0
-transform 1 0 8620 0 1 14200
+transform 1 0 8600 0 1 13160
 box 0 0 1816 1800
+use idac_n  Xi2
+timestamp 0
+transform 1 0 8600 0 1 15200
+box 0 0 5080 7020
 use bias_vi  Xvi
 timestamp 0
 transform 1 0 14400 0 1 200
@@ -62,20 +66,16 @@ use idac_p  Xi3
 timestamp 0
 transform 1 0 26200 0 1 14960
 box 0 0 5080 6982
-use idac_n  Xi2
-timestamp 0
-transform 1 0 31880 0 1 14960
-box 0 0 5080 7020
 use bias_rails  Xr
 timestamp 0
-transform 1 0 38100 0 1 9000
+transform 1 0 36600 0 1 8800
 box 0 0 6200 9512
 use bias_master  Xm
 timestamp 0
-transform 1 0 47200 0 1 200
+transform 1 0 46300 0 1 200
 box 0 0 6400 12466
 use vdacr_vt  Xd3
 timestamp 0
-transform 0 -1 54100 1 0 13260
+transform 0 -1 52792 1 0 13260
 box 0 0 7280 8012
 << end >>

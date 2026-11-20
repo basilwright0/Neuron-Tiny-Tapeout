@@ -78,6 +78,10 @@ use n_w0p5_l0p28  XD_XN3
 timestamp 1795051080
 transform 1 0 2840 0 1 3520
 box -140 -118 140 118
+use p_w0p22_l1  XD_XK
+timestamp 1795102714
+transform 1 0 3040 0 1 5000
+box -278 -159 278 159
 use n_w0p5_l0p28  XD_Xi4_XN
 timestamp 1795051080
 transform 1 0 3220 0 1 3520

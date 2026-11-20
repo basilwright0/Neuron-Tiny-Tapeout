@@ -18,6 +18,7 @@ XXD_XN2 XD.p XD.n1 vsrc vss nfet_03v3 W=0.22u L=2u
 XXD_XS3 XD.s3 vbp_st vdd vdd pfet_03v3 W=1u L=2u
 XXD_XP3 XD.pb XD.p XD.s3 vdd pfet_03v3 W=1u L=0.28u
 XXD_XN3 XD.pb XD.p vsrc vss nfet_03v3 W=0.5u L=0.28u
+XXD_XK XD.pb spk vdd vdd pfet_03v3 W=0.22u L=1u
 XXD_Xi4_XN spk XD.pb vss vss nfet_03v3 W=0.5u L=0.28u
 XXD_Xi4_XP spk XD.pb vdd vdd pfet_03v3 W=1u L=0.28u
 XXR_Xi_XN XR.spkb spk vss vss nfet_03v3 W=0.5u L=0.28u

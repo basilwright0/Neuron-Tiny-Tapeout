@@ -2,7 +2,7 @@
 * Cfb (MOM capacitor, value from PEX) omitted: XD.CFB
 .subckt slot_ah_800 vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn sta stb hold mreset
 XXC_XC vss vm vss vss nfet_03v3 W=7.07u L=7.07u
-XXC2_XC vss vm vss vss nfet_03v3 W=11.7u L=12.4u
+XXC2_XC vss vm vss vss nfet_03v3 W=11.7u L=11.6u
 XXL_XMT XL.t vbn_leak vss vss nfet_03v3 W=2u L=4u
 XXL_XM1 la el XL.s1 vss nfet_03v3 W=4u L=1u
 XXL_XD1 XL.s1 XL.s1 XL.t vss nfet_03v3 W=8u L=1u
@@ -19,6 +19,7 @@ XXD_XN2 XD.p XD.n1 vsrc vss nfet_03v3 W=0.22u L=2u
 XXD_XS3 XD.s3 vbp_st vdd vdd pfet_03v3 W=1u L=2u
 XXD_XP3 XD.pb XD.p XD.s3 vdd pfet_03v3 W=1u L=0.28u
 XXD_XN3 XD.pb XD.p vsrc vss nfet_03v3 W=0.5u L=0.28u
+XXD_XK XD.pb spk vdd vdd pfet_03v3 W=0.22u L=1u
 XXD_Xi4_XN spk XD.pb vss vss nfet_03v3 W=0.5u L=0.28u
 XXD_Xi4_XP spk XD.pb vdd vdd pfet_03v3 W=1u L=0.28u
 XXR_Xi_XN XR.spkb spk vss vss nfet_03v3 W=0.5u L=0.28u

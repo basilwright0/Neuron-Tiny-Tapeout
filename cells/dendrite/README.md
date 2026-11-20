@@ -3,6 +3,16 @@
 Schematic: `dendrite.spice` + `dtrim.spice`. Include after `neuron/membrane.spice`, `neuron/lif.spice`, `readout/readout.spice` and `neuron/synapse.spice`.
 Testbenches are in `sim/tb/dendrite/`, results in `sim/results/dendrite/`, layout in `layout/dendrite/`.
 
+**2026-11-19 cell update.**
+- **Shared neuron cells:** `leak_ota_deg` now has 4/1 inputs and 8/1 degeneration diodes. `det_ah`'s third stage is starved and has the reset keeper XK. Nominal EL / Vth / Vreset are 1.30 / 1.38 / 1.30 V.
+- **D1's own copies follow:** `ax_ota_h`, `leak_ota_dega` and the plateau detector `pdet`.
+- **`pdet` additions:**
+  - XS3 starve on the third stage. Peak vsrc current per crossing drops 43 → 10 µA.
+  - XK keeper, gated by xb.
+  - XQ weak pull-up (0.22/4, gated by p). The keeper alone left xb stuck high with 30–40 µA at ss/0, ss/27 and sf/0 with biases off.
+- **Timer pFET XTP is now L = 2 µm** (was 0.28). This fixes the ff/85 plateau outlier.
+- **The trims are part of `dend_d1`.** `dend_d1t` is kept only as an alias.
+
 ## Topology
 
 - **Soma** `soma_h`: the axon-hillock LIF `lif_ah` (200 fF MOS cap, `leak_ota_deg`, `det_ah` + 8 fF MOM Cfb, refractory). Two additions:
@@ -58,19 +68,20 @@ S = 100, typical 27 °C unless noted.
 
 | Item | Result |
 |---|---|
-| Passive transfer, star | R/model 1.008–1.019; attenuation d1→soma 0.542 (model 0.545) |
-| Passive transfer, chain | R/model 1.008–1.019; attenuation 0.664 (model 0.667) |
-| Transfer over corners | Attenuation 0.541 ± 0.001 at 13 of 15 corners. At ss/0 and sf/0 it is 0.46 / 0.49 (leak OTA headroom, see below). |
-| Plateau threshold | 111 mV above EL, 92 mV above rest, 344 pA DC. Corners: 107–117 mV above EL. |
-| Plateau duration and burst | 1.5–1.7 ms; 16–19 soma spikes |
-| Plateau level | Soma +430 mV vs model +428 mV (model plateau_g = 20 nS) |
-| MC, 30 seeds (trims at code 8, lr 0.6u) | Threshold above rest σ = 15.8 mV (d1), 14.9 mV (d2), trim mismatch included |
-| Trim `trim_gap4w` (ladder input 2 × 0.5/0.6, about 3× the slot trim's current) | 27 °C: rest shift −43.8…+54.8 mV (span 98.6), mean step 6.6 mV, max step 11.4 mV, monotonic at all 15 corners. 0 °C: span 84 mV (5.6 mV/step); 85 °C: span 132 mV. ss/0 has a long negative tail (−176 mV), caused by the leak OTA (see below). |
-| MC vs trim | Trim covers ±49 mV at 27 °C, i.e. ±3.1σ (d1) and ±3.3σ (d2). All 30 seeds fall inside. At 0 °C the span is 84 mV (±42). |
-| Synapse test (`tb_synapse.py`), I_w 1 nA, 10 µs pulses | Schematic: clustered gives a plateau and a 17-spike burst from N = 2 per input; distributed gives nothing up to N = 4 (both plateau at N = 6). Post-layout (PEX, typical 27): clustered fires from N = 3 (16 spikes); distributed gives nothing up to N = 4. |
-| Hold (`tb_hold.py`) | Drift ≤ 0.073 mV/ms on all three compartments over 5 ms; no spikes. Soma XHL, subunit leaks via the synapses' XHL, axial XHO and plateau XHP are all cut. |
+| Passive transfer, star | R/model 0.98 (g/Ib of the new OTA is 6.33 vs the 6.18 S/A used to set Ib); attenuation d1→soma 0.543 (model 0.545) |
+| Passive transfer, chain | R/model 0.98; attenuation 0.665 (model 0.667) |
+| Transfer over corners (`corners_summary.txt`) | Attenuation 0.542–0.544 at all 15 corners (ss/0 0.543, sf/0 0.544; old cells gave 0.475 / 0.499) |
+| Plateau threshold | 114.5 mV above EL, 92 mV above rest, 350 pA DC. Corners: 111–120 mV above EL, 89–95 mV above rest. |
+| Plateau duration and burst | Detector high 1.6–1.9 ms (passive soma); 17–19 soma spikes at all 15 corners |
+| Plateau level | d1 +520…+930 mV, soma +480…+890 mV (passive), over corners |
+| MC, 30 seeds (typical 27; mixed old/new detector keeper, which does not affect the threshold) | Threshold above rest σ = 13.3 mV (d1), 11.7 mV (d2), trim mismatch included |
+| Trim `trim_gap4w` (ladder input 2 × 0.5/0.6) with the new OTA, EL 1.3 V | 27 °C: −41.4…+53.6 mV (span 95), mean step 6.3 mV, max 11.1 mV, monotonic at all 15 corners. 0 °C: span 80 mV (ss/0 and sf/0 now normal: 83 / 82 mV). 85 °C: span 128 mV. |
+| MC vs trim | ±47.5 mV at 27 °C = ±3.6σ (d1), ±4.0σ (d2). All 30 seeds fall inside. |
+| Synapse test (`tb_synapse.py`), I_w 1 nA, 10 µs pulses | Clustered fires from N = 3 at typical 27 / sf/0 / ff/85 and from N = 2 at ss/0 (17–27 spikes). Distributed gives nothing up to N = 4 at all four. Post-layout (70 × 104 µm, PEX, typical 27): clustered from N = 4, distributed silent up to N = 6. The single-pulse EPSP is 45 mV vs 63 mV in schematic, because post-layout node C is 250 / 237 / 272 fF (d1 / d2 / soma) vs 221 / 223 / 213 fF (`tb_cnode.py`). |
+| Bias off (`tb_doff.py`, whole D1, 5 corners × 0/27/85 × 2 vbp states) | spk and both xb = 0 mV; Idd ≤ 2.2 nA (ff/85) |
+| Hold (`tb_hold.py`) | Drift ≤ 0.069 mV/ms on all three compartments over 5 ms; no spikes. Soma XHL, subunit leaks via the synapses' XHL, axial XHO and plateau XHP are all cut. |
 
-## Leak OTA (`leak_ota_deg`) at cold slow-n: shared with the neuron array
+## Leak OTA (`leak_ota_deg`) at cold slow-n (history: the fix below has been applied since 2026-11-19)
 
 Run with `tb_leak_lin.py` (`leak_lin.txt`: 5 corners × 0/27/85 °C × 324/647 pA, plus fix variants), `tb_leak_hiS.py` (`leak_hiS.txt`: higher S), and the older `tb_leak_corners.py` / `tb_leak_fix.py`.
 
@@ -100,4 +111,4 @@ Run with `tb_leak_lin.py` (`leak_lin.txt`: 5 corners × 0/27/85 °C × 324/647 p
 - The recommended fix is the last row. Per OTA it adds the area of 2×(8/1) plus 2×(4/1) in place of 4×(2/2). VL is unchanged (140–165 mV).
 - EL is a DAC code, so the 1.3 V part costs no hardware. vth and vreset move up with it.
 - Full S = 1000 at ss/0 would need still more headroom (EL ≈ 1.4 V, or a lower-Vt tail stack).
-- **Not applied** (cells/neuron/membrane.spice belongs to the array track). D1 uses the same cell, so the attenuation drop at ss/0 and sf/0 (0.475 / 0.499 vs 0.542) follows it.
+- **Applied** by the slot track on 2026-11-19, together with EL 1.3 V. D1's copies follow.

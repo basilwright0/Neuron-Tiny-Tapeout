@@ -1,4 +1,54 @@
-# T2: AdEx (A1) area and status, and the cut SC dendrite (2026-11-18)
+# T2: AdEx (A1) area and status, and the cut SC dendrite
+
+## Rev 3 (2026-11-19): current status. Sections 1–7 below are the rev 2 record (56 × 50, EL 1.20 V).
+
+**Shared cells.** Rev 3 uses the current shared cells, unedited: `leak_ota_deg` with 4/1 inputs and 8/1 degeneration diodes, and `det_ah` with the XS3-starved third stage and the XK reset keeper. EL / Vth / Vreset are 1.30 / 1.38 / 1.30 V. The private `a1_leak` copy is gone; AdEx now instantiates `leak_ota_deg` directly.
+
+**Layout** (floorplan column between the array and the control block):
+
+| Item | Value |
+|---|---|
+| Box | **38.0 × 73.0 µm = 2774 µm²** (GDS extent 38.04 × 73.04) |
+| magic DRC | 0 |
+| KLayout `gf180mcu.drc` (variant D, flat, no density) | 0 |
+| LVS | match: 66 devices, 55 nets |
+| Bias/analog pins | bottom edge, from a left Metal2 spine: vdd, el, vbn_leak, vsrc, vbp_st, vbn_ref, vreset, vbn_prb, vbp_syn, vbp_w, abus |
+| Digital pins + spk | right edge, Metal3 at y = 9.7 sta, 10.5 spk, 14.0 stb, 14.8 en, 26.0 mreset, 29.4 sub0, 30.2 sel_adex, 33.4 sub1, 58.1 hold |
+
+Generator options added in `t2gen.py`: `SPINE_SIDE="left"`, `PIN_EDGE="bottom"`, and `HM3` (horizontal Metal3 lines with pins on the right edge).
+
+**Schematic re-verification at S = 100.** Model = reference.py AdEx equations, with b fitted at 400 pA.
+
+| Check | Result |
+|---|---|
+| I–V (exponential term) | gL 2.05 nS, rest 1.310 V, ΔT 44 mV, VT 1.404 V (trip 1.38 V), rheobase 88 pA |
+| Adaptation, 250 pA | adapted/initial ISI 2.16 (model 2.22) |
+| Adaptation, 400 pA | 2.07 (model 2.05) |
+| Adaptation, 700 pA | 1.77 (model 1.69) |
+| Adaptation parameters | b 44 pA, τ_w 0.83 ms; decay still a fixed ratio of vbn_leak |
+| 15 corners | ratio 1.87–2.20, b 34–52 pA, τ_w 0.71–1.04 ms, rheobase 75–99 pA; ss 0 °C now 94 pA (46 with the old OTA) |
+| MC typical 27 °C, 20 seeds | ratio 2.14 ± 0.33, b 45 ± 10 pA, τ_w 0.84 ± 0.06 ms, rheobase min 52 pA |
+| MC ss 0 °C, 12 seeds | ratio 2.22 ± 0.33, rheobase min 60 pA |
+| Firing with no input | none, in all corners and MC seeds |
+| vbp_w range | the 1.02 nA LSB / 32 nA full-scale DAC covers 0.5–30 nA; code 8 gives ratio ≈ 2 |
+
+**All-zero (bias-off) state.** With the XK keeper in `det_ah`, supply current is 3 pA (schematic) / 10 pA (PEX), spk stays at 0 and abus is disconnected. Without XK, pb floated and the detector drew 63 µA per neuron (`sim/tb/tier2/tb_det_zero.py`). vw comes up near vdd until MRESET clears it; that is a firmware rule.
+
+**PEX at 400 pA** (typical 27 °C, all coupling caps):
+
+| | Ratio | b | τ_w | No-adaptation ISI | spk runts |
+|---|---|---|---|---|---|
+| Schematic | 2.07 | 44 pA | 0.83 ms | 79 µs | 0 |
+| PEX | 1.96 | 42 pA | 0.89 ms | 101 µs | 0 |
+
+The PEX firing rate is lower from vm wiring (27 fF, Cfb 8.4 fF). That falls under the per-die calibration.
+
+**PEX functional checks:**
+- Probe decode: correct for all 8 codes.
+- Hold: vm drift −0.04 mV/ms.
+- mreset: vm goes to vreset and vw to 0.
+
+---
 
 AdEx is spike channel 3, outside the array (docs/08 Updated Plan.md §3). Schematic `cells/adex/adex.spice` (`adex_a1`), layout `layout/tier2/` (`adex_a1*`, flow `build.sh` / `t2gen.py`), testbenches `sim/tb/tier2/`, results `sim/results/tier2/adexc_*.json`, `adexf_*.json`.
 

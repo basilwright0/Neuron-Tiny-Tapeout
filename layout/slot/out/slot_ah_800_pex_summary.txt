@@ -1,0 +1,48 @@
+644 parasitic capacitors in slot_ah_800_pex.spice
+Cfb  (spk-vm coupling, MOM + routing) = 7.97 fF   (target 8 fF +-25 %: 6.0 .. 10.0)
+vm   total wiring capacitance          = 25.58 fF
+vm   breakdown (to other nodes):
+       vss              10.241 fF
+       spk               7.972 fF
+       vdd               2.505 fF
+       sub_b             0.742 fF
+       a_480_5620#       0.517 fF
+       el                0.464 fF
+       a_1632_2940#      0.369 fF
+       a_2510_1690#      0.307 fF
+       vbp_st            0.219 fF
+       a_288_2940#       0.191 fF
+       m1_3360_172#      0.171 fF
+       hold              0.165 fF
+       m1_2436_960#      0.154 fF
+       m1_2272_972#      0.154 fF
+       vreset            0.144 fF
+       m1_3212_6232#     0.141 fF
+       sub               0.128 fF
+       m1_3440_5086#     0.124 fF
+       vsrc              0.114 fF
+       vbp_syn           0.104 fF
+       m1_1540_4540#     0.103 fF
+       m1_1692_4540#     0.089 fF
+       rsel              0.087 fF
+       m1_196_2424#      0.081 fF
+       en                0.063 fF
+       a_2160_3542#      0.061 fF
+       a_2080_2940#      0.043 fF
+       stb               0.035 fF
+       m1_2972_1572#     0.030 fF
+       sta               0.029 fF
+       abus              0.012 fF
+       m1_2260_4540#     0.010 fF
+       mreset            0.004 fF
+       a_2804_3624#      0.003 fF
+       vbn_leak          0.002 fF
+       a_3184_3624#      0.000 fF
+       vbn_prb           0.000 fF
+       a_3844_4734#      0.000 fF
+       m1_4822_412#      0.000 fF
+       aux               0.000 fF
+       vbn_ref           0.000 fF
+       m1_3704_1572#     0.000 fF
+vr   total wiring capacitance          = 0.00 fF
+spk  total wiring capacitance          = 12.96 fF

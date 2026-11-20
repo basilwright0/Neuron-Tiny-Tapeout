@@ -1,75 +1,97 @@
-"""Tile floorplan for tt_um_basilwright0_analog_neurons (TTGF26c analog 1x2).
+"""Tile floorplan v2 for tt_um_basilwright0_analog_neurons (TTGF26c analog 1x2, gf180mcuD).
 
-Single source of truth for block boxes, channels, power stripes and the neuron-array slot map.
+Single source of truth for block boxes, channels, power stripes, std-cell rows and the neuron-array slot map.
+Used by layout/top (assembly), rtl/librelane/mkpins.py (macro pins) and test/regmap.py (slot table).
 Run:  python floorplan/floorplan.py      (plain Python 3, no dependencies)
 Writes docs/floorplan.svg and prints an area table plus geometry checks. Exit code 1 on any failure.
-All units are microns, origin at the tile's lower-left corner. See docs/06 Floorplan.md.
+All units are microns, origin at the tile's lower-left corner. Frozen design: docs/08 Updated Plan.md section 10.
+v2 (2026-11-19/20): boxes from the measured block frames (B1 rev C notched frame, R1 corner, D1 70 x 104,
+AdEx 38 x 70, control macro rev E 166 x 166, slots 28 x 43.5, trim_tau4 37 x 11.8).
 """
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TILE_W, TILE_H = 346.64, 325.36          # mag/tt_analog_1x2.def DIEAREA
-STRIPE_Y = (5.0, 320.36)                 # mag/init_project.tcl
-MIN_GAP = 2.0                            # block-to-block / block-to-stripe clearance
+STRIPE_Y = (5.0, 320.36)                 # mag/init_project.tcl: every power port runs the full height
+MIN_GAP = 2.0                            # block-to-block clearance unless the pair is declared abutting
 
-# --------------------------------------------------------------------- tile pins (DEF)
+# --------------------------------------------------------------------- tile pins (DEF, centres)
 TOP_Y = 324.86
-def _row(names, x0, pitch=-14.56):
+def _row(names, x0, pitch=-7.28):
     return {n: round(x0 + i * pitch, 2) for i, n in enumerate(names)}
-PINS_TOP = {}
+PINS_TOP = {}                            # Metal4, 0.6 wide, y 324.36-325.36
 PINS_TOP.update(_row([f"uio_oe[{i}]" for i in range(8)], 83.72))
 PINS_TOP.update(_row([f"uio_out[{i}]" for i in range(8)], 141.96))
 PINS_TOP.update(_row([f"uo_out[{i}]" for i in range(8)], 200.20))
 PINS_TOP.update(_row([f"uio_in[{i}]" for i in range(8)], 258.44))
 PINS_TOP.update(_row([f"ui_in[{i}]" for i in range(8)], 316.68))
 PINS_TOP.update({"rst_n": 323.96, "clk": 331.24, "ena": 338.52})
-PINS_BOT = {f"ua[{i}]": round(327.32 - 43.68 * i, 2) for i in range(8)}   # 6 um wide
+PINS_BOT = {f"ua[{i}]": round(327.32 - 43.68 * i, 2) for i in range(8)}   # Metal4, 6 wide, y 0-1
 ANALOG_USED = ("ua[0]", "ua[1]")
 
-# --------------------------------------------------------------------- macro
-MACRO_X, MACRO_Y, MACRO_S = 132.0, 134.0, 182.0
+# --------------------------------------------------------------------- control macro (rev E, run revE2_166)
+MACRO_X, MACRO_Y, MACRO_S = 170.0, 151.0, 166.0
 MACRO_STRAPS = [(15.92, "VDD"), (19.22, "VSS"), (65.92, "VDD"), (69.22, "VSS"),
-                (115.92, "VDD"), (119.22, "VSS"), (165.92, "VDD"), (169.22, "VSS")]  # LEF, 1.6 wide
-EXTENDED_STRAP_PAIR = 1        # macro strap pair (0..3) extended full height to the tile grid
-
-# --------------------------------------------------------------------- power stripes (Metal4)
-STRIPES = [  # (net, x0, width)
-    ("VDPWR", 1.0, 2.0), ("VGND", 4.0, 2.0),                 # template pair, west edge
-    ("VDPWR", 122.5, 2.0), ("VGND", 125.5, 2.0),             # NA east side / macro west gap
-    ("VDPWR", 338.0, 2.0), ("VGND", 341.0, 2.0),             # east edge, B1+R1
-]
-p = EXTENDED_STRAP_PAIR
-STRIPES += [("VDPWR", MACRO_X + MACRO_STRAPS[2 * p][0], 1.6),
-            ("VGND", MACRO_X + MACRO_STRAPS[2 * p + 1][0], 1.6)]
+                (115.92, "VDD"), (119.22, "VSS")]                      # LEF, Metal4, 1.6 wide
+EXTENDED_STRAP_PAIRS = (0, 2)            # macro strap pairs extended full height as tile power stripes
 
 # --------------------------------------------------------------------- blocks (x0, y0, x1, y1)
+# B1 is notched: its frame is the box minus B1_NOTCHES (R1 corner, tau-cell column 2).
+B1_BOX = (80.0, 12.0, 344.5, 126.5)                                   # bias_b1 264.5 x 114.5 at (80, 12)
+B1_NOTCHES = {"R1": (262.0, 12.0, 302.0, 54.0), "TAU2": (80.0, 116.0, 103.0, 126.5)}
+B1_CORRIDOR = (276.0, 54.0, 302.0, 126.5)                             # Metal3-free in B1: R1 feed-throughs
 BLOCKS = {
-    "C1 control macro":          (MACRO_X, MACRO_Y, MACRO_X + MACRO_S, MACRO_Y + MACRO_S),
-    "NA neuron array 4x4":       (8.0, 136.0, 120.0, 310.0),
-    "D1 dendrite":               (132.0, 14.0, 194.5, 118.0),
-    "B1+R1 bias & pad driver":   (205.0, 14.0, 336.0, 118.0),
-    "T2 Tier-2 zone":            (8.0, 14.0, 120.0, 104.0),
-    "TE tau trims (P slots)":    (8.0, 106.0, 120.0, 118.0),
+    "C1 control macro":     (MACRO_X, MACRO_Y, MACRO_X + MACRO_S, MACRO_Y + MACRO_S),
+    "NA neuron array 4x4":  (8.0, 140.0, 120.0, 314.0),
+    "D1 dendrite":          (8.0, 12.0, 78.0, 116.0),
+    "B1 bias generator":    B1_BOX,
+    "R1 readout corner":    (262.0, 14.0, 302.0, 54.0),
+    "A1 AdEx":              (129.0, 140.0, 167.0, 213.0),                  # rev 3: 38 x 73
+    "TE0 tau trim col 0":   (8.0, 118.0, 45.0, 129.8),
+    "TE2 tau trim col 2":   (64.0, 118.0, 101.0, 129.8),
 }
-EST = {  # schematic-stage area estimates (um^2) for what must go in each block
-    "C1 control macro": 33124,             # hardened, rev C
-    "NA neuron array 4x4": 16 * 1218,      # S slot laid out at 28 x 43.5 (layout/slot), routing-bound
-    "D1 dendrite": 6000,
-    "B1+R1 bias & pad driver": 10200 + 1800 + 400,   # B1 core+DACs, pad follower+refs, Vreset buffer
-    "T2 Tier-2 zone": 5000 + 5000,         # A1 AdEx x2 + S1 switched-cap dendrite (W1 if room)
-    "TE tau trims (P slots)": 3 * 200,     # one leak-tau current trim per P slot, under its column
+ABUT = {("B1 bias generator", "R1 readout corner")}                   # R1 sits in B1's notch N1, pins abut
+STRAP_UA1 = (280.64, 0.0, 286.64, 14.0)                               # r1_ua1: ua[1] Metal3 strap through CH_BOT
+EST = {  # measured areas (um^2) of what goes in each box
+    "C1 control macro": 166 * 166,
+    "NA neuron array 4x4": 16 * 28.0 * 43.5,
+    "D1 dendrite": 70 * 104,
+    "B1 bias generator": 264.5 * 114.5 - 40 * 42 - 23 * 10.5,
+    "R1 readout corner": 40 * 40,
+    "A1 AdEx": 38 * 73,
+    "TE0 tau trim col 0": 37 * 11.8,
+    "TE2 tau trim col 2": 37 * 11.8,
 }
-CHANNELS = {  # routing-only regions
-    "CH_BOT bias/ua entry": (8.0, 2.0, 336.0, 12.0),
-    "CH_MID bias->NA, probe bus, cfg codes": (8.0, 120.0, 336.0, 132.0),
-    "CH_TOP TT pin jogs": (8.0, 317.0, 336.0, 324.0),
-    "CH_E clk/rst_n": (315.0, 134.0, 336.0, 316.0),
+CHANNELS = {  # routing-only regions (Metal2/Metal3; Metal4 may cross blocks between the stripes)
+    "CH_BOT ua entry, R1 power, glue row": (8.0, 0.0, 280.0, 11.5),
+    "CH_BIAS B1 -> array columns, D1 lines": (8.0, 130.3, 120.0, 139.7),
+    "CH_MID B1 codes <-> macro S edge": (167.5, 127.0, 344.5, 150.5),
+    "CH_MIDW B1 bias outputs, D1/AdEx lines": (120.5, 127.0, 167.5, 139.5),
+    "CH_NAE row 0 lines past AdEx": (120.5, 140.0, 128.5, 213.0),
+    "CH_ROW array rows -> macro W edge": (120.5, 213.5, 169.5, 317.0),
+    "CH_TOP_A array power buses, uio_oe ties": (8.0, 314.5, 120.0, 324.3),
+    "CH_TOP_M TT pin jogs to the macro N edge": (120.5, 317.5, 344.5, 324.3),
 }
+
+# --------------------------------------------------------------------- power stripes (Metal4, y 5 -> 320.36)
+STRIPES = [  # (net, x0, width)
+    ("VDPWR", 1.0, 2.0), ("VGND", 4.0, 2.0),                 # template pair: array west, D1, tau col 0, rows
+    ("VDPWR", 50.0, 1.6), ("VGND", 52.6, 1.6),               # array middle, D1 middle, tau cells
+    ("VDPWR", 121.0, 1.6), ("VGND", 123.6, 1.6),             # array east / AdEx west
+    ("VGND", 342.6, 0.8), ("VDPWR", 345.0, 0.8),             # B1 east-edge vdd/vss pins
+]
+for p in EXTENDED_STRAP_PAIRS:                                 # macro straps (and B1, R1, glue row below them)
+    STRIPES += [("VDPWR", MACRO_X + MACRO_STRAPS[2 * p][0], 1.6),
+                ("VGND", MACRO_X + MACRO_STRAPS[2 * p + 1][0], 1.6)]
+
+# --------------------------------------------------------------------- std-cell rows (gf180mcu_fd_sc_mcu7t5v0)
+TIE_ROW_Y = 318.4      # uio_oe tie-high cells (one tieh + filltie under each uio_oe pin), rails drawn across
+GLUE_ROW = (170.0, 5.5)  # probe-enable / D1 tap-select glue (or4, 4x nor3, 3x inv, fillties), lower-left corner
 
 # --------------------------------------------------------------------- NA slot map
 # Latin square over groups F(fixed geometry) S(shared bias) H(hybrid: shared + threshold trim)
-# P(programmable: gap trim + leak-tau trim; can be cut -> becomes H); its diagonal is a transversal and holds the singles.
+# P(programmable: gap trim + leak-tau trim); its diagonal is a transversal and holds the singles.
 # Row 0 is the bottom row of the array.
 SQUARE = ["FSHP", "HPFS", "PHSF", "SFPH"]
 SINGLES = {0: "REF", 1: "CMP", 2: "AH50", 3: "AH800"}
@@ -80,6 +102,10 @@ DUMMY_SLOTS = {"P1"}
 # Trim nibble assignment, fixed so it matches the control block's TRIM_MASK (nibbles 0,2-8,14,15).
 TRIM_NIBBLES = {"H1.VTH": 0, "H2.VTH": 2, "P2.VTH": 3, "H3.VTH": 4, "P3.VTH": 5, "CMP.VTH": 6,
                 "D1.PLAT1": 7, "D1.PLAT2": 8, "P2.TAU": 14, "P3.TAU": 15}
+SLOT_W, SLOT_H = 28.0, 43.5
+SLOT_CELL = {"S": "slot_ah", "F": "slot_ah_f", "H": "slot_ah_h", "P": "slot_ah_p", "REF": "slot_ref",
+             "CMP": "slot_cmp_h", "AH50": "slot_ah_50", "AH800": "slot_ah_800", "DUMMY": "slot_dummy"}
+TAU_COLS = {0: "TE0 tau trim col 0", 2: "TE2 tau trim col 2"}         # P2 in column 0, P3 in column 2
 
 
 def slot_map():
@@ -96,9 +122,13 @@ def slot_map():
 
 
 def slot_box(r, c):
-    x0, y0, x1, y1 = BLOCKS["NA neuron array 4x4"]
-    w, h = (x1 - x0) / 4, (y1 - y0) / 4
-    return x0 + c * w, y0 + r * h, x0 + (c + 1) * w, y0 + (r + 1) * h
+    x0, y0 = BLOCKS["NA neuron array 4x4"][:2]
+    return x0 + c * SLOT_W, y0 + r * SLOT_H, x0 + (c + 1) * SLOT_W, y0 + (r + 1) * SLOT_H
+
+
+def slot_cell(name):
+    """Layout cell of a slot by its slot-map name (S1 -> slot_ah, CMP -> slot_cmp_h, ...)."""
+    return SLOT_CELL.get(name) or SLOT_CELL[name[0]]
 
 
 def trim_index():
@@ -106,7 +136,7 @@ def trim_index():
 
 
 def el_columns():
-    """Column of each P slot: its leak-tail gate voltage comes up that column's aux track from the TE strip."""
+    """Column of each P slot: its leak-tail gate comes up that column's aux line from its tau-trim cell."""
     return {n: c for (r, c), n in slot_map().items() if n[0] == "P" and n[1:].isdigit()}
 
 
@@ -119,41 +149,68 @@ def overlap(a, b, gap=0.0):
     return a[0] < b[2] + gap and b[0] < a[2] + gap and a[1] < b[3] + gap and b[1] < a[3] + gap
 
 
+def b1_rects():
+    """B1 frame as rectangles (box minus notches)."""
+    x0, y0, x1, y1 = B1_BOX
+    n1, n2 = B1_NOTCHES["R1"], B1_NOTCHES["TAU2"]
+    return [(x0, y0, n1[0], n2[1]), (n2[2], n2[1], n1[0], y1), (n1[0], n1[3], n1[2], y1),
+            (n1[2], y0, x1, y1)]
+
+
+def frames():
+    """Every block as a list of rectangles (B1 notched)."""
+    return {n: (b1_rects() if n.startswith("B1") else [b]) for n, b in BLOCKS.items()}
+
+
 def checks():
     errs = []
+    fr = frames()
     for n, b in {**BLOCKS, **CHANNELS}.items():
         if not (0 <= b[0] < b[2] <= TILE_W and 0 <= b[1] < b[3] <= TILE_H):
             errs.append(f"{n} outside tile")
     names = list(BLOCKS)
     for i, a in enumerate(names):
         for b in names[i + 1:]:
-            if overlap(BLOCKS[a], BLOCKS[b], MIN_GAP - 1e-9):
-                errs.append(f"{a} and {b} closer than {MIN_GAP} um")
-        for cn, cb in CHANNELS.items():
-            if overlap(BLOCKS[a], cb):
-                errs.append(f"{a} overlaps channel {cn}")
+            gap = 0.0 if (a, b) in ABUT or (b, a) in ABUT else MIN_GAP - 1e-9
+            for ra in fr[a]:
+                for rb in fr[b]:
+                    if (gap == 0.0 and overlap(ra, rb, -1e-9)) or (gap > 0 and overlap(ra, rb, gap)):
+                        errs.append(f"{a} and {b} closer than {gap or 0} um")
+    for cn, cb in CHANNELS.items():
+        for n, rs in fr.items():
+            if any(overlap(r, cb, -1e-9) for r in rs):
+                errs.append(f"{n} overlaps channel {cn}")
+    # R1 must sit inside B1's notch N1, the tau cell of column 2 inside notch N2 (plus its overhang above B1)
+    r1, n1 = BLOCKS["R1 readout corner"], B1_NOTCHES["R1"]
+    if not (n1[0] <= r1[0] and r1[2] <= n1[2] and n1[1] <= r1[1] and r1[3] <= n1[3]):
+        errs.append("R1 not inside B1 notch N1")
+    # power stripes: Metal4 crosses any block except the macro (only on its own straps), full height, >= 0.8 wide
     macro = BLOCKS["C1 control macro"]
+    straps = {round(MACRO_X + s, 3) for s, _ in MACRO_STRAPS}
     for net, x, w in STRIPES:
-        sb = (x, STRIPE_Y[0], x + w, STRIPE_Y[1])
-        for n, b in BLOCKS.items():
-            inside_macro = n.startswith("C1") and any(abs(x - (MACRO_X + s)) < 1e-6 for s, _ in MACRO_STRAPS)
-            if not inside_macro and overlap(sb, b, MIN_GAP - 1e-9):
-                errs.append(f"{net} stripe at x={x} too close to {n}")
-        if x + w > TILE_W - 0.5:
-            errs.append(f"stripe at {x} too close to tile edge")
-    for (_, x, w), (_, x2, _) in zip(sorted(STRIPES, key=lambda s: s[1]), sorted(STRIPES, key=lambda s: s[1])[1:]):
+        if w < 0.8:
+            errs.append(f"{net} stripe at {x} narrower than 0.8 um")
+        if overlap((x, STRIPE_Y[0], x + w, STRIPE_Y[1]), macro) and round(x, 3) not in straps:
+            errs.append(f"{net} stripe at x={x} crosses the macro off its straps")
+        if x < 0.5 or x + w > TILE_W - 0.02:
+            errs.append(f"stripe at {x} outside the tile")
+        for pn, px in {**PINS_BOT}.items():
+            if overlap((x, STRIPE_Y[0], x + w, STRIPE_Y[1]), (px - 3, 0, px + 3, 1)):
+                errs.append(f"{net} stripe at {x} on {pn}")
+    ss = sorted(STRIPES, key=lambda s: s[1])
+    for (_, x, w), (_, x2, _) in zip(ss, ss[1:]):
         if x2 - (x + w) < 1.0:
             errs.append(f"stripes at {x} and {x2} closer than 1 um")
-    # analog pins must enter the block that uses them and not hit a stripe
-    for pin in ANALOG_USED:
-        x = PINS_BOT[pin]
-        pb = (x - 3, 0, x + 3, 14)
-        for net, sx, w in STRIPES:
-            if overlap(pb, (sx, STRIPE_Y[0], sx + w, STRIPE_Y[1])):
-                errs.append(f"{pin} collides with {net} stripe at {sx}")
-        b = BLOCKS["B1+R1 bias & pad driver"]
-        if not b[0] + 3 <= x <= b[2] - 3:
-            errs.append(f"{pin} (x={x}) not under B1+R1")
+    # analog pins must land on the block pad that uses them
+    ua0 = PINS_BOT["ua[0]"]
+    if not (324.3 - 1e-6 <= ua0 - 3 and ua0 + 3 <= 330.3 + 0.05):
+        errs.append("ua[0] not on B1's pad (tile x 324.3-330.3)")
+    if abs(PINS_BOT["ua[1]"] - 3 - STRAP_UA1[0]) > 1e-6:
+        errs.append("ua[1] not on R1's strap")
+    # bias channel between the tau cells and the array
+    ch = BLOCKS["NA neuron array 4x4"][1] - BLOCKS["TE0 tau trim col 0"][3]
+    if ch < 7.0:
+        errs.append(f"bias channel under the array only {ch:.1f} um")
     # spike channels and slots
     grid = slot_map()
     placed = set(grid.values()) | {"D1", "ADEX"}
@@ -175,12 +232,20 @@ def checks():
         errs.append("trim nibbles collide or exceed NTRIM=16")
     cols = el_columns()
     if len(set(cols.values())) != len(cols):
-        errs.append(f"two P slots share a column, so one aux track can't carry both ELs: {cols}")
+        errs.append(f"two P slots share a column, so one aux line can't carry both: {cols}")
+    if set(cols.values()) != set(TAU_COLS):
+        errs.append(f"tau-trim cells in columns {sorted(TAU_COLS)} but P slots in {sorted(cols.values())}")
+    for r in range(4):     # row band: at most 2 trimmed slots (8 trim tracks)
+        nt = sum(1 for c in range(4) if (grid[(r, c)][0] in "HP" and grid[(r, c)][1:].isdigit())
+                 or grid[(r, c)] == "CMP")
+        if nt > 2:
+            errs.append(f"row {r} has {nt} trimmed slots (> 2)")
     return errs
 
 
 # --------------------------------------------------------------------- drawing
-COL = {"C1": "#9aa7c7", "NA": "#f2c48d", "D1": "#b9dba0", "B1": "#e8a2a2", "T2": "#dddddd", "TE": "#f7e08a"}
+COL = {"C1": "#9aa7c7", "NA": "#f2c48d", "D1": "#b9dba0", "B1": "#e8a2a2", "R1": "#d77", "A1": "#c9b3e6",
+       "TE": "#f7e08a"}
 
 
 def svg(path):
@@ -190,56 +255,66 @@ def svg(path):
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{TILE_W*s+20:.0f}" height="{TILE_H*s+20:.0f}" '
          f'viewBox="-10 -10 {TILE_W*s+20:.0f} {TILE_H*s+20:.0f}" font-family="sans-serif">',
          f'<rect x="0" y="0" width="{X(TILE_W)}" height="{TILE_H*s}" fill="white" stroke="black"/>']
+    rect = lambda b, fill, extra="": (f'<rect x="{X(b[0]):.1f}" y="{Y(b[3]):.1f}" width="{X(b[2]-b[0]):.1f}" '
+                                      f'height="{(b[3]-b[1])*s:.1f}" fill="{fill}" {extra}/>')
     for n, b in CHANNELS.items():
-        o.append(f'<rect x="{X(b[0])}" y="{Y(b[3])}" width="{X(b[2]-b[0])}" height="{(b[3]-b[1])*s}" '
-                 f'fill="#f4f4ff" stroke="#aab" stroke-dasharray="4 3"/>')
-    for n, b in BLOCKS.items():
-        o.append(f'<rect x="{X(b[0])}" y="{Y(b[3])}" width="{X(b[2]-b[0])}" height="{(b[3]-b[1])*s}" '
-                 f'fill="{COL[n[:2]]}" stroke="#333"/>')
+        o.append(rect(b, "#f4f4ff", 'stroke="#aab" stroke-dasharray="4 3"'))
+    for n, rs in frames().items():
+        for b in rs:
+            o.append(rect(b, COL[n[:2]], 'stroke="#333"'))
+        b = BLOCKS[n]
         if not n.startswith("NA"):
-            o.append(f'<text x="{X((b[0]+b[2])/2)}" y="{Y((b[1]+b[3])/2)}" font-size="13" text-anchor="middle">{n.replace("&", "&amp;")}</text>')
-            o.append(f'<text x="{X((b[0]+b[2])/2)}" y="{Y((b[1]+b[3])/2)+16}" font-size="11" text-anchor="middle">'
-                     f'{area(b)/1000:.1f}k um² (need ~{EST[n]/1000:.1f}k)</text>')
+            fs = 13 if area(b) > 5000 else 8
+            o.append(f'<text x="{X((b[0]+b[2])/2):.1f}" y="{Y((b[1]+b[3])/2):.1f}" font-size="{fs}" '
+                     f'text-anchor="middle">{n.split()[0]}</text>')
+    o.append(rect(STRAP_UA1, "#d77"))
     for (r, c), n in slot_map().items():
         b = slot_box(r, c)
-        o.append(f'<rect x="{X(b[0])}" y="{Y(b[3])}" width="{X(b[2]-b[0])}" height="{(b[3]-b[1])*s}" fill="none" stroke="#a66"/>')
+        o.append(rect(b, "none", 'stroke="#a66"'))
         ch = SPIKE_CH.get(n)
         lab = n + (f" ch{ch}" if ch is not None else "")
-        o.append(f'<text x="{X((b[0]+b[2])/2)}" y="{Y((b[1]+b[3])/2)+4}" font-size="11" text-anchor="middle">{lab}</text>')
+        o.append(f'<text x="{X((b[0]+b[2])/2):.1f}" y="{Y((b[1]+b[3])/2)+4:.1f}" font-size="11" '
+                 f'text-anchor="middle">{lab}</text>')
     for net, x, w in STRIPES:
-        o.append(f'<rect x="{X(x)}" y="{Y(STRIPE_Y[1])}" width="{max(w*s,2)}" height="{(STRIPE_Y[1]-STRIPE_Y[0])*s}" '
-                 f'fill="{"#d33" if net=="VDPWR" else "#333"}" opacity="0.7"/>')
+        o.append(f'<rect x="{X(x):.1f}" y="{Y(STRIPE_Y[1]):.1f}" width="{max(w*s,2):.1f}" '
+                 f'height="{(STRIPE_Y[1]-STRIPE_Y[0])*s:.1f}" fill="{"#d33" if net=="VDPWR" else "#333"}" opacity="0.6"/>')
     for n, x in PINS_TOP.items():
-        o.append(f'<rect x="{X(x-0.3)}" y="{Y(TILE_H)}" width="3" height="5" fill="#36c"/>')
+        o.append(f'<rect x="{X(x-0.3):.1f}" y="{Y(TILE_H):.1f}" width="2" height="5" fill="#36c"/>')
     for n, x in PINS_BOT.items():
         used = n in ANALOG_USED
-        o.append(f'<rect x="{X(x-3)}" y="{Y(1)}" width="{6*s}" height="{s*1.5}" fill="{"#c30" if used else "#bbb"}"/>')
+        o.append(f'<rect x="{X(x-3):.1f}" y="{Y(1):.1f}" width="{6*s:.1f}" height="{s*1.5:.1f}" '
+                 f'fill="{"#c30" if used else "#bbb"}"/>')
         if used:
-            o.append(f'<text x="{X(x)}" y="{Y(-3.5)}" font-size="11" text-anchor="middle">{n.replace("&", "&amp;")}</text>')
-    o.append(f'<text x="{X(60)}" y="{Y(TILE_H)-3}" font-size="10">uio_oe / uio_out</text>')
-    o.append(f'<text x="{X(180)}" y="{Y(TILE_H)-3}" font-size="10">uo_out</text>')
-    o.append(f'<text x="{X(290)}" y="{Y(TILE_H)-3}" font-size="10">ui_in, rst, clk</text>')
+            o.append(f'<text x="{X(x):.1f}" y="{Y(-3.5):.1f}" font-size="11" text-anchor="middle">{n}</text>')
+    o.append(f'<text x="{X(40)}" y="{Y(TILE_H)-3}" font-size="10">uio_oe (tie-high)</text>')
+    o.append(f'<text x="{X(120)}" y="{Y(TILE_H)-3}" font-size="10">uio_out / uo_out</text>')
+    o.append(f'<text x="{X(230)}" y="{Y(TILE_H)-3}" font-size="10">uio_in, ui_in, rst_n, clk</text>')
     o.append("</svg>")
     path.write_text("\n".join(o), encoding="utf-8")
 
 
 def main():
     total = TILE_W * TILE_H
-    print(f"tile {TILE_W} x {TILE_H} = {total:,.0f} um^2")
-    print(f"{'block':28s} {'box (um)':>22s} {'area':>8s} {'need':>8s} {'margin':>7s}")
+    print(f"tile {TILE_W} x {TILE_H} = {total:,.0f} um^2  (floorplan v2)")
+    print(f"{'block':24s} {'box (um)':>16s} {'frame':>8s} {'drawn':>8s}")
     used = 0
+    fr = frames()
     for n, b in BLOCKS.items():
-        a = area(b); used += a
-        print(f"{n:28s} {f'{b[2]-b[0]:.1f} x {b[3]-b[1]:.1f}':>22s} {a:8,.0f} {EST[n]:8,.0f} {100*(a/EST[n]-1):6.0f}%")
-    print(f"{'blocks total':28s} {'':>22s} {used:8,.0f}   ({100*used/total:.0f}% of tile; rest is channels, stripes, gaps)")
-    sw, sh = slot_box(0, 0)[2] - slot_box(0, 0)[0], slot_box(0, 0)[3] - slot_box(0, 0)[1]
-    print(f"NA slot {sw:.1f} x {sh:.1f} = {sw*sh:,.0f} um^2")
+        a = sum(area(r) for r in fr[n])
+        used += a
+        print(f"{n:24s} {f'{b[2]-b[0]:.1f} x {b[3]-b[1]:.1f}':>16s} {a:8,.0f} {EST[n]:8,.0f}")
+    print(f"{'blocks total':24s} {'':>16s} {used:8,.0f}   ({100*used/total:.0f}% of tile; "
+          f"rest is channels, stripes, gaps)")
+    ch = BLOCKS["NA neuron array 4x4"][1] - BLOCKS["TE0 tau trim col 0"][3]
+    print(f"bias channel under the array: {ch:.1f} um (tau cells to array); B1 top to array "
+          f"{BLOCKS['NA neuron array 4x4'][1]-B1_BOX[3]:.1f} um")
     print("slot map (top row first):")
     g = slot_map()
     for r in range(3, -1, -1):
         print("   " + "  ".join(f"{g[(r, c)]:6s}" for c in range(4)))
-    print("P slot columns (aux track carries leak-tau bias):", el_columns())
+    print("P slot columns (aux line carries leak-tau bias):", el_columns())
     print("trim nibbles:", ", ".join(f"{k}->{v}" for k, v in trim_index().items()))
+    print("stripes:", ", ".join(f"{n}@{x:g}" for n, x, w in sorted(STRIPES, key=lambda s: s[1])))
     errs = checks()
     svg(ROOT / "docs" / "floorplan.svg")
     print("wrote docs/floorplan.svg")

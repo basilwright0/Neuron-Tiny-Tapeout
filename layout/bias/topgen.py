@@ -420,34 +420,35 @@ def b1c(route=True, cols=None):
 
 
 # ============================================================================ bias_b1, floorplan frame (G2)
-# Frame from the integrator (2026-11-19): block origin = tile (73.5, 12), 271.5 x 115 um.
-#   notch N1 (R1 corner)  local x 188.5-228.5, y 0-42   : empty (R1's top-edge pins at y = 42)
-#   notch N2 (tau trim)   local x 0-29.5,     y 104-115 : empty
+# Frame from the integrator (2026-11-20): block origin = tile (80, 12), 265 x 115 um (D1 grew to tile x 8-78).
+#   notch N1 (R1 corner)  local x 182-222, y 0-42     : empty (R1's top-edge pins at y = 42)
+#   notch N2 (tau trim)   local x 0-23,       y 104-115 : empty
 #   feed-through corridor above N1 (R1's vreset/abus/en_b/vsrc + vdd/vss straps, drawn by the integrator):
-#                         local x 202.5-228.5, y 42-115 : no Metal3 from this block
-#   ua[0]: bottom edge, local x 250.8-256.8 (tile 324.3-330.3); analog outputs top edge west;
+#                         local x 196-222, y 42-115 : no Metal3 from this block
+#   ua[0]: bottom edge, local x 244.3-250.3 (tile 324.3-330.3); analog outputs top edge west;
 #   digital codes top edge east; vth_ref / vreset_src / ib_r1 as pins on the N1 top edge at R1's
 #   pin positions (R1 box-local x 2.00 / 4.6 / 12.3).
-FR_W, FR_H = 271.5, 115.0
-N1 = (188.5, 0.0, 228.5, 42.0)
-N2 = (0.0, 104.0, 29.5, 115.0)
-CORR = (202.5, 42.0, 228.5, 115.0)
+FR_W, FR_H = 265.0, 115.0
+N1 = (182.0, 0.0, 222.0, 42.0)
+N2 = (0.0, 104.0, 23.0, 115.0)
+CORR = (196.0, 42.0, 222.0, 115.0)
+UA0 = (244.3, 250.3)
 PLACE_F = {   # inst: (x, y, rot)  (rot 90: x is the right edge of the rotated footprint)
     # C1: resistor DACs el/vr/vc rotated (code pins face east)
     "Xd2": (1.0 + 38.58 - (38.58 - 37.53) / 2, 1.0, 90), "Xd1": (1.0 + 38.58, 34.0, 90),
     "Xd0": (1.0 + 38.58 - (38.58 - 36.32) / 2, 67.0, 90),
-    # C2: idac_n (vbp_w) + receivers
-    "Xi4": (43.1, 1.0, 0), "Xx0": (44.5, 38.6, 0), "Xx1": (43.1, 48.6, 0), "Xx3": (58.4, 48.6, 0),
-    "Xx2": (43.1, 58.6, 0), "Xxst": (54.6, 58.6, 0), "Xx4": (43.1, 71.0, 0),
+    # C2: idac_n (vbp_w), receivers, idac_n (vbp_syn) on top (code pins near the top edge)
+    "Xi4": (43.0, 1.0, 0), "Xx0": (44.4, 37.3, 0), "Xx1": (43.0, 46.0, 0), "Xx3": (57.8, 46.0, 0),
+    "Xx2": (43.0, 54.7, 0), "Xxst": (53.6, 54.7, 0), "Xx4": (43.0, 65.8, 0),
+    "Xi2": (43.0, 76.0, 0),
     # C3: V-to-I, ladder
     "Xvi": (72.0, 1.0, 0), "Xg": (76.0, 47.4, 0),
-    # C4, C5: idacs (code pins on top)
+    # C4: idac_p x 3 (code pins on top)
     "Xi0": (131.0, 1.0, 0), "Xi1": (131.0, 37.9, 0), "Xi3": (131.0, 74.8, 0),
-    "Xi2": (159.4, 74.8, 0),
-    # over the R1 notch (under the Metal3 corridor; its pins leave on Metal2)
-    "Xr": (190.5, 45.0, 0),
+    # over the R1 notch (partly under the Metal3 corridor; its pins leave on Metal2)
+    "Xr": (183.0, 44.0, 0),
     # east column: master (ua[0] at the bottom), vth_ref DAC rotated above it
-    "Xm": (236.0, 1.0, 0), "Xd3": (270.5, 66.3, 90),
+    "Xm": (231.5, 1.0, 0), "Xd3": (263.96, 66.3, 90),
 }
 
 
@@ -498,16 +499,16 @@ def b1f(route=True):
         x = N1[0] + xr
         pin_at(c, net, (x - 0.2, N1[3] + 0.0, x + 0.2, N1[3] + 0.4))
     # ua[0] on the bottom edge (6 um, under the ua[0] strap)
-    pin_at(c, "ua0", (250.8, 0.5, 256.8, 1.1))
+    pin_at(c, "ua0", (UA0[0], 0.5, UA0[1], 1.1))
     # analog outputs: top edge, west (east of N2)
     outs = ["vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vth_cmp", "vbn_ax", "vbp_w", "ua0_stim_out"]
     for k, net in enumerate(outs):
-        x = 32.0 + k * 3.0
+        x = 26.0 + k * 2.6
         pin_at(c, net, (x - 0.2, yt[0], x + 0.2, yt[1]))
     # digital codes: top edge east, ordered by target x; mode lines east of the corridor
     mode = ["ua0_s0", "ua0_s1", "ua0_stim", "ua0_int", "bias_en", "ib_x2"]
     codes = sorted([n for n in dig if n not in mode], key=lambda n: target[n][0])
-    lo, hi = 100.0, 201.0
+    lo, hi = 100.0, 194.0
     step = (hi - lo) / (len(codes) - 1)
     for k, net in enumerate(codes):
         x = snap(lo + k * step)

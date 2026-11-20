@@ -1,6 +1,6 @@
 * LVS reference for slot_cmp_h: flattened from cells/neuron/slot.spice by layout/slot/flatten.py
 * Cfb (MOM capacitor, value from PEX) omitted: 
-.subckt slot_cmp_h vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn sta stb hold mreset t0 t1 t2 t3
+.subckt slot_cmp_h vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn sta stb hold mreset
 XXC_XC vss vm vss vss nfet_03v3 W=7.07u L=7.07u
 XXL_XMT XL.t vbn_leak vss vss nfet_03v3 W=2u L=4u
 XXL_XM1 la el XL.s1 vss nfet_03v3 W=4u L=1u
@@ -48,22 +48,4 @@ XXS_XQA vss sta XS.da vdd pfet_03v3 W=1u L=0.28u
 XXS_XQB vss stb XS.db vdd pfet_03v3 W=1u L=0.28u
 XXS_XHL vm hold vl vdd pfet_03v3 W=1u L=0.28u
 XXS_XMR vdd mreset vr vss nfet_03v3 W=0.5u L=0.28u
-XXT_XRA XT.nr vbn_leak vss vss nfet_03v3 W=0.5u L=4u
-XXT_XRB XT.n1 vbn_leak XT.nr vss nfet_03v3 W=0.5u L=4u
-XXT_XL3 XT.o3 vbn_leak XT.n1 vss nfet_03v3 W=0.5u L=3u
-XXT_XR1 XT.n2 vbn_leak XT.n1 vss nfet_03v3 W=0.5u L=1.5u
-XXT_XL2 XT.o2 vbn_leak XT.n2 vss nfet_03v3 W=0.5u L=3u
-XXT_XR2 XT.n3 vbn_leak XT.n2 vss nfet_03v3 W=0.5u L=1.5u
-XXT_XL1 XT.o1 vbn_leak XT.n3 vss nfet_03v3 W=0.5u L=3u
-XXT_XR3 XT.n4 vbn_leak XT.n3 vss nfet_03v3 W=0.5u L=1.5u
-XXT_XL0 XT.o0 vbn_leak XT.n4 vss nfet_03v3 W=0.5u L=3u
-XXT_XLT vdd vbn_leak XT.n4 vss nfet_03v3 W=0.5u L=3u
-XXT_XN3 la t3 XT.o3 vss nfet_03v3 W=0.5u L=0.28u
-XXT_XN2 la t2 XT.o2 vss nfet_03v3 W=0.5u L=0.28u
-XXT_XN1 la t1 XT.o1 vss nfet_03v3 W=0.5u L=0.28u
-XXT_XN0 la t0 XT.o0 vss nfet_03v3 W=0.5u L=0.28u
-XXT_XP3 vm t3 XT.o3 vdd pfet_03v3 W=1u L=0.28u
-XXT_XP2 vm t2 XT.o2 vdd pfet_03v3 W=1u L=0.28u
-XXT_XP1 vm t1 XT.o1 vdd pfet_03v3 W=1u L=0.28u
-XXT_XP0 vm t0 XT.o0 vdd pfet_03v3 W=1u L=0.28u
 .ends slot_cmp_h

@@ -144,3 +144,25 @@ The automatic error metrics in that bench were too strict and its S = 10000 line
 - **Inconsistency found, not changed.**
   - §9 of the plan says `det_ah`'s XN3 moves to vss, but `cells/neuron/lif.spice` keeps XN3 on vsrc (the `st3v` variant was rejected there). These results use the cell as it is.
   - `bias_b1` uses `rx_p05` on `vbp_w`, while the `adex.spice` header says `rx_p1`.
+
+
+## Roadmap to S = 10000 (future chip; parked 2026-11-19)
+
+**Root cause.** Every bias is scaled with the ua[0] reference. That is right for the *neural* currents (leak, synapse, refractory), which set the time constants. It is wrong for the *infrastructure* circuits (comparators, detectors, buffers): at high S they either run at the wrong bias, or stay too weak for the faster currents around them.
+
+**Design lesson:** decide up front which biases track speed and which don't.
+
+| Level | Change | Effect | Cost |
+|---|---|---|---|
+| 1. Free (firmware, board) | EL/Vth/Vreset +0.2 V (1.50/1.58/1.50 V). Iref = 100 µA on EXT ÷1 (÷16 needs 5–6 V on the pad). ≤ 30 pF on ua[1]. ≤ ~4 neurons stimulated at once. `ib_x2`. | **~3000× on this chip** | none |
+| 2. Small silicon | `vbn_ref` and `vbp_syn` one ladder tap higher. Wider per-neuron reset switch (W0.5 → ~W1). | Refractory and weight headroom; reset completes within t_ref | ~½ day each; the reset switch touches every slot layout |
+| 3. Separate infrastructure biases | Comparator (`det_cmp`) tail on a fixed bias from the V-to-I path. D1 `pdet` input matched to the soma detector, or a non-scaling starve. `vsrc` and Vreset buffers biased from the scaled master, plus a local decap on `vsrc`. AdEx DPI decay on its own bias, or wider devices. | CMP, D1, AdEx, `vsrc` and Vreset pass at 10000× on typical and fast silicon | ~2–3 days; new bias lines, regmap/control block, CMP column wiring |
+| 4. Leak OTA | Inputs ~16/1 and diodes ~32/1, or a lower-Vt tail | 10000× at every corner, slow silicon included | ~3+ days; bigger devices in every neuron, so slots likely grow ~10 % and every slot, D1 and AdEx is re-laid out |
+
+| Target | Needs |
+|---|---|
+| ~3000× | Level 1 |
+| 10000× on typical/fast silicon | Levels 1–3 (~1 week) |
+| 10000× at every corner | Levels 1–4 |
+
+Analog supply at 10000× is ~350 µA, plus 400 µA with the pad driver on, so power is not a limit.

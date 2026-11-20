@@ -131,7 +131,7 @@ A slot's switch is `probe_rsel[row] & probe_en_c[col]`, so at most one slot, D1 
 
 ### 3.2 bias_b1 lines (names = `cells/bias/bias_b1.spice` rev C)
 
-52 control lines in bias_b1 port order. **The names are from the rev C DRAFT port list** (2026-11-19, `gen_bias_if.py --provisional`); the generator refuses the real file until its header says "REV C PORTS STABLE", and then only needs a re-run (no change expected if the draft holds).
+52 control lines in bias_b1 port order. Generated from `cells/bias/bias_b1.spice` rev C ("REV C PORTS STABLE", 2026-11-19; identical to the draft list).
 
 | Code k | Word bits | Bytes | Ports | bias_b1 line |
 |---|---|---|---|---|
@@ -222,6 +222,10 @@ else:        Vn = clamp(V + ((EL - V) >>> SHIFT) + (input ? W : 0), 0, 2^W - 1)
 
 **Synthesis** (yosys, `rtl/scripts/synth.sh`, `rtl/synth/area.txt`), rev E default: **18.05k µm²** hierarchical, 17.62k flattened (rev D 23.30k), 152 latches. Hierarchy: digital_lif 7.36k, nc_cfg (shift register + decode) 1.39k, reset/LIF_EN syncs 0.30k, top level 8.97k (of which the 152 latches 7.34k, probe decode, LIF event/tick sync). Removed versus rev D: the SC divider (2.22k), the IDAC range decode and 18 RANGE latches, 6 trim nibbles (24 latches), 2 VDACs.
 
-**Hardened rev E** (LibreLane, `rtl/librelane/config_fp.json` = `config.json` + `pin_order.cfg` from `mkpins.py`, Metal4 max, density 86 %; run `runs/revE_166`, snapshot `macros/neuron_ctrl/`): die **166 × 166 µm** (27.6k µm², rev D 35.3k), 861 std cells, 93.9 % utilization; DRC (route / Magic / KLayout) 0, LVS 0, antenna 0, XOR 0; no slew/cap/fanout violations; worst setup slack **+2.30 ns at ss 125 °C 3.0 V** (25 ns clock), +13.46 ns tt; hold +0.13 ns (ff). Pins N 24 / E 42 / S 79 / W 54 (S pins over x 38–125, W pins over y 22–141). Power straps (Metal4, 1.6 wide) VDD x = 15.92 / 65.92 / 115.92, VSS x = 19.22 / 69.22 / 119.22. Size sweep: 164 fails detailed placement; 166 clean (+2.30 ns); 168 clean (92.6 %, +1.96 ns); 172 / 176 clean with the earlier placeholder bias names (+2.41 / +1.67 ns).
+**Hardened rev E** (LibreLane, `rtl/librelane/config_fp.json` = `config.json` + `pin_order.cfg` from `mkpins.py`, Metal4 max, density 86 %; run `runs/revE2_166`, snapshot `macros/neuron_ctrl/`): die **166 × 166 µm** (27.6k µm², rev D 35.3k), 861 std cells, 94.0 % utilization; DRC (route / Magic / KLayout) 0, LVS 0, antenna 0, XOR 0; no slew/cap/fanout violations; worst setup slack **+2.47 ns at ss 125 °C 3.0 V** (25 ns clock), +13.53 ns tt; hold +0.21 ns. Power straps (Metal4, 1.6 wide) VDD x = 15.92 / 65.92 / 115.92, VSS x = 19.22 / 69.22 / 119.22. Size sweep: 164 fails detailed placement; 166 clean; 168 clean (`config_fp_revE_168.json`, run `revE2_168`: 92.6 %, +2.08 ns).
 
-Pin edges (`mkpins.py`): **N** uio_out, uo_out, ui_in (under the TT pins); **E** rst_n, clk, plus uio_in, uio_oe and the 24 `cfg_out` bits of trim nibbles without storage (constant 0), parked and left unconnected; **W** (array) spk_in, probe_rsel, probe_en_c, probe_sub/_b, rt_out, trim nibbles 0, 2–6; **S** (bottom band, west → east) leak-τ trims 14–15, GRP_EN, D1 lines (PLATEAU_EN, D1_CHAIN, D1_BSEL, trims 7–8, probe_sel_d1), probe_sub_raw, probe_sel_adex, then the 52 bias_b1 lines in port order.
+Pin edges for floorplan v2 (`docs/08 Updated Plan.md` §10: macro at tile x 170–336, y 151–317; `mkpins.py` places every pin on a chosen slot of the 1.12 µm pin grid with `$n` spacers; tile coordinates below):
+- **N** (26): uio_out[7:0], uo_out[7:3] packed at the west end (their TT pins are west of the macro), then uo_out[2:0], ui_in[7:0], **rst_n (x 323.7), clk (x 331.6)**, each under its TT tile pin where that pin is above the macro.
+- **E** (40, parked, unrouted): uio_in, uio_oe, the 24 constant-0 `cfg_out` bits of trim nibbles 1, 9–13.
+- **W** (52, y 221–315, above the AdEx column): array spikes (all but 3 and 13), probe_rsel, probe_en_c, probe_sub/_b, rt_out, trim nibbles 0, 2–6.
+- **S** (81, west → east): x 171–203 AdEx (spk_in[3], probe_sel_adex), probe_sub_raw, D1 (spk_in[13], PLATEAU_EN, D1_CHAIN, D1_BSEL, trims 7–8, probe_sel_d1), GRP_EN, leak-τ trims 14–15; x 205–281 the 46 bias code lines in bias_b1 port order (under B1's code inputs); x 312–334 ua0_s0/s1/stim/int, bias_en, ib_x2 (B1's mode lines).

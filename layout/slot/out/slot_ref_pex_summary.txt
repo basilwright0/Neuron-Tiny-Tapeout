@@ -1,0 +1,6 @@
+124 parasitic capacitors in slot_ref_pex.spice
+Cfb  (spk-vm coupling, MOM + routing) = 0.00 fF   (target 8 fF +-25 %: 6.0 .. 10.0)
+vm   total wiring capacitance          = 0.00 fF
+vm   breakdown (to other nodes):
+vr   total wiring capacitance          = 0.00 fF
+spk  total wiring capacitance          = 0.00 fF

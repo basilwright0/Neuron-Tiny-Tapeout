@@ -203,3 +203,17 @@ Schematic simulation, biases scaled ×S/100, threshold recalibrated per corner a
 
 The resume notes are at the top of each track's README (`layout/slot`, `layout/dendrite`, `layout/bias`, `cells/adex`).
 8. **Integration note:** CMP's `vth_cmp` comes in on column 1's `aux` line, since column 1 has no τ-trim cell. Connect B1's `vth_cmp` to column 1 `aux` at top level. The probe tap gained a third series switch (XSC) to fix a cross-column leak bug.
+9. **Control block pins (floorplan v2, run revE2_166):** spk_in[3] (AdEx) and spk_in[13] (D1) moved to the west end of the macro's south edge, next to probe_sel_adex and the D1 lines. The rest of the array lines are on the west edge at tile y 221–315.
+
+## 13. Status update (2026-11-19, evening)
+
+Items 1–5 of §12 are resolved, except CMP:
+- **det_ah reset fix:** done (keeper XK). Re-verified in the slots (15 cases with biases off: ≤ 0.3 nA) and in AdEx (10 pA in PEX). D1's plateau detectors also needed a weak pull-up XQ (0.22/4, gated by the second-stage node).
+- **D1:** 70 × 104 µm, DRC/LVS clean, both trims inside. The ff/85 plateau outlier is fixed (XTP L = 2 µm).
+- **AdEx:** 38 × 73 µm, DRC/LVS clean.
+- **Slots:** 8 of 9 variants plus trim_tau4 are DRC/LVS clean. AH800's capacitor is now ~740 fF. **CMP** is being re-placed, about 4 h allowed; if it doesn't come out clean, CMP drops its gap trim (nibble 6 is left unconnected at the top level; the macro, TRIM_MASK and the floorplan are unchanged).
+
+**Decision: post-layout node capacitance is accepted as is.**
+- D1 measures 237–272 fF against the 200 fF design, so its time constants run 15–30 % long and a single-pulse EPSP is 45 mV instead of 63 mV. Clustered input needs N = 4 pulses instead of 3; distributed input stays silent up to N = 6.
+- Reasons for keeping it: the clustered vs distributed discrimination survives, the synaptic weight (vbp_w) is programmable, and τ is measured on silicon.
+- The slots likely see a similar offset (their post-layout f–I is 0.79–0.93× schematic). Per-die calibration covers it.

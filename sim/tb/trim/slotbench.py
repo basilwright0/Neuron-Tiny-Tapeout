@@ -25,11 +25,11 @@ PORTS["slot_ah_h"] = PORTS["slot_ah"] + "t0 t1 t2 t3".split()
 PORTS["slot_ah_p"] = PORTS["slot_ah_h"]
 for _c in ("slot_ah_f", "slot_ah_50", "slot_ah_800"):
     PORTS[_c] = PORTS["slot_ah"]
-PORTS["slot_cmp_h"] = PORTS["slot_ah_h"]
+PORTS["slot_cmp_h"] = PORTS["slot_ah"]          # no gap trim since 2026-11-20
 PORTS["slot_dummy"] = [p for p in PORTS["slot_ah"] if p not in ("spk", "rsel", "sub", "sub_b")]
 PORTS["slot_ref"] = "rsel sub el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn".split()
 # per-variant scale factors vs the S slot: membrane C (AH50 / AH800) and leak g (F: tail W/L halved)
-CFAC = {"slot_ah_50": 50.1 / 200.0, "slot_ah_800": (200.0 + 4.0 * 11.7 * 12.4) / 200.0}
+CFAC = {"slot_ah_50": 50.1 / 200.0, "slot_ah_800": (200.0 + 4.0 * 11.7 * 11.6) / 200.0}
 GFAC = {"slot_ah_f": 0.5}
 # testbench net for each port
 NETS = dict(vm="vm", spk="spk", rsel="0", sub="0", sub_b="0", el="el", vsrc="vsrc", vreset="vrst", vbn_leak="vbl",

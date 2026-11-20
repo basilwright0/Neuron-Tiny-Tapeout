@@ -4,7 +4,7 @@ usage: python3 sim/tb/tb_slot_fi.py [corner] [temp] [S] [cell]
        cell = slot_ah | slot_ah_h | slot_ah_p | slot_ah_f | slot_cmp_h | slot_ah_50 | slot_ah_800 | slot_dummy
   Variants: input currents are multiples of the cell's own rheobase (F: half the leak g) and the run length
   scales with its own tau (F: 2x; AH50 / AH800: C/200 fF). CMP: threshold on aux = VTH (1.38 V; vsrc unused).
-  slot_dummy has no spk pin: spikes are counted as vm falling through 1.24 V (the reset).
+  slot_dummy has no spk pin: spikes are counted as vm falling through (Vreset + Vth)/2 (the reset).
   sch : cells/neuron/slot.spice (ideal Cfb = 8 fF)
   pex : layout/slot/out/<cell>_pex.spice (magic extract, all coupling caps, Cfb = extracted MOM)
 Same biases / per-die vsrc calibration as tb_lif_fi.py (ah variant). Probe disabled (en = sel = 0),
@@ -37,7 +37,7 @@ RHEO, TAU = b.rheo * GF, b.tau * CF / GF
 Iins = RHEO * np.array([1.5, 2, 3, 5, 8])
 tstop = 40 * TAU
 HAS_SPK = "spk" in sb.PORTS[CELL]
-VSRC = sb.cal_vsrc(corner, temp, S, tag=f"slotfi_{corner}_{temp}_S{S:g}")
+VSRC = sb.cal_vsrc(corner, temp, S, tag=f"slotfi_{CELL}_{corner}_{temp}_S{S:g}")
 print(f"calibrated vsrc = {VSRC:.4f} V (schematic detector)")
 
 
@@ -61,7 +61,7 @@ for kind in KINDS:
                      ["v(vm)", "v(spk)"] if HAS_SPK else ["v(vm)"], corner=corner, temp=temp),
                 f"slotfi_{CELL}_{kind}_{corner}_{temp}_S{S:g}_I{Iin * 1e12:.0f}p")
         t, vm = r["_x"], r["v(vm)"]
-        st = crossings(t, r["v(spk)"], 1.65) if HAS_SPK else crossings(t, vm, 1.24, rising=False)
+        st = crossings(t, r["v(spk)"], 1.65) if HAS_SPK else crossings(t, vm, (sb.VRESET + sb.VTH) / 2, rising=False)
         res.append(dict(Iin=float(Iin), rate=float(rate(st, t_settle=5 * TAU)), nspk=int(len(st)),
                         vm_min=float(vm[t > 5 * TAU].min()), vm_max=float(vm[t > 5 * TAU].max())))
     out[kind] = res
