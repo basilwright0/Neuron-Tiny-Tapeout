@@ -1,170 +1,145 @@
 * NGSPICE file created from trim_tau4.ext - technology: gf180mcuD
 
-.subckt p_w0p84_l2 w_n374_n214# a_n288_n84# a_200_n84# a_n200_n128# VSUBS
-X0 a_200_n84# a_n200_n128# a_n288_n84# w_n374_n214# pfet_03v3 ad=0.3696p pd=2.56u as=0.3696p ps=2.56u w=0.84u l=2u
-C0 a_n200_n128# a_n288_n84# 0.02431f
-C1 w_n374_n214# a_n288_n84# 0.02648f
-C2 a_200_n84# a_n200_n128# 0.02431f
-C3 w_n374_n214# a_200_n84# 0.02648f
-C4 a_200_n84# a_n288_n84# 0.00883f
-C5 w_n374_n214# a_n200_n128# 0.22666f
-C6 a_200_n84# VSUBS 0.09952f
-C7 a_n288_n84# VSUBS 0.09952f
-C8 w_n374_n214# VSUBS 0.96043f
+.subckt p_w0p83_l2 w_n374_n213# a_n288_n83# a_200_n83# a_n200_n127# VSUBS
+X0 a_200_n83# a_n200_n127# a_n288_n83# w_n374_n213# pfet_03v3 ad=0.3652p pd=2.54u as=0.3652p ps=2.54u w=0.83u l=2u
+C0 w_n374_n213# a_n288_n83# 0.02618f
+C1 a_n288_n83# a_200_n83# 0.00872f
+C2 w_n374_n213# a_200_n83# 0.02618f
+C3 a_n288_n83# a_n200_n127# 0.02401f
+C4 w_n374_n213# a_n200_n127# 0.22666f
+C5 a_n200_n127# a_200_n83# 0.02401f
+C6 a_200_n83# VSUBS 0.0992f
+C7 a_n288_n83# VSUBS 0.0992f
+C8 w_n374_n213# VSUBS 0.95594f
 .ends
 
-.subckt n_w1_l2 a_n288_n100# a_200_n100# a_n200_n144# VSUBS
-X0 a_200_n100# a_n200_n144# a_n288_n100# VSUBS nfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=2u
-C0 a_n288_n100# a_200_n100# 0.01056f
-C1 a_n200_n144# a_200_n100# 0.02905f
-C2 a_n200_n144# a_n288_n100# 0.02905f
-C3 a_200_n100# VSUBS 0.22823f
-C4 a_n288_n100# VSUBS 0.22823f
-.ends
-
-.subckt n_w0p5_l0p5 a_n138_n50# a_50_n50# a_n50_n94# VSUBS
-X0 a_50_n50# a_n50_n94# a_n138_n50# VSUBS nfet_03v3 ad=0.22p pd=1.88u as=0.22p ps=1.88u w=0.5u l=0.5u
-C0 a_n138_n50# a_50_n50# 0.01511f
-C1 a_n50_n94# a_50_n50# 0.00625f
-C2 a_n50_n94# a_n138_n50# 0.00625f
-C3 a_50_n50# VSUBS 0.09639f
-C4 a_n138_n50# VSUBS 0.09639f
-.ends
-
-.subckt p_w1_l2 w_n374_n230# a_n288_n100# a_200_n100# a_n200_n144# VSUBS
-X0 a_200_n100# a_n200_n144# a_n288_n100# w_n374_n230# pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=2u
-C0 a_n200_n144# a_n288_n100# 0.02905f
-C1 w_n374_n230# a_n288_n100# 0.03135f
-C2 a_200_n100# a_n200_n144# 0.02905f
-C3 w_n374_n230# a_200_n100# 0.03135f
-C4 a_200_n100# a_n288_n100# 0.01056f
-C5 w_n374_n230# a_n200_n144# 0.22666f
-C6 a_200_n100# VSUBS 0.1047f
-C7 a_n288_n100# VSUBS 0.1047f
-C8 w_n374_n230# VSUBS 1.03224f
+.subckt n_w1_l4 a_n488_n100# a_400_n100# a_n400_n144# VSUBS
+X0 a_400_n100# a_n400_n144# a_n488_n100# VSUBS nfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=4u
+C0 a_n400_n144# a_400_n100# 0.03474f
+C1 a_400_n100# a_n488_n100# 0.00531f
+C2 a_n400_n144# a_n488_n100# 0.03474f
+C3 a_400_n100# VSUBS 0.37836f
+C4 a_n488_n100# VSUBS 0.37836f
 .ends
 
 .subckt n_w2_l4 a_400_n200# a_n400_n244# a_n488_n200# VSUBS
 X0 a_400_n200# a_n400_n244# a_n488_n200# VSUBS nfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=4u
-C0 a_n488_n200# a_400_n200# 0.01073f
-C1 a_n400_n244# a_400_n200# 0.07019f
+C0 a_n400_n244# a_400_n200# 0.07019f
+C1 a_400_n200# a_n488_n200# 0.01073f
 C2 a_n400_n244# a_n488_n200# 0.07019f
 C3 a_400_n200# VSUBS 0.41684f
 C4 a_n488_n200# VSUBS 0.41684f
 .ends
 
-.subckt trim_tau4 vss c0 c1 c2 c3 vg vsn aux vdd
-XXPM vdd vdd aux a_4200_2010# vss p_w0p84_l2
-XXT_XB3 vsn a_4200_2010# vg vss n_w1_l2
-XXT_XB4 vsn a_4200_2010# vg vss n_w1_l2
-XXT_XB5 vsn a_4200_2010# vg vss n_w1_l2
-XXT_XB6 vsn a_4200_2010# vg vss n_w1_l2
-XXT_XB7 vsn a_4200_2010# vg vss n_w1_l2
-XXT_XU3_0 vsn m1_692_1240# vg vss n_w1_l2
-XXT_XU3_1 vsn m1_692_1240# vg vss n_w1_l2
-XXT_XU3_2 vsn m1_692_1240# vg vss n_w1_l2
-XXT_XU3_3 vsn m1_692_1240# vg vss n_w1_l2
-XXT_XU1_0 vsn m1_692_760# vg vss n_w1_l2
-XXT_XU3_5 vsn m1_692_1240# vg vss n_w1_l2
-XXT_XU3_4 vsn m1_692_1240# vg vss n_w1_l2
-XXT_XU1_1 vsn m1_692_760# vg vss n_w1_l2
-XXT_XU3_6 vsn m1_692_1240# vg vss n_w1_l2
-XXT_XU3_7 vsn m1_692_1240# vg vss n_w1_l2
-XXT_XS0 a_4200_2010# m1_2552_1250# c0 vss n_w0p5_l0p5
-XXT_XS2 a_4200_2010# m1_1372_760# c2 vss n_w0p5_l0p5
-XXT_XS1 a_4200_2010# m1_692_760# c1 vss n_w0p5_l0p5
-XXT_XS3 a_4200_2010# m1_692_1240# c3 vss n_w0p5_l0p5
-XXT_XU2_0 vsn m1_1372_760# vg vss n_w1_l2
-XXPD vdd vdd a_4200_2010# a_4200_2010# vss p_w1_l2
-XXT_XU2_1 vsn m1_1372_760# vg vss n_w1_l2
-XXT_XU2_2 vsn m1_1372_760# vg vss n_w1_l2
-XXND aux aux vss vss n_w2_l4
-XXT_XU0_0 vsn m1_2552_1250# vg vss n_w1_l2
-XXT_XU2_3 vsn m1_1372_760# vg vss n_w1_l2
-XXT_XB0 vsn a_4200_2010# vg vss n_w1_l2
-XXT_XB2 vsn a_4200_2010# vg vss n_w1_l2
-XXT_XB1 vsn a_4200_2010# vg vss n_w1_l2
-C0 aux c3 0
-C1 a_4200_2010# vsn 1.03334f
-C2 vsn m1_2552_1250# 0.15233f
-C3 c1 a_4200_2010# 0.0848f
-C4 c0 m1_1372_760# 0.00719f
-C5 c2 vsn 0.00312f
-C6 m1_1372_760# m1_692_1240# 0.01714f
-C7 c1 m1_2552_1250# 0.07731f
-C8 c1 c2 0.064f
-C9 a_4200_2010# m1_692_760# 0.32997f
-C10 c0 m1_692_1240# 0.09119f
-C11 vdd m1_692_1240# 0.06866f
-C12 a_4200_2010# vg 1.43194f
-C13 m1_692_760# m1_2552_1250# 0.1288f
-C14 aux vdd 0.51627f
-C15 c2 m1_692_760# 0.06061f
-C16 aux m1_692_1240# 0.03046f
-C17 vg m1_2552_1250# 0.37884f
-C18 c2 vg 0
-C19 a_4200_2010# c3 0.12481f
-C20 c1 vsn 0.00845f
-C21 c3 m1_2552_1250# 0.07213f
-C22 c2 c3 0.06032f
-C23 m1_692_760# vsn 0.47739f
-C24 vg vsn 2.51192f
-C25 c1 m1_692_760# 0.07676f
-C26 a_4200_2010# m1_1372_760# 0.2697f
-C27 c1 vg 0.00836f
-C28 m1_1372_760# m1_2552_1250# 0.01142f
-C29 a_4200_2010# c0 0.09329f
-C30 a_4200_2010# vdd 0.56777f
-C31 c3 vsn 0.0062f
-C32 c2 m1_1372_760# 0.04812f
-C33 a_4200_2010# m1_692_1240# 0.45169f
-C34 c0 m1_2552_1250# 0.04691f
-C35 vdd m1_2552_1250# 0.19682f
-C36 vg m1_692_760# 0.50342f
-C37 aux a_4200_2010# 0.01567f
-C38 c2 vdd 0
-C39 m1_692_1240# m1_2552_1250# 0.29252f
-C40 c2 m1_692_1240# 0.04875f
-C41 aux m1_2552_1250# 0.40799f
-C42 c3 m1_692_760# 0.03812f
-C43 m1_1372_760# vsn 0.48243f
-C44 c3 vg 0.0117f
-C45 c0 vsn 0.0572f
-C46 c1 m1_1372_760# 0.01302f
-C47 vdd vsn 0.00446f
-C48 m1_692_1240# vsn 1.10769f
-C49 c1 c0 0.06411f
-C50 c1 vdd 0
-C51 aux vsn 0.00576f
-C52 c1 m1_692_1240# 0.04257f
-C53 m1_1372_760# m1_692_760# 0.11283f
-C54 m1_1372_760# vg 0.72815f
-C55 c0 m1_692_760# 0.04689f
-C56 vdd m1_692_760# 0.1198f
-C57 m1_692_1240# m1_692_760# 0.6675f
-C58 c0 vg 0.01482f
-C59 a_4200_2010# m1_2552_1250# 0.49365f
-C60 vdd vg 0.0267f
-C61 aux m1_692_760# 0.08439f
-C62 c2 a_4200_2010# 0.0475f
-C63 m1_1372_760# c3 0.00485f
-C64 m1_692_1240# vg 1.09622f
-C65 aux vg 0.23612f
-C66 c2 m1_2552_1250# 0.06401f
-C67 vdd c3 0.05318f
-C68 c3 m1_692_1240# 0.12183f
-C69 a_4200_2010# vss 1.99371f
-C70 vsn vss 1.77753f
-C71 vg vss 3.93802f
-C72 aux vss 0.2957f
-C73 vdd vss 3.14195f
-C74 m1_1372_760# vss 0.11833f
-C75 c3 vss 0.26334f
-C76 c1 vss 0.28331f
-C77 c2 vss 0.30479f
-C78 m1_2552_1250# vss 0.99524f
-C79 c0 vss 0.27292f
-C80 m1_692_760# vss 0.90739f
-C81 m1_692_1240# vss 1.36655f
+.subckt n_w0p5_l0p5 a_n138_n50# a_50_n50# a_n50_n94# VSUBS
+X0 a_50_n50# a_n50_n94# a_n138_n50# VSUBS nfet_03v3 ad=0.22p pd=1.88u as=0.22p ps=1.88u w=0.5u l=0.5u
+C0 a_n50_n94# a_50_n50# 0.00625f
+C1 a_50_n50# a_n138_n50# 0.01511f
+C2 a_n50_n94# a_n138_n50# 0.00625f
+C3 a_50_n50# VSUBS 0.09639f
+C4 a_n138_n50# VSUBS 0.09639f
+.ends
+
+.subckt n_w4_l4 a_n488_n400# a_400_n400# a_n400_n444# VSUBS
+X0 a_400_n400# a_n400_n444# a_n488_n400# VSUBS nfet_03v3 ad=1.76p pd=8.88u as=1.76p ps=8.88u w=4u l=4u
+C0 a_n400_n444# a_400_n400# 0.14108f
+C1 a_400_n400# a_n488_n400# 0.02157f
+C2 a_n400_n444# a_n488_n400# 0.14108f
+C3 a_400_n400# VSUBS 0.49379f
+C4 a_n488_n400# VSUBS 0.49379f
+.ends
+
+.subckt p_w1_l2 w_n374_n230# a_n288_n100# a_200_n100# a_n200_n144# VSUBS
+X0 a_200_n100# a_n200_n144# a_n288_n100# w_n374_n230# pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=2u
+C0 w_n374_n230# a_n288_n100# 0.03135f
+C1 a_n288_n100# a_200_n100# 0.01056f
+C2 w_n374_n230# a_200_n100# 0.03135f
+C3 a_n288_n100# a_n200_n144# 0.02905f
+C4 w_n374_n230# a_n200_n144# 0.22666f
+C5 a_n200_n144# a_200_n100# 0.02905f
+C6 a_200_n100# VSUBS 0.1047f
+C7 a_n288_n100# VSUBS 0.1047f
+C8 w_n374_n230# VSUBS 1.03224f
+.ends
+
+.subckt trim_tau4 vss aux vbn_leak c2 c3 c1 c0 vdd
+XXPM vdd vdd aux m1_6882_530# vss p_w0p83_l2
+XXU0 m1_5978_958# m1_6882_530# vbn_leak vss n_w1_l4
+XXU1 m1_6882_530# vbn_leak m1_5572_1070# vss n_w2_l4
+XXS0 vss m1_5978_958# c0 vss n_w0p5_l0p5
+XXU2 m1_2488_800# m1_6882_530# vbn_leak vss n_w4_l4
+XXS1 vss m1_5572_1070# c1 vss n_w0p5_l0p5
+XXS2 vss m1_2488_800# c2 vss n_w0p5_l0p5
+XXS3 vss m1_3648_240# c3 vss n_w0p5_l0p5
+XXNDa aux aux vss vss n_w2_l4
+XXNDb aux aux vss vss n_w2_l4
+XXB0 vss m1_6882_530# vbn_leak vss n_w4_l4
+XXB1 vss m1_6882_530# vbn_leak vss n_w4_l4
+XXPD0 vdd vdd m1_6882_530# m1_6882_530# vss p_w1_l2
+XXPD1 vdd vdd m1_6882_530# m1_6882_530# vss p_w1_l2
+XXPD2 vdd vdd m1_6882_530# m1_6882_530# vss p_w1_l2
+XXPD3 vdd vdd m1_6882_530# m1_6882_530# vss p_w1_l2
+XXU3a m1_3648_240# m1_6882_530# vbn_leak vss n_w4_l4
+XXU3b m1_3648_240# m1_6882_530# vbn_leak vss n_w4_l4
+C0 vdd c1 0.11037f
+C1 aux m1_6882_530# 0.07903f
+C2 vdd c2 0.11738f
+C3 m1_3648_240# c1 0
+C4 m1_2488_800# m1_6882_530# 0.23217f
+C5 aux c3 0
+C6 m1_5978_958# vdd 0.00484f
+C7 m1_2488_800# c3 0.00275f
+C8 m1_5978_958# m1_3648_240# 0
+C9 vdd m1_3648_240# 0.02986f
+C10 c1 m1_5572_1070# 0.02021f
+C11 c1 m1_6882_530# 0.16197f
+C12 c2 m1_6882_530# 0.07236f
+C13 c1 c3 0.00701f
+C14 m1_5978_958# m1_5572_1070# 0.0326f
+C15 vdd m1_5572_1070# 0.01107f
+C16 m1_5978_958# m1_6882_530# 0.02533f
+C17 c2 c3 0.0145f
+C18 vdd m1_6882_530# 1.73511f
+C19 vbn_leak c0 0.02851f
+C20 m1_3648_240# m1_5572_1070# 0
+C21 vdd c3 0.15124f
+C22 m1_3648_240# m1_6882_530# 0.50251f
+C23 m1_3648_240# c3 0.02293f
+C24 m1_6882_530# m1_5572_1070# 0.18891f
+C25 c3 m1_5572_1070# 0
+C26 c3 m1_6882_530# 0.13961f
+C27 aux vbn_leak 0.30263f
+C28 vbn_leak m1_2488_800# 0.30087f
+C29 c1 c0 0.03516f
+C30 vbn_leak c1 0.02044f
+C31 c2 vbn_leak 0.03439f
+C32 m1_5978_958# c0 0.02922f
+C33 m1_5978_958# vbn_leak 0.21696f
+C34 vdd c0 0.15246f
+C35 vdd vbn_leak 0.113f
+C36 vbn_leak m1_3648_240# 0.19401f
+C37 aux m1_2488_800# 0.00727f
+C38 c0 m1_5572_1070# 0.00139f
+C39 vbn_leak m1_5572_1070# 0.22663f
+C40 c0 m1_6882_530# 0.10589f
+C41 vbn_leak m1_6882_530# 1.11959f
+C42 aux c2 0.05619f
+C43 vbn_leak c3 0.02044f
+C44 c2 m1_2488_800# 0.03276f
+C45 vdd aux 0.10055f
+C46 vdd m1_2488_800# 0.03084f
+C47 m1_3648_240# m1_2488_800# 0.00686f
+C48 m1_6882_530# vss 1.81378f
+C49 vbn_leak vss 3.84423f
+C50 aux vss 1.59997f
+C51 m1_3648_240# vss 0.28772f
+C52 c3 vss 0.29824f
+C53 c2 vss 0.32075f
+C54 m1_5572_1070# vss 0.13835f
+C55 c1 vss 0.27443f
+C56 m1_2488_800# vss 0.10282f
+C57 c0 vss 0.24838f
+C58 m1_5978_958# vss 0.04813f
+C59 vdd vss 2.52101f
 .ends
 

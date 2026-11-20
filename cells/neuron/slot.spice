@@ -12,17 +12,19 @@
 *              Cut path: build with P_AS_H=1 (layout/slot/build.sh) -> P positions use slot_ah_h.
 *   slot_ah_f  F slot: as slot_ah, leak OTA tail XL.XMT W/L halved (1/4 instead of 2/4) on the same
 *              vbn_leak line, so tau_F = 2 tau_S by geometry (NH EXP-46 "etch tau variants").
-*   slot_cmp_h CMP slot: comparator LIF (det_cmp of lif_cmp, starve/tail on vbp_st), NO gap trim since 2026-11-20
-*              (the trimmed version, now slot_cmp_h_trim, did not route; nibble 6 is left unconnected).
-*              Its threshold vth_cmp arrives on the aux column line (array column 1 only: there aux has
-*              no tau-trim cell, so the integrator connects B1's vth_cmp to column 1's aux). vsrc feeds through.
+*   slot_cmp_h CMP slot: comparator LIF (det_cmp of lif_cmp, starve/tail on vbp_st) + 4-bit gap trim (t0..t3,
+*              nibble 6). Since 2026-11-20 a DOUBLE slot (28 x 87 um, column 3, rows 0-1, the former dummy
+*              slot's area): the trimmed version did not route in 28 x 43.5. The trimless fallback is kept
+*              as slot_cmp_h_notrim. Its threshold vth_cmp arrives on the aux column line (array column 3:
+*              there aux has no tau-trim cell, so the integrator connects B1's vth_cmp to column 3's aux).
+*              vsrc feeds through.
 *   slot_ah_50  AH50: as slot_ah with a 50 fF membrane (mcap 3.54 x 3.54).
 *   slot_ah_800 AH800: as slot_ah with 200 fF + ~540 fF (mcap_r 11.7 x 11.6 in the former trim space,
 *              Metal1 vss shield over it) = ~740 fF; the hold switch moves into the main n-well.
 *   slot_ref   REF slot (0,0): one prb_tap on el (sb = sub; PROBE_SUB = 3 -> row 0, column 0, sub = 1),
 *              identical to the array taps, so it calibrates the whole tap + bus + pad path. No neuron.
-*   slot_dummy DUMMY slot (0,3): slot_ah with no spike pin (spk internal) and both probe taps tied off
-*              (en / sel / sb = vss; the abus side of XSB stays on abus so the bus load is uniform).
+*   slot_dummy DUMMY slot: slot_ah with no spike pin (spk internal) and both probe taps tied off
+*              (en / sel / sb = vss). UNUSED since 2026-11-20: its slot (0,3) is the lower half of CMP.
 *
 * Ports (order of the .subckt line):
 *   vm       membrane node
@@ -129,10 +131,10 @@ XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 .ends slot_ah_f
 
-* slot_cmp_h_trim: the first CMP slot WITH the gap trim. UNUSED since 2026-11-20: it never routed in the
-* 28 x 43.5 box (23 attempts, two comparator placements). Kept for reference only.
-* aux = vth_cmp (column 1). det_cmp port order: vm vth spk vbp vdd vss.
-.subckt slot_cmp_h_trim vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
+* slot_cmp_h: CMP slot WITH the gap trim (nibble 6). It never routed in the 28 x 43.5 box (23 attempts, two
+* comparator placements); since 2026-11-20 it is a 28 x 87 double slot (array column 3, rows 0-1).
+* aux = vth_cmp (column 3). det_cmp port order: vm vth spk vbp vdd vss.
+.subckt slot_cmp_h vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
 + vbp_syn sta stb hold mreset t0 t1 t2 t3 wf=4u lf=2u
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
@@ -142,7 +144,7 @@ XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 XT  la vm vbn_leak t0 t1 t2 t3 vdd vss trim_gap4
-.ends slot_cmp_h_trim
+.ends slot_cmp_h
 
 .subckt slot_ah_50 vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
 + vbp_syn sta stb hold mreset cfb=8f wf=4u lf=2u
@@ -183,10 +185,10 @@ XPR vr abus vss vss vss vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 .ends slot_dummy
 
-* slot_cmp_h: CMP slot WITHOUT an in-slot gap trim (2026-11-20, option 2 of the CMP decision). Nibble 6's four
-* trim latches stay unconnected at the top level (the integrator parks them); control macro, TRIM_MASK and
-* floorplan unchanged. Pins = the S slot's set (no t0..t3); aux = vth_cmp (column 1).
-.subckt slot_cmp_h vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
+* slot_cmp_h_notrim: CMP slot WITHOUT an in-slot gap trim (2026-11-20, option 2 of the CMP decision; the
+* fallback if the double slot is dropped: nibble 6 then stays unconnected, CMP_TRIM = False). Pins = the S
+* slot's set (no t0..t3). UNUSED since the CMP double slot.
+.subckt slot_cmp_h_notrim vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
 + vbp_syn sta stb hold mreset wf=4u lf=2u
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
@@ -195,4 +197,4 @@ XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
-.ends slot_cmp_h
+.ends slot_cmp_h_notrim

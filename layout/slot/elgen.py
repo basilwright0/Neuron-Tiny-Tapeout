@@ -41,28 +41,25 @@ if CELL == "trim_el4":                   # UNUSED since 2026-11-18 (P second kno
         "XS3": (9.40, 7.10), "XS2": (11.20, 7.10), "XS1": (13.00, 7.10), "XS0": (14.80, 7.10),
     }
 else:
-    # trim_tau4: 3 cells side by side fill the 112 um TE strip (37.0 + 0.3 gaps); aux goes up through CH_MID.
+    # trim_tau4 rev B (2026-11-20, vbn_leak / vss reference): 3 cells side by side fill the 112 um TE strip
+    # (37.0 + 0.3 gaps); aux goes up through CH_MID, vbn_leak comes down from the bias channel.
     W, H = 37.0, 11.8
     COLS = []
-    # all pins are Metal2 straps from the top edge
-    STRAPS = [("c0", 12.40), ("c1", 15.00), ("c2", 17.60), ("c3", 20.20), ("vg", 7.10), ("vsn", 10.30),
-              ("aux", 29.00), ("vdd", 35.20)]
-    STRAP_Y = (5.20, H)
-    NWELL = (21.40, 8.30, 34.10, 10.85)
+    # all pins are Metal2 straps from the top edge; c0..c3 land on their source-switch gate heads
+    STRAPS = [("aux", 6.20), ("vbn_leak", 12.20), ("c2", 15.20), ("c3", 21.60), ("c1", 27.60), ("c0", 31.00),
+              ("vdd", 35.20)]
+    STRAP_Y = (6.20, H)
+    NWELL = (13.40, 8.30, 34.10, 10.85)
     NTAP = (33.25, 8.55, 33.85, 10.60)        # n-tap strip at the right end of the n-well
-    X = [2.40 + 3.4 * k for k in range(10)]
-    PLACE = {}
-    row1 = ["XT.XB%d" % k for k in range(8)] + ["XT.XU0_0", "XT.XU1_0"]
-    row2 = ["XT.XU1_1"] + ["XT.XU2_%d" % k for k in range(4)] + ["XT.XU3_%d" % k for k in range(5)]
-    for x, n in zip(X, row1):
-        PLACE[n] = (x, 1.60)
-    for x, n in zip(X, row2):
-        PLACE[n] = (x, 4.00)
-    PLACE.update({"XT.XU3_5": (2.40, 6.40), "XT.XU3_6": (5.80, 6.40), "XT.XU3_7": (9.20, 6.40),
-                  "XT.XS0": (12.40, 6.40), "XT.XS1": (15.00, 6.40), "XT.XS2": (17.60, 6.40), "XT.XS3": (20.20, 6.40),
-                  "XND": (29.00, 6.65),
-                  "XPD": (22.00, 9.55), "XPM": (26.00, 9.55)})
-FLIP = {"XT.XS0", "XT.XS1", "XT.XS2", "XT.XS3"} if CELL == "trim_tau4" else set()
+    # row A: the L = 4 mirror units on vbn_leak (4/4 x 5, then 2/4 under 1/4 in the last column)
+    PLACE = {"XB0": (3.40, 3.10), "XB1": (9.10, 3.10), "XU2": (14.90, 3.10), "XU3a": (20.70, 3.10),
+             "XU3b": (26.50, 3.10), "XU1": (32.30, 2.10), "XU0": (32.30, 4.94),
+             # source switches under the pfet row, aux diodes (2 x 2/4) at the left, pfets in the n-well
+             "XS2": (15.20, 6.95), "XS3": (21.60, 6.95), "XS1": (27.60, 6.95), "XS0": (31.00, 6.95),
+             "XNDa": (3.40, 8.60), "XNDb": (9.10, 8.60),
+             "XPM": (15.40, 9.55), "XPD0": (19.20, 9.55), "XPD1": (23.00, 9.55), "XPD2": (26.80, 9.55),
+             "XPD3": (30.60, 9.55)}
+FLIP = set()
 SCHEDULES = [(1.3, 0.5), (1.6, 0.3), (1.2, 0.7), (1.45, 0.4)]
 
 

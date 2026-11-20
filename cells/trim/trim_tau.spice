@@ -1,20 +1,41 @@
 * trim_tau4: per-column leak-tau trim for the P slots (TE strip below the array; drives the aux column
 * line, which in slot_ah_p is the gate of the leak OTA tail AND of the gap-trim ladder, in place of vbn_leak).
-* Requires bias/bias_trim.spice (trim4_n, B1's verified 4-bit current trim).
+* Rev B (2026-11-20): referenced to vbn_leak / vss directly (B1 rev C exports no trim_ref_n / vg node).
+* Self-contained (no bias_trim.spice dependency).
 *
-*   I_tail(P) = I_ref * (8 + c)/16  (c = 0..15: 0.50x .. 1.44x, 1.00x at c = 8)
-*   vg, vsn: B1's shared leak reference -- the gate line of a trim_ref_n (16-unit diode on the shifted
-*            source rail vsn) carrying the leak IDAC current I_ref (= the current of the vbn_leak master).
-*   trim4_n sinks I_trim from the pfet diode XPD; XPM mirrors it (W 0.84/1 at L 2: cancels the ~+19 % systematic
-*   gain from trim4_n output at ~2.9 V vs its reference at ~0.6 V) into the nfet diode XND, whose gate
-*   is aux. XND (W/L 2/4, source vss) equals the slot tail XMT and the vbn_leak nmaster, so at c = 8 the
-*   P neuron gets the same leak current (tau) as the S/H neurons; tau scales by 16/(8 + c).
+*   I_tail(P) = I_tail(S) * (8 + c)/16  (c = 0..15: 0.50x .. 1.44x, 1.00x at c = 8)
+*   vbn_leak: B1's leak line, the gate of the rx_n4 master (4 x nfet 2/4 diodes on vss) that also biases every
+*             S/H/F slot's leak tail (2/4). The trim mirrors it with L = 4 nfets on vss, i.e. the same device
+*             type and length as the master and the tails:
+*     XB0, XB1 (4/4 each, always on)   = 8 LSB
+*     XU3a, XU3b (4/4 each, bit 3)      = 8 LSB,  XU2 4/4 (bit 2) = 4 LSB,  XU1 2/4 (bit 1) = 2 LSB,  XU0 1/4 (bit 0) = 1 LSB
+*     -> I_d = (8 + c) * I(1/4) ~ (8 + c)/2 * I_tail(S).  SOURCE switches XS0..3 (0.5/0.5, unit source -> vss) on
+*     c0..c3: an off branch is a two-high stack (its unit source floats up and cuts the unit off), so the
+*     off-state leakage is far below that of a drain switch at Vds ~2.7 V (ff/85 C, pA-level codes).
+*   XPD0..3 (4 x pfet 1/2 diode) : XPM (pfet 1/2, W trimmed) = 4 : 1, into the aux diode XNDa + XNDb (2 x 2/4 on vss,
+*   each identical to the slot tail XMT), so I_tail(P) = I_d / 8 = (8 + c)/16 * I_tail(S).
+*   XPM is narrowed to 0.83 um to cancel the systematic gain (~+17 % at W = 1) from the drain-voltage differences
+*   (units at ~2.9 V vs the master diode at ~0.4 V, XPM at ~3 V vs XPD at ~0.4 V).
 *   The gap trim in the P slot rides on aux too, so its mV/step does not change with the tau code.
 *
-* Ports: aux vg vsn c0 c1 c2 c3 vdd vss
-.subckt trim_tau4 aux vg vsn c0 c1 c2 c3 vdd vss
-XT  d vg vsn c0 c1 c2 c3 vdd vss trim4_n
-XPD d   d   vdd vdd pfet_03v3 W=1u L=2u
-XPM aux d   vdd vdd pfet_03v3 W=0.84u L=2u
-XND aux aux vss vss nfet_03v3 W=2u L=4u
+* Ports: aux vbn_leak c0 c1 c2 c3 vdd vss
+.subckt trim_tau4 aux vbn_leak c0 c1 c2 c3 vdd vss
+XB0  d   vbn_leak vss vss nfet_03v3 W=4u L=4u
+XB1  d   vbn_leak vss vss nfet_03v3 W=4u L=4u
+XU0  d   vbn_leak s0 vss nfet_03v3 W=1u L=4u
+XS0  s0  c0 vss vss nfet_03v3 W=0.5u L=0.5u
+XU1  d   vbn_leak s1 vss nfet_03v3 W=2u L=4u
+XS1  s1  c1 vss vss nfet_03v3 W=0.5u L=0.5u
+XU2  d   vbn_leak s2 vss nfet_03v3 W=4u L=4u
+XS2  s2  c2 vss vss nfet_03v3 W=0.5u L=0.5u
+XU3a d   vbn_leak s3 vss nfet_03v3 W=4u L=4u
+XU3b d   vbn_leak s3 vss nfet_03v3 W=4u L=4u
+XS3  s3  c3 vss vss nfet_03v3 W=0.5u L=0.5u
+XPD0 d   d   vdd vdd pfet_03v3 W=1u L=2u
+XPD1 d   d   vdd vdd pfet_03v3 W=1u L=2u
+XPD2 d   d   vdd vdd pfet_03v3 W=1u L=2u
+XPD3 d   d   vdd vdd pfet_03v3 W=1u L=2u
+XPM  aux d   vdd vdd pfet_03v3 W=0.83u L=2u
+XNDa aux aux vss vss nfet_03v3 W=2u L=4u
+XNDb aux aux vss vss nfet_03v3 W=2u L=4u
 .ends trim_tau4

@@ -192,10 +192,82 @@ transform 1 0 3160 0 1 6780
 box -202 -230 202 230
 use p_w1_l0p28  XS_XHL
 timestamp 1795051080
-transform 1 0 2040 0 1 6260
+transform 1 0 360 0 1 6260
 box -202 -230 202 230
 use n_w0p5_l0p28  XS_XMR
 timestamp 1795051080
 transform 1 0 4480 0 1 8180
 box -140 -118 140 118
+use n_w0p5_l4  XT_XRA
+timestamp 1795051080
+transform 1 0 680 0 1 10080
+box -512 -118 512 118
+use n_w0p5_l4  XT_XRB
+timestamp 1795051080
+transform 1 0 1768 0 1 10080
+box -512 -118 512 118
+use n_w0p5_l3  XT_XL3
+timestamp 1795051080
+transform 1 0 1233 0 1 9200
+box -412 -118 412 118
+use n_w0p5_l1p5  XT_XR1
+timestamp 1795051080
+transform 1 0 2594 0 1 10080
+box -262 -118 262 118
+use n_w0p5_l3  XT_XL2
+timestamp 1795051080
+transform 1 0 1793 0 1 9640
+box -412 -118 412 118
+use n_w0p5_l1p5  XT_XR2
+timestamp 1795051080
+transform 1 0 3130 0 1 10080
+box -262 -118 262 118
+use n_w0p5_l3  XT_XL1
+timestamp 1795051080
+transform 1 0 2353 0 1 9200
+box -412 -118 412 118
+use n_w0p5_l1p5  XT_XR3
+timestamp 1795051080
+transform 1 0 460 0 1 9200
+box -262 -118 262 118
+use n_w0p5_l3  XT_XL0
+timestamp 1795051080
+transform 1 0 2913 0 1 9640
+box -412 -118 412 118
+use n_w0p5_l3  XT_XLT
+timestamp 1795051080
+transform 1 0 600 0 1 9640
+box -412 -118 412 118
+use n_w0p5_l0p28  XT_XN3
+timestamp 1795051080
+transform 1 0 800 0 1 6760
+box -140 -118 140 118
+use n_w0p5_l0p28  XT_XN2
+timestamp 1795051080
+transform 1 0 1360 0 1 6760
+box -140 -118 140 118
+use n_w0p5_l0p28  XT_XN1
+timestamp 1795051080
+transform 1 0 1920 0 1 6760
+box -140 -118 140 118
+use n_w0p5_l0p28  XT_XN0
+timestamp 1795051080
+transform 1 0 2480 0 1 6760
+box -140 -118 140 118
+use p_w1_l0p28  XT_XP3
+timestamp 1795051080
+transform 1 0 800 0 1 6260
+box -202 -230 202 230
+use p_w1_l0p28  XT_XP2
+timestamp 1795051080
+transform 1 0 1360 0 1 6260
+box -202 -230 202 230
+use p_w1_l0p28  XT_XP1
+timestamp 1795051080
+transform 1 0 1920 0 1 6260
+box -202 -230 202 230
+use p_w1_l0p28  XT_XP0
+timestamp 1795051080
+transform 1 0 2480 0 1 6260
+box -202 -230 202 230
 << end >>

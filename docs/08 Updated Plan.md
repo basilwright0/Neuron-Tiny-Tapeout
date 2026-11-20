@@ -217,3 +217,22 @@ Items 1–5 of §12 are resolved, except CMP:
 - D1 measures 237–272 fF against the 200 fF design, so its time constants run 15–30 % long and a single-pulse EPSP is 45 mV instead of 63 mV. Clustered input needs N = 4 pulses instead of 3; distributed input stays silent up to N = 6.
 - Reasons for keeping it: the clustered vs distributed discrimination survives, the synaptic weight (vbp_w) is programmable, and τ is measured on silicon.
 - The slots likely see a similar offset (their post-layout f–I is 0.79–0.93× schematic). Per-die calibration covers it.
+
+**Update 2026-11-20:**
+- **CMP double slot (done):** CMP keeps its 4-bit gap trim (nibble 6) in a 28 × 87 µm slot at column 3, rows 0–1, the
+  former dummy slot's area; the dummy slot is gone. CMP and S2 swapped places (CMP (1,3), S2 (1,1)); spike channels
+  and trim nibbles are unchanged, `vth_cmp` now rides on column 3's `aux` (column 1's floats). The control macro was not
+  re-hardened, so **probe SEL 4 reads CMP and SEL 12 reads S2** (docs/info.md, docs/regmap.md §3.1). Cell DRC/LVS
+  clean; post-layout f–I 0.82–0.83× schematic; gap-trim range −25.6 … +19.5 mV, monotonic (layout/slot/README.md).
+  Full chip rebuilt with `CMP_TRIM = True`: LVS unique match (see layout/top/README.md for DRC/precheck).
+- ~~**B1 τ-trim reference (blocked, decision needed):** `trim_tau4` needs `vg` = the gate of a `trim_ref_n` (16 × 1/2 nfet
+  diodes on `vsn`) carrying the leak-IDAC current. B1 rev C has no such device: the leak IDAC (`Xi0`, idac_p) drives only
+  the `vbn_leak` master `rx_n4` (4 × 2/4 diodes to vss); `vsn` exists, `vg` does not. Exporting it needs a B1 schematic
+  change (e.g. a second idac_p on i0's code into a `trim_ref_n`, ~25 × 35 µm + ~110 µm²), so the P leak-τ trims stay inert.~~
+  **Resolved the same day (user decision: re-reference the trim, B1 unchanged):** `trim_tau4` rev B mirrors `vbn_leak`
+  on vss directly (L = 4 nfet units like the `rx_n4` master, source switches, 4 : 1 pfet mirror into a 2 × 2/4 `aux`
+  diode). Code meaning unchanged: τ_P = τ_S · 16/(8 + c), 0.50× … 1.44× leak current. Verified with the full B1 rev C
+  netlist on `vbn_leak`: monotonic at every corner and leak code, τ_S/τ_P 0.49–0.56 / 0.96–1.06 / 1.35–1.49 at
+  codes 0 / 8 / 15; mismatch σ 14 % (a per-neuron gain, what the trim corrects). Same 37 × 11.8 cell, DRC/LVS clean;
+  both τ cells' `vbn_leak` pins are routed to B1's `vbn_leak` at the top level. Details: `layout/slot/README.md`
+  "trim_tau4 rev B".

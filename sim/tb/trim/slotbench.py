@@ -25,7 +25,7 @@ PORTS["slot_ah_h"] = PORTS["slot_ah"] + "t0 t1 t2 t3".split()
 PORTS["slot_ah_p"] = PORTS["slot_ah_h"]
 for _c in ("slot_ah_f", "slot_ah_50", "slot_ah_800"):
     PORTS[_c] = PORTS["slot_ah"]
-PORTS["slot_cmp_h"] = PORTS["slot_ah"]          # no gap trim since 2026-11-20
+PORTS["slot_cmp_h"] = PORTS["slot_ah_h"]        # gap trim back since the double slot (2026-11-20)
 PORTS["slot_dummy"] = [p for p in PORTS["slot_ah"] if p not in ("spk", "rsel", "sub", "sub_b")]
 PORTS["slot_ref"] = "rsel sub el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn".split()
 # per-variant scale factors vs the S slot: membrane C (AH50 / AH800) and leak g (F: tail W/L halved)
@@ -44,7 +44,7 @@ def nets(cell):
     n = dict(NETS)
     if cell == "slot_ah_p":
         n["aux"] = "vbl"
-    if cell == "slot_cmp_h":            # aux = vth_cmp (column 1): the comparator threshold, 1.28 V
+    if cell == "slot_cmp_h":            # aux = vth_cmp (column 3): the comparator threshold, VTH
         n["aux"] = "vthc"
     return n
 

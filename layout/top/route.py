@@ -276,7 +276,7 @@ def build():
 
 
 # ======================================================================== A*
-BIAS_OK = set(C.COLUMN_NETS) | {"aux0", "aux1", "aux2", "vbn_ax", "vbp_w", "VDPWR", "VGND"}
+BIAS_OK = set(C.COLUMN_NETS) | {"aux0", "aux1", "aux2", "aux3", "vbn_ax", "vbp_w", "VDPWR", "VGND"}
 
 
 def route_net(g, k, groups, margin=25.0, max_exp=3_000_000, full=False, net=None):

@@ -28,21 +28,22 @@ Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3
 ---------------------------------------------------------------------------------------
 Cell pin lists are equivalent.
 Device classes nfet_03v3 and nfet_03v3 are equivalent.
-Flattening unmatched subcell p_w0p84_l2 in circuit trim_tau4 (0)(1 instance)
-Flattening unmatched subcell n_w1_l2 in circuit trim_tau4 (0)(23 instances)
+Flattening unmatched subcell p_w0p83_l2 in circuit trim_tau4 (0)(1 instance)
+Flattening unmatched subcell n_w1_l4 in circuit trim_tau4 (0)(1 instance)
+Flattening unmatched subcell n_w2_l4 in circuit trim_tau4 (0)(3 instances)
 Flattening unmatched subcell n_w0p5_l0p5 in circuit trim_tau4 (0)(4 instances)
-Flattening unmatched subcell p_w1_l2 in circuit trim_tau4 (0)(1 instance)
-Flattening unmatched subcell n_w2_l4 in circuit trim_tau4 (0)(1 instance)
+Flattening unmatched subcell n_w4_l4 in circuit trim_tau4 (0)(5 instances)
+Flattening unmatched subcell p_w1_l2 in circuit trim_tau4 (0)(4 instances)
 
-Class trim_tau4 (0):  Merged 18 parallel devices.
-Class trim_tau4 (1):  Merged 18 parallel devices.
+Class trim_tau4 (0):  Merged 6 parallel devices.
+Class trim_tau4 (1):  Merged 6 parallel devices.
 Subcircuit summary:
 Circuit 1: trim_tau4                       |Circuit 2: trim_tau4                       
 -------------------------------------------|-------------------------------------------
-pfet_03v3 (2)                              |pfet_03v3 (2)                              
-nfet_03v3 (28->10)                         |nfet_03v3 (28->10)                         
+pfet_03v3 (5->2)                           |pfet_03v3 (5->2)                           
+nfet_03v3 (13->10)                         |nfet_03v3 (13->10)                         
 Number of devices: 12                      |Number of devices: 12                      
-Number of nets: 14                         |Number of nets: 14                         
+Number of nets: 13                         |Number of nets: 13                         
 ---------------------------------------------------------------------------------------
 Resolving symmetries by property value.
 Netlists match uniquely.
@@ -51,12 +52,11 @@ Subcircuit pins:
 Circuit 1: trim_tau4                       |Circuit 2: trim_tau4                       
 -------------------------------------------|-------------------------------------------
 c3                                         |c3                                         
-c1                                         |c1                                         
 c2                                         |c2                                         
+c1                                         |c1                                         
 c0                                         |c0                                         
 vss                                        |vss                                        
-vg                                         |vg                                         
-vsn                                        |vsn                                        
+vbn_leak                                   |vbn_leak                                   
 aux                                        |aux                                        
 vdd                                        |vdd                                        
 ---------------------------------------------------------------------------------------

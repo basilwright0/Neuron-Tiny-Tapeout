@@ -2,6 +2,10 @@
 > - Magic DRC 0, KLayout DRC 0, LVS match; frame compliance checked (`chk_frame.py`); top-level PEX spot check done.
 > - Rebuild: `scripts/eda.sh "cd layout/bias && bash build.sh"`, then `ROUTE_QUICK=30 CELLS=bias_b1`.
 > - Details: docs/research/B1-bias-report.md "Rev C" C.7.
+> - **Closed (2026-11-20): τ-trim reference.** `trim_tau4` was redesigned (rev B) to mirror `vbn_leak` / vss directly
+>   (L = 4 nfet units like the `rx_n4` master), so B1 rev C exports nothing new and is unchanged. The only effect on
+>   B1 is extra gate load on `vbn_leak` (2 × 92 µm² of L = 4 gates, about doubling the line's gate area; settling in
+>   `sim/results/trim/trim_tau_summary.txt`). Details: `layout/slot/README.md`.
 
 # B1 bias generator layout (gf180mcuD, 3.3 V devices)
 

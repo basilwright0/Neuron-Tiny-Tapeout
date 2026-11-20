@@ -38,9 +38,17 @@ floorplan box and keep its pins on the box edge (stubs are drawn 0.7 µm out of 
 - **Glue row** in CH_BOT (x 170–203.6, y 5.5): `en_b = NOR(probe_en_c[3:0], probe_sel_d1, probe_sel_adex)` for R1's pad
   driver (or4 + nor3), and D1's tap selects `sel0/1/2 = probe_sel_d1 & decode(probe_sub_raw)` (3 × inv + 3 × nor3),
   because the macro exports neither. AdEx `en` is tied to `probe_sel_adex`, D1 `en` to `probe_sel_d1`.
-- **Column 1 `aux` = B1 `vth_cmp`**; columns 0/2 `aux` from the τ cells; column 3 `aux` floats (no user).
+- **Column 3 `aux` = B1 `vth_cmp`** (the CMP double slot, since 2026-11-20); columns 0/2 `aux` from the τ cells;
+  column 1 `aux` floats (no user; `config.FLOAT_AUX`).
+- **τ-cell reference = `vbn_leak`** (`trim_tau4` rev B, 2026-11-20): both τ cells' `vbn_leak` pin is on B1's
+  `vbn_leak` net (routed from the bias channel); their vss is the cell's p-tap ring (Metal1 stubs in `geom.py`). The
+  old `vg`/`vsn` pins are gone, so the former open item (τ trims inert, no `trim_ref_n` in B1) is closed without a
+  B1 change.
+- **CMP double slot** (28 × 87, column 3, rows 0–1; the dummy slot is gone): map position (1,3), instance `s13` placed
+  at slot (0,3). Its row pins (rt_out, sub/sub_b, spk_in[12], trim bits of nibble 6) sit on the row-0 band, its rsel
+  on the row-1 band (`geom.array` picks each cell's pins per band from the label y).
 
-## Status (2026-11-19, evening)
+## Status (2026-11-20, τ cells rev B)
 
 | Block | Used as | Source |
 |---|---|---|
@@ -50,10 +58,10 @@ floorplan box and keep its pins on the box edge (stubs are drawn 0.7 µm out of 
 | dend_d1 (70 × 104) | FINAL | `layout/dendrite/out/dend_d1.gds` |
 | adex_a1 (rev 3, 38 × 73) | FINAL | `layout/tier2/out/adex_a1.gds` |
 | trim_tau4 ×2 | FINAL | `layout/slot/out/trim_tau4.gds` |
-| all 9 slot variants incl. slot_cmp_h (no in-slot trim, `CMP_TRIM = False`) | FINAL | `layout/slot/out/*.gds` |
+| 8 slot variants in use; slot_cmp_h is the 28 × 87 double slot with its gap trim (`CMP_TRIM = True`); slot_dummy unused | FINAL | `layout/slot/out/*.gds` |
 
-Router: 189 tasks (187 signal nets + τ/D1/AdEx vdd hookups + 4 stripe-island ties); negotiated congestion
-converges in ~12 iterations (~30 min, one core). `work/routes.json` is kept in git so `build.sh noroute`
+Router: negotiated congestion converges in 12 iterations (2716 s, one core) with the CMP double slot and the τ cells'
+`vbn_leak` hookup (2026-11-20). `work/routes.json` is kept in git so `build.sh noroute`
 rebuilds without routing. Results of the last full run (every block final; no placeholders left):
 
 | Check | Result |
@@ -64,7 +72,8 @@ rebuilds without routing. Results of the last full run (every block final; no pl
 | magic `drc(full)` on the assembled GDS | **0** |
 | `scripts/precheck.sh` (TT precheck, 12 checks) | **all pass** |
 
-Post-processing in `assemble.py` that keeps the GDS clean: terminal patches (off-grid pin vs on-grid wire),
+Post-processing in `assemble.py` that keeps the GDS clean: terminal patches (off-grid pin vs on-grid wire; kept
+inside the stub's extent where the wire runs on past the stub end, 2026-11-20),
 same-net notch fill (closing 0.15 µm, kept 0.28 µm from other nets), removal of same-net vias whose cuts are
 closer than 0.27 µm (L-shaped bridge, refuses to build if no clear L), and wire-aligned narrow pads where two
 same-net via pads sit diagonally closer than 0.28 µm.
@@ -73,16 +82,14 @@ channel reserved for the analog column lines, trim tracks broken by a Metal4 jum
 (antenna), the τ-cell gap above D1 closed to Metal2/3 through-routing.
 
 ### Switches
-- `config.CMP_TRIM` (now False: the final slot_cmp_h has no in-slot gap trim). cfg_out[31..34] (nibble 6,
-  CMP.VTH) are left unconnected at the macro's W edge; macro / TRIM_MASK / floorplan unchanged.
+- `config.CMP_TRIM` (True since the CMP double slot: cfg_out[31..34], nibble 6, drive CMP's t0..t3 on the row-0
+  band). False only with the trimless fallback `slot_cmp_h_notrim`; nibble 6 is then left unconnected.
 - `config.LIB[...]["final"]`, `_SLOT_FINAL`: placeholder vs final per block.
 
 ### Known gaps (block owners)
-- **τ-trim reference:** `trim_tau4` needs `vg` / `vsn` (the leak-IDAC `trim_ref_n` gate and shifted source rail);
-  bias_b1 rev C does not export them, so both τ cells have `vg`/`vsn` open (P leak-τ trims inert). B1 owner.
 - `ua0_stim_out` (B1) has no consumer: left open.
 - `GRP_EN` (cfg_out[0..3]): no block has a group-enable input: left open.
-- Column 3 `aux` floats (no user in that column).
+- Column 1 `aux` floats (no user in that column since CMP moved to column 3).
 - Macro: N-edge pins were placed with a wrong TT-pin pitch (14.56 instead of 7.28, `floorplan.py` PINS_TOP, now
   fixed), and the S-edge code order differs from B1's top-edge order; both are absorbed by routing today, but a
   `mkpins.py` re-run + re-harden would shorten those jogs. `probe_en_b` and decoded D1 tap selects would let the

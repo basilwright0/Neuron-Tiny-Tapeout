@@ -33,16 +33,14 @@
 <text x="120.0" y="396.7" font-size="11" text-anchor="middle">S1 ch0</text>
 <rect x="153.6" y="340.5" width="67.2" height="104.4" fill="none" stroke="#a66"/>
 <text x="187.2" y="396.7" font-size="11" text-anchor="middle">H1 ch2</text>
-<rect x="220.8" y="340.5" width="67.2" height="104.4" fill="none" stroke="#a66"/>
-<text x="254.4" y="396.7" font-size="11" text-anchor="middle">DUMMY</text>
 <rect x="19.2" y="236.1" width="67.2" height="104.4" fill="none" stroke="#a66"/>
 <text x="52.8" y="292.3" font-size="11" text-anchor="middle">H2 ch6</text>
 <rect x="86.4" y="236.1" width="67.2" height="104.4" fill="none" stroke="#a66"/>
-<text x="120.0" y="292.3" font-size="11" text-anchor="middle">CMP ch12</text>
+<text x="120.0" y="292.3" font-size="11" text-anchor="middle">S2 ch4</text>
 <rect x="153.6" y="236.1" width="67.2" height="104.4" fill="none" stroke="#a66"/>
 <text x="187.2" y="292.3" font-size="11" text-anchor="middle">F1 ch1</text>
-<rect x="220.8" y="236.1" width="67.2" height="104.4" fill="none" stroke="#a66"/>
-<text x="254.4" y="292.3" font-size="11" text-anchor="middle">S2 ch4</text>
+<rect x="220.8" y="236.1" width="67.2" height="208.8" fill="none" stroke="#a66"/>
+<text x="254.4" y="344.5" font-size="11" text-anchor="middle">CMP ch12</text>
 <rect x="19.2" y="131.7" width="67.2" height="104.4" fill="none" stroke="#a66"/>
 <text x="52.8" y="187.9" font-size="11" text-anchor="middle">P2 ch7</text>
 <rect x="86.4" y="131.7" width="67.2" height="104.4" fill="none" stroke="#a66"/>

@@ -80,12 +80,16 @@ def array(F):
         net_of = {k: n for k, n in SHARED.items()}
         net_of[4] = f"probe_rsel[{r}]"
         vias = []                                              # (k, x)
-        trims = [c for c in range(4) if (grid[(r, c)] == "CMP" and C.CMP_TRIM)
-                 or (grid[(r, c)][0] in "HP" and grid[(r, c)][1:].isdigit())]
+
+        def here(c):
+            """Pins of the cell covering (r, c) whose label lies on row r's band (double slots have two)."""
+            rc, name = fp.cell_at(r, c)
+            pins = geo(fp.slot_cell(name))["pins"]
+            off = (r - fp.slot_origin(rc)[0]) * fp.SLOT_H
+            return name, {pn: p for pn, p in pins.items() if off <= p[0]["pt"][1] < off + fp.SLOT_H}
+        trims = [c for c in range(4) if "t0" in here(c)[1] and (here(c)[0] != "CMP" or C.CMP_TRIM)]
         for c in range(4):
-            name = grid[(r, c)]
-            cell = fp.slot_cell(name)
-            pins = geo(cell)["pins"]
+            name, pins = here(c)
             sx = ax0 + c * fp.SLOT_W
             for pn, k in PINTRK.items():
                 if pn in pins:
@@ -150,11 +154,11 @@ def array(F):
         F.p("metal2", (xw[k] - 0.14, ya - 0.2, xw[k] + 0.14, yb + 0.2), net)
     # column-bottom terminals (row 0 cells): column lines enter from below on Metal2
     for c in range(4):
-        cell = fp.slot_cell(grid[(0, c)])
+        cell = fp.slot_cell(fp.cell_at(0, c)[1])
         pins = geo(cell)["pins"]
         sx = ax0 + c * fp.SLOT_W
         # en_c enters at the TOP of the array (keeps the bias channel for the analog lines)
-        q = [q for q in geo(fp.slot_cell(grid[(3, c)]))["pins"]["en"][0]["rects"] if q[3] >= fp.SLOT_H - 0.01][0]
+        q = [q for q in geo(fp.slot_cell(fp.cell_at(3, c)[1]))["pins"]["en"][0]["rects"] if q[3] >= fp.SLOT_H - 0.01][0]
         yt3 = ay1
         F.p("metal2", (sx + q[0], yt3 - 0.02, sx + q[2], yt3 + 0.7), f"en_c{c}")
         F.term(f"en_c{c}", [("metal2", (sx + q[0], yt3 + 0.42, sx + q[2], yt3 + 0.7))])
@@ -163,7 +167,7 @@ def array(F):
             xs = [q for q in rr if q[1] <= 0.01]
             q = min(xs, key=lambda q: q[2] - q[0])
             net = {"en": f"en_c{c}", "aux": f"aux{c}"}.get(ln, ln)
-            if net == "aux3":
+            if net in C.FLOAT_AUX:
                 continue
             F.p("metal2", (sx + q[0], ay0 - 0.7, sx + q[2], ay0 + 0.02), net)      # stub below the array
             F.term(net, [("metal2", (sx + q[0], ay0 - 0.7, sx + q[2], ay0 - 0.42))])
@@ -174,7 +178,7 @@ def array(F):
     F.p("metal3", (1.3, VDDB[0], 125.0, VDDB[1]), "VDPWR")
     F.p("metal3", (4.3, VSSB[0], 125.0, VSSB[1]), "VGND")
     for c in range(4):
-        cell = fp.slot_cell(grid[(3, c)])
+        cell = fp.slot_cell(fp.cell_at(3, c)[1])
         q = geo(cell)["pins"]["vdd"][0]["rects"][0]
         sx = ax0 + c * fp.SLOT_W
         F.p("metal2", (sx + q[0], yt, sx + q[2], VDDB[1]), "VDPWR")

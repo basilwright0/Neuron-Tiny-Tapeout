@@ -1,34 +1,22 @@
 * LVS reference for trim_tau4: flattened from cells/neuron/slot.spice by layout/slot/flatten.py
 * Cfb (MOM capacitor, value from PEX) omitted: 
-.subckt trim_tau4 aux vg vsn c0 c1 c2 c3 vdd vss
-XXT_XB0 d vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XB1 d vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XB2 d vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XB3 d vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XB4 d vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XB5 d vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XB6 d vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XB7 d vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU0_0 XT.d0 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XS0 d c0 XT.d0 vss nfet_03v3 W=0.5u L=0.5u
-XXT_XU1_0 XT.d1 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU1_1 XT.d1 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XS1 d c1 XT.d1 vss nfet_03v3 W=0.5u L=0.5u
-XXT_XU2_0 XT.d2 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU2_1 XT.d2 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU2_2 XT.d2 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU2_3 XT.d2 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XS2 d c2 XT.d2 vss nfet_03v3 W=0.5u L=0.5u
-XXT_XU3_0 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU3_1 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU3_2 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU3_3 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU3_4 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU3_5 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU3_6 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XU3_7 XT.d3 vg vsn vss nfet_03v3 W=1u L=2u
-XXT_XS3 d c3 XT.d3 vss nfet_03v3 W=0.5u L=0.5u
-XXPD d d vdd vdd pfet_03v3 W=1u L=2u
-XXPM aux d vdd vdd pfet_03v3 W=0.84u L=2u
-XXND aux aux vss vss nfet_03v3 W=2u L=4u
+.subckt trim_tau4 aux vbn_leak c0 c1 c2 c3 vdd vss
+XXB0 d vbn_leak vss vss nfet_03v3 W=4u L=4u
+XXB1 d vbn_leak vss vss nfet_03v3 W=4u L=4u
+XXU0 d vbn_leak s0 vss nfet_03v3 W=1u L=4u
+XXS0 s0 c0 vss vss nfet_03v3 W=0.5u L=0.5u
+XXU1 d vbn_leak s1 vss nfet_03v3 W=2u L=4u
+XXS1 s1 c1 vss vss nfet_03v3 W=0.5u L=0.5u
+XXU2 d vbn_leak s2 vss nfet_03v3 W=4u L=4u
+XXS2 s2 c2 vss vss nfet_03v3 W=0.5u L=0.5u
+XXU3a d vbn_leak s3 vss nfet_03v3 W=4u L=4u
+XXU3b d vbn_leak s3 vss nfet_03v3 W=4u L=4u
+XXS3 s3 c3 vss vss nfet_03v3 W=0.5u L=0.5u
+XXPD0 d d vdd vdd pfet_03v3 W=1u L=2u
+XXPD1 d d vdd vdd pfet_03v3 W=1u L=2u
+XXPD2 d d vdd vdd pfet_03v3 W=1u L=2u
+XXPD3 d d vdd vdd pfet_03v3 W=1u L=2u
+XXPM aux d vdd vdd pfet_03v3 W=0.83u L=2u
+XXNDa aux aux vss vss nfet_03v3 W=2u L=4u
+XXNDb aux aux vss vss nfet_03v3 W=2u L=4u
 .ends trim_tau4

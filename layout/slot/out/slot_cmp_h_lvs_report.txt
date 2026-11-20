@@ -33,16 +33,19 @@ Flattening unmatched subcell n_w1_l0p28 in circuit slot_cmp_h (0)(8 instances)
 Flattening unmatched subcell n_w2_l2 in circuit slot_cmp_h (0)(2 instances)
 Flattening unmatched subcell n_w2_l4 in circuit slot_cmp_h (0)(2 instances)
 Flattening unmatched subcell n_w4_l1 in circuit slot_cmp_h (0)(6 instances)
-Flattening unmatched subcell n_w0p5_l0p28 in circuit slot_cmp_h (0)(6 instances)
+Flattening unmatched subcell n_w0p5_l0p28 in circuit slot_cmp_h (0)(10 instances)
 Flattening unmatched subcell n_w0p5_l0p5 in circuit slot_cmp_h (0)(1 instance)
-Flattening unmatched subcell p_w1_l0p28 in circuit slot_cmp_h (0)(8 instances)
+Flattening unmatched subcell p_w1_l0p28 in circuit slot_cmp_h (0)(12 instances)
 Flattening unmatched subcell n_w4_l2 in circuit slot_cmp_h (0)(2 instances)
 Flattening unmatched subcell p_w1_l2 in circuit slot_cmp_h (0)(3 instances)
 Flattening unmatched subcell n_w7p07_l7p07 in circuit slot_cmp_h (0)(1 instance)
+Flattening unmatched subcell n_w0p5_l1p5 in circuit slot_cmp_h (0)(3 instances)
 Flattening unmatched subcell n_w1_l2 in circuit slot_cmp_h (0)(2 instances)
 Flattening unmatched subcell n_w3p54_l3p54 in circuit slot_cmp_h (0)(1 instance)
 Flattening unmatched subcell p_w2_l1 in circuit slot_cmp_h (0)(2 instances)
+Flattening unmatched subcell n_w0p5_l3 in circuit slot_cmp_h (0)(5 instances)
 Flattening unmatched subcell p_w1_l6 in circuit slot_cmp_h (0)(1 instance)
+Flattening unmatched subcell n_w0p5_l4 in circuit slot_cmp_h (0)(2 instances)
 
 Cell slot_cmp_h (0) disconnected node: vsrc
 Cell slot_cmp_h (1) disconnected node: vsrc
@@ -52,10 +55,10 @@ Cell slot_cmp_h (1) disconnected node: vsrc
 Subcircuit summary:
 Circuit 1: slot_cmp_h                      |Circuit 2: slot_cmp_h                      
 -------------------------------------------|-------------------------------------------
-pfet_03v3 (18)                             |pfet_03v3 (18)                             
-nfet_03v3 (31->29)                         |nfet_03v3 (29)                             
-Number of devices: 47                      |Number of devices: 47                      
-Number of nets: 45                         |Number of nets: 45                         
+pfet_03v3 (22)                             |pfet_03v3 (22)                             
+nfet_03v3 (45->43)                         |nfet_03v3 (43)                             
+Number of devices: 65                      |Number of devices: 65                      
+Number of nets: 58                         |Number of nets: 58                         
 ---------------------------------------------------------------------------------------
 Resolving symmetries by property value.
 Resolving symmetries by pin name.
@@ -64,8 +67,6 @@ Netlists match uniquely.
 Subcircuit pins:
 Circuit 1: slot_cmp_h                      |Circuit 2: slot_cmp_h                      
 -------------------------------------------|-------------------------------------------
-vm                                         |vm                                         
-vbn_leak                                   |vbn_leak                                   
 el                                         |el                                         
 aux                                        |aux                                        
 vbn_ref                                    |vbn_ref                                    
@@ -73,7 +74,11 @@ vreset                                     |vreset
 sub                                        |sub                                        
 sub_b                                      |sub_b                                      
 mreset                                     |mreset                                     
+vm                                         |vm                                         
+vbn_leak                                   |vbn_leak                                   
 vbp_st                                     |vbp_st                                     
+spk                                        |spk                                        
+en                                         |en                                         
 vss                                        |vss                                        
 vbn_prb                                    |vbn_prb                                    
 rsel                                       |rsel                                       
@@ -82,9 +87,11 @@ hold                                       |hold
 vbp_syn                                    |vbp_syn                                    
 sta                                        |sta                                        
 stb                                        |stb                                        
+t3                                         |t3                                         
+t2                                         |t2                                         
+t1                                         |t1                                         
+t0                                         |t0                                         
 vdd                                        |vdd                                        
-spk                                        |spk                                        
-en                                         |en                                         
 vsrc                                       |vsrc                                       
 ---------------------------------------------------------------------------------------
 Cell pin lists are equivalent.

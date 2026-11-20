@@ -7,6 +7,7 @@ Writes docs/floorplan.svg and prints an area table plus geometry checks. Exit co
 All units are microns, origin at the tile's lower-left corner. Frozen design: docs/08 Updated Plan.md section 10.
 v2 (2026-11-19/20): boxes from the measured block frames (B1 rev C notched frame, R1 corner, D1 70 x 104,
 AdEx 38 x 70, control macro rev E 166 x 166, slots 28 x 43.5, trim_tau4 37 x 11.8).
+2026-11-20: CMP double slot (28 x 87 at column 3, rows 0-1; the dummy slot is gone), see DOUBLE below.
 """
 import sys
 from pathlib import Path
@@ -99,6 +100,15 @@ SPIKE_CH = {"S1": 0, "F1": 1, "H1": 2, "ADEX": 3, "S2": 4, "F2": 5, "H2": 6, "P2
             "S3": 8, "F3": 9, "H3": 10, "P3": 11, "CMP": 12, "D1": 13, "AH50": 14, "AH800": 15}
 # AdEx replaced P1 (docs/08 Updated Plan.md): it sits outside the array; P1's slot is a dummy S slot.
 DUMMY_SLOTS = {"P1"}
+# CMP double slot (2026-11-20): the trimmed CMP did not route in 28 x 43.5, so it takes the dummy slot's area.
+# CMP and the S slot at (1,3) swap: CMP's map position is (1,3) (probe row 1 / column 3, its rsel pad sits on
+# the row-1 band), its cell spans rows 0-1 of column 3 (lower-left slot (0,3)). Its other row pins (rt_out,
+# sub/sub_b, spk, trim bits t0..t3) sit on the row-0 band (BAND_ROW). Spike channels and trim nibbles unchanged.
+# The macro's probe decoder (rev E) is fixed: SEL 12 now reads S2 at (1,1) and SEL 4 reads CMP at (1,3).
+SWAP = ((1, 1), (1, 3))
+DOUBLE = {"CMP": (0, 3)}             # name -> lower-left slot of a 2-row cell
+BAND_ROW = {"CMP": 0}                # row band of a double slot's row pins other than rsel
+SPREAD_COL_EXEMPT = {"S"}            # after the swap S1 and S2 share column 1 (rows stay distinct)
 # Trim nibble assignment, fixed so it matches the control block's TRIM_MASK (nibbles 0,2-8,14,15).
 TRIM_NIBBLES = {"H1.VTH": 0, "H2.VTH": 2, "P2.VTH": 3, "H3.VTH": 4, "P3.VTH": 5, "CMP.VTH": 6,
                 "D1.PLAT1": 7, "D1.PLAT2": 8, "P2.TAU": 14, "P3.TAU": 15}
@@ -118,7 +128,37 @@ def slot_map():
                 count[g] = count.get(g, 0) + 1
                 n = f"{g}{count[g]}"
                 grid[(r, c)] = "DUMMY" if n in DUMMY_SLOTS else n
+    a, b = SWAP
+    grid[a], grid[b] = grid[b], grid[a]
+    for n, rc in DOUBLE.items():     # the lower half of a double slot is not a map position
+        del grid[rc]
     return grid
+
+
+def slot_origin(rc):
+    """Lower-left slot (row, col) of the cell at map position rc (differs only for a double slot)."""
+    return DOUBLE.get(slot_map()[rc], rc)
+
+
+def slot_rows(name):
+    return 2 if name in DOUBLE else 1
+
+
+def cell_at(r, c):
+    """(map position, name) of the slot cell that covers array position (r, c)."""
+    for rc, n in slot_map().items():
+        r0, c0 = DOUBLE.get(n, rc)
+        if c0 == c and r0 <= r < r0 + slot_rows(n):
+            return rc, n
+    raise KeyError((r, c))
+
+
+def cell_box(rc):
+    """Box of the whole cell at map position rc (double slots: 28 x 87)."""
+    n = slot_map()[rc]
+    r0, c0 = slot_origin(rc)
+    b = slot_box(r0, c0)
+    return b[0], b[1], b[2], b[1] + slot_rows(n) * SLOT_H
 
 
 def slot_box(r, c):
@@ -225,7 +265,8 @@ def checks():
             groups.setdefault(n[0], []).append((r, c))
     for g, cells in groups.items():
         k = 2 if g == "P" else 3
-        if len(cells) != k or len({r for r, _ in cells}) != k or len({c for _, c in cells}) != k:
+        ncol = len({c for _, c in cells}) if g not in SPREAD_COL_EXEMPT else k
+        if len(cells) != k or len({r for r, _ in cells}) != k or ncol != k:
             errs.append(f"group {g} not spread over its own rows and columns: {cells}")
     ti = trim_index()
     if len(ti) > 16 or max(ti.values()) > 15 or len(set(ti.values())) != len(ti):
@@ -235,12 +276,26 @@ def checks():
         errs.append(f"two P slots share a column, so one aux line can't carry both: {cols}")
     if set(cols.values()) != set(TAU_COLS):
         errs.append(f"tau-trim cells in columns {sorted(TAU_COLS)} but P slots in {sorted(cols.values())}")
+    # every array position covered by exactly one cell
+    try:
+        cov = {(r, c): cell_at(r, c)[0] for r in range(4) for c in range(4)}
+        for rc, n in grid.items():
+            if sum(1 for v in cov.values() if v == rc) != slot_rows(n):
+                errs.append(f"slot {n} does not cover {slot_rows(n)} positions")
+    except KeyError as e:
+        errs.append(f"array position {e} not covered by a slot")
+    if "CMP" in grid and grid_col(grid, "CMP") in TAU_COLS:
+        errs.append("CMP's aux line (vth_cmp) would collide with a tau-trim column")
     for r in range(4):     # row band: at most 2 trimmed slots (8 trim tracks)
-        nt = sum(1 for c in range(4) if (grid[(r, c)][0] in "HP" and grid[(r, c)][1:].isdigit())
-                 or grid[(r, c)] == "CMP")
+        nt = sum(1 for rc, n in grid.items()
+                 if ((n[0] in "HP" and n[1:].isdigit()) or n == "CMP") and BAND_ROW.get(n, rc[0]) == r)
         if nt > 2:
             errs.append(f"row {r} has {nt} trimmed slots (> 2)")
     return errs
+
+
+def grid_col(grid, name):
+    return [c for (r, c), n in grid.items() if n == name][0]
 
 
 # --------------------------------------------------------------------- drawing
@@ -269,7 +324,7 @@ def svg(path):
                      f'text-anchor="middle">{n.split()[0]}</text>')
     o.append(rect(STRAP_UA1, "#d77"))
     for (r, c), n in slot_map().items():
-        b = slot_box(r, c)
+        b = cell_box((r, c))
         o.append(rect(b, "none", 'stroke="#a66"'))
         ch = SPIKE_CH.get(n)
         lab = n + (f" ch{ch}" if ch is not None else "")
@@ -290,7 +345,7 @@ def svg(path):
     o.append(f'<text x="{X(120)}" y="{Y(TILE_H)-3}" font-size="10">uio_out / uo_out</text>')
     o.append(f'<text x="{X(230)}" y="{Y(TILE_H)-3}" font-size="10">uio_in, ui_in, rst_n, clk</text>')
     o.append("</svg>")
-    path.write_text("\n".join(o), encoding="utf-8")
+    path.write_bytes("\n".join(o).encode("utf-8"))      # LF on every host
 
 
 def main():
@@ -311,7 +366,8 @@ def main():
     print("slot map (top row first):")
     g = slot_map()
     for r in range(3, -1, -1):
-        print("   " + "  ".join(f"{g[(r, c)]:6s}" for c in range(4)))
+        print("   " + "  ".join(f"{(g.get((r, c)) or cell_at(r, c)[1] + '*'):6s}" for c in range(4)))
+    print("   (* = lower half of a double slot)")
     print("P slot columns (aux line carries leak-tau bias):", el_columns())
     print("trim nibbles:", ", ".join(f"{k}->{v}" for k, v in trim_index().items()))
     print("stripes:", ", ".join(f"{n}@{x:g}" for n, x, w in sorted(STRIPES, key=lambda s: s[1])))

@@ -24,8 +24,13 @@ CELL = os.environ.get("SLOT_CELL", "slot_ah")   # slot_ah (S), slot_ah_h (H: + g
 # all slot variants (cells/neuron/slot.spice); same frame, column lines and row-band track assignment
 SLOTS = ("slot_ah", "slot_ah_h", "slot_ah_p", "slot_ah_f", "slot_cmp_h", "slot_ah_50", "slot_ah_800",
          "slot_ref", "slot_dummy")
-TRIM = CELL in ("slot_ah_h", "slot_ah_p")          # slot_cmp_h has no gap trim since 2026-11-20
+TRIM = CELL in ("slot_ah_h", "slot_ah_p", "slot_cmp_h")   # slot_cmp_h: trim back since the double slot (2026-11-20)
 CMP = CELL == "slot_cmp_h"            # comparator LIF: det_cmp instead of det_ah, no Cfb MOM
+# CMP double slot (2026-11-20): 28 x 87 um, array column 3 rows 0-1 (the former dummy slot's area). The lower
+# half is the CMP slot as before, with H's gap-trim switch slices in the row-0 band; the trim ladder sits in the
+# upper half. Row pins on the row-0 band (= the lower half's band) except rsel, which is on the row-1 band (the
+# probe address is row 1, column 3). Both bands stay Metal3-free and vm-free; Metal3 is allowed in between.
+DOUBLE = CMP
 HAS_MOM = CELL not in ("slot_cmp_h", "slot_ref")
 _SUB = flatten.parse()
 PORTSET = set(_SUB[CELL]["ports"]) if CELL in SLOTS else None      # pins/straps only for ports the cell has
@@ -36,7 +41,8 @@ def has(net):
 U = 200                              # magic internal units per um in device files (magscale 1 10)
 
 # ============================================================================ cell frame
-W, H = 28.0, 43.5
+W, H1 = 28.0, 43.5                   # H1: one slot row
+H = 2 * H1 if DOUBLE else H1
 RING = 0.60                          # p-tap (VSS) ring width, on the cell edge (merges with neighbours)
 
 # column lines: vertical Metal2, full height, connect by abutment (x centre, width)
@@ -51,6 +57,7 @@ NTRACK = 19
 TRACK_PITCH = 0.56
 TRACK_Y0 = 32.38
 BAND = (0.0, round(TRACK_Y0 - 0.14, 3), W, 42.60)
+BANDS = [BAND] + ([(0.0, BAND[1] + H1, W, BAND[3] + H1)] if DOUBLE else [])
 # Fixed track assignment of the row signals (docs: layout/slot/README.md):
 #   k = 0 sta, 1 stb, 2 hold, 3 mreset (rt_out, shared by every slot), 4 rsel (probe row select),
 #   5 sub, 6 sub_b (PROBE_SUB[0] and its complement), 7..10 spk of the slots in columns 0..3,
@@ -68,6 +75,7 @@ PINS = {"sta": 17.40, "stb": 15.30, "hold": 14.00, "mreset": 17.40, "rsel": 15.3
 if TRIM:    # trimmed slots: unstack the x = 17.4 column next to the synapse switches
     PINS.update({"mreset": 18.30, "sub_b": 15.30})
 PINS = {k: v for k, v in PINS.items() if has(k)}
+PIN_DY = {"rsel": H1} if DOUBLE else {}     # CMP double slot: rsel on the row-1 band (probe row 1)
 # gap trim (H/P) is laid out as 4 bit slices at x = SLICE[k]: vm-side pfet switch XP_k (y 31.3) under
 # the la-side nfet switch XN_k (y 33.8), o_k on their right stripes (Metal2 up to the leg), and the
 # trim-bit strap t_k 0.9 um left of the slice, running from the switch gates up over tracks 11..18.
@@ -157,6 +165,13 @@ if TRIM:
         "XT.XRA": (3.40, 40.40), "XT.XRB": (8.84, 40.40), "XT.XR1": (12.97, 40.40), "XT.XR2": (15.65, 40.40),
         "XS.XHL": (1.80, 31.30),
     })
+if TRIM and DOUBLE:
+    # CMP double slot: the ladder (legs, R-2R, termination) moves up out of the row-0 band into the upper half;
+    # the switch slices (XP at 31.3, XN at 33.8) and the t_k straps stay as in H
+    LADDER_DY = 10.0
+    for k in list(PLACE):
+        if k.startswith(("XT.XL", "XT.XR")):
+            PLACE[k] = (PLACE[k][0], round(PLACE[k][1] + LADDER_DY, 3))
 if CELL == "slot_ah_800":
     # 2nd membrane cap (mcap_r 11.7 x 11.6; was 12.4 long until the 2026-11-19 reroute: XS.db had no room) in the S slot's former trim space, gate head DOWN (below the row
     # band, y 30.15), Metal1 vss shield over it; the hold switch XHL moves to row A of the main n-well.
@@ -311,14 +326,15 @@ def build():
     # ------------------------------------------------------------------ p-tap ring (VSS)
     nw = NWELL
     rail_y = (nw[1] + 0.12, nw[1] + 0.12 + NTAP)           # VDD rail = n-tap ring bottom edge
-    gap = (rail_y[0] - 0.30, rail_y[1] + 0.30)              # VSS metal gap where the VDD rail crosses
+    rails = [rail_y] + ([(rail_y[0] + H1, rail_y[1] + H1)] if DOUBLE else [])   # double: rail of row 1 too
     ring = [(0, 0, W, RING), (0, H - RING, W, H), (0, 0, RING, H), (W - RING, 0, W, H)]
     for r in ring:
         L.p("psubdiff", r)
     c = (RING - 0.23) / 2
     m1ring = [(0, 0, W, RING), (0, H - RING, W, H)]
-    for x0 in (0, W - RING):
-        m1ring += [(x0, 0, x0 + RING, gap[0]), (x0, gap[1], x0 + RING, H)]
+    for x0 in (0, W - RING):          # VSS metal gaps (0.3 um) where the VDD rails cross the side edges
+        ys = [0.0] + [v for ry in rails for v in (ry[0] - 0.30, ry[1] + 0.30)] + [H]
+        m1ring += [(x0, ys[i], x0 + RING, ys[i + 1]) for i in range(0, len(ys), 2)]
     for r in m1ring:
         L.p("metal1", r)
         obst.append(("m1", r, "vss"))
@@ -347,10 +363,11 @@ def build():
         L.term("vdd", [("m1", r)])
         L.p("nsubdiffcont", (r[0] + c, r[1] + c, r[2] - c, r[3] - c))
     # VDD rail: extends the ring's bottom edge to both cell edges (left-right abutment)
-    rail = (0, rail_y[0], W, rail_y[1])
-    L.p("metal1", rail)
-    obst.append(("m1", rail, "vdd"))
-    L.term("vdd", [("m1", rail)])
+    for ry in rails:
+        rail = (0, ry[0], W, ry[1])
+        L.p("metal1", rail)
+        obst.append(("m1", rail, "vdd"))
+        L.term("vdd", [("m1", rail)])
 
     # ------------------------------------------------------------------ column lines (M2)
     colx = {}
@@ -363,7 +380,7 @@ def build():
         COLX[net] = x
         L.labels.append((net, "metal2", (r[0], H - 0.6, r[2], H - 0.2), "power" if net in ("vdd", "vss") else "signal"))
     # vss column <-> ring (bottom, top); vdd column <-> rail
-    for net, ys in (("vdd", ((rail_y[0] + rail_y[1]) / 2,)),):
+    for net, ys in (("vdd", tuple((ry[0] + ry[1]) / 2 for ry in rails)),):
         x = colx[net]
         for y in ys:
             via(L, x, y, obst, net, w=0.6)
@@ -378,7 +395,7 @@ def build():
 
     # ------------------------------------------------------------------ fixed-track pads (shared row signals)
     for net, x in PINS.items():
-        y = track_y(TRACK[net])
+        y = track_y(TRACK[net]) + PIN_DY.get(net, 0.0)
         r = (x - 0.2, y - 0.2, x + 0.2, y + 0.2)
         L.p("metal2", r)
         obst.append(("m2", r, net))
@@ -502,11 +519,15 @@ def add_forbids(R, mom):
         cap = PLACE["XC.XC"]
         R.add_forbid(("m1", "m2", "m3"), (cap[0] - 3.6, cap[1] - 3.6, cap[0] + 3.6, cap[1] + 3.6), allowed={"vm", "vss"})
     # Metal3: never in or next to the row feed-through band, never near the cell edge
-    R.add_forbid(("m3",), (0, BAND[1] - 0.3, W, H))
+    if DOUBLE:      # Metal3 free in both row bands (+0.3 um) and above the upper one; allowed in between
+        R.add_forbid(("m3",), (0, BAND[1] - 0.3, W, BAND[3] + 0.3))
+        R.add_forbid(("m3",), (0, BANDS[1][1] - 0.3, W, H))
+    else:
+        R.add_forbid(("m3",), (0, BAND[1] - 0.3, W, H))
     for r in ((0, 0, W, 0.3), (0, 0, 0.3, H), (W - 0.3, 0, W, H)):
         R.add_forbid(("m3",), r)
     # vm must stay out of the metal3 feed-through band
-    R.add_forbid(("m1", "m2"), (BAND[0], BAND[1] - 0.3, BAND[2], BAND[3]), only={"vm"})
+    R.add_forbid(("m1", "m2"), (BAND[0], BAND[1] - 0.3, BAND[2], H if DOUBLE else BAND[3]), only={"vm"})
     # wide-metal (M1.2b, 0.30 um) halo right of the Metal1 shield plates
     for pl in PLATES:
         R.add_forbid(("m1",), (pl[2], pl[1], pl[2] + 0.32, pl[3]), allowed={"vss"})
@@ -688,7 +709,7 @@ def preview(L, insts, R, mom, path):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle
-    fig, ax = plt.subplots(figsize=(9, 14))
+    fig, ax = plt.subplots(figsize=(9, 14 * H / H1))
     col = {"nwell": ("#cfe8cf", 0.6), "psubdiff": ("#e8c070", 0.7), "nsubdiff": ("#70c0e8", 0.7),
            "polysilicon": ("#d04040", 0.5), "metal1": ("#3050d0", 0.35), "metal2": ("#d020d0", 0.35),
            "metal3": ("#20a020", 0.35), "comment": ("#999999", 0.25)}
@@ -704,7 +725,8 @@ def preview(L, insts, R, mom, path):
     for l, r in list(L.paint) + [(lay.get(l, l), r) for l, r, n in R.wire_list]:
         if l in col:
             ax.add_patch(Rectangle((r[0], r[1]), r[2] - r[0], r[3] - r[1], fc=col[l][0], alpha=col[l][1], lw=0))
-    ax.add_patch(Rectangle(BAND[:2], BAND[2] - BAND[0], BAND[3] - BAND[1], fill=False, ec="green", ls="--"))
+    for b in BANDS:
+        ax.add_patch(Rectangle(b[:2], b[2] - b[0], b[3] - b[1], fill=False, ec="green", ls="--"))
     ax.set_xlim(-0.5, W + 0.5)
     ax.set_ylim(-0.5, H + 0.5)
     ax.set_aspect("equal")
@@ -733,7 +755,7 @@ def main():
         preview(L, insts, R0, mom, HERE / "out" / f"place_{CELL}.png")
         return 0
     import hashlib
-    key = hashlib.sha1(repr((DEVS_KEY, sorted(HEAD_DOWN), PLATES, PLACE, sorted(FLIP), COLS, STRAPS, STRAP_BOTTOM, STRAP_TOP, KEEPOUT, NWELL, NWELL_EXT, VM_PIN, LAYERS, WIRE_HW, GRID, PINS, SLICE, TRACK, BAND, MOM, W, H,
+    key = hashlib.sha1(repr((DEVS_KEY, sorted(HEAD_DOWN), PLATES, PLACE, sorted(FLIP), COLS, STRAPS, STRAP_BOTTOM, STRAP_TOP, KEEPOUT, NWELL, NWELL_EXT, VM_PIN, LAYERS, WIRE_HW, GRID, PINS, PIN_DY, SLICE, TRACK, BAND, BANDS, MOM, W, H,
                              open(HERE / "router.py").read())).encode()).hexdigest()
     cache = HERE / "out" / f"route_cache_{CELL}.json"
     hcache = HERE / "out" / "route_cache_slot_ah_h.json"

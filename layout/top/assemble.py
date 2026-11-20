@@ -147,12 +147,22 @@ def main():
             px = max(S[0] - h[0], h[2] - S[2], 0.0); py = max(S[1] - h[1], h[3] - S[3], 0.0)
             ux0, uy0 = min(S[0], h[0]), min(S[1], h[1]); ux1, uy1 = max(S[2], h[2]), max(S[3], h[3])
             Bs = []
+            # the 0.3 um band is centred on the overlap but kept inside the stub's own extent where the wire runs on
+            # past the stub end (2026-11-20: a band poking 0.08 um out of a fan-out stub end came 0.2 um from a
+            # neighbour's jog, M2.2a)
+            def inside(c, a0, a1, w0, w1):
+                lo, hi = c - 0.15, c + 0.15
+                if w1 > a1 + 1e-6 and hi > a1 and a1 - 0.3 >= a0 - 1e-6:
+                    lo, hi = a1 - 0.3, a1
+                elif w0 < a0 - 1e-6 and lo < a0 and a0 + 0.3 <= a1 + 1e-6:
+                    lo, hi = a0, a0 + 0.3
+                return lo, hi
             if 1e-6 < px <= 0.15 and (h[2] - h[0] <= 0.45 or h[3] - h[1] > h[2] - h[0]):
-                c = (oy0 + oy1) / 2
-                Bs.append([ux0, max(uy0, c - 0.15), ux1, min(uy1, c + 0.15)])
+                lo, hi = inside((oy0 + oy1) / 2, S[1], S[3], h[1], h[3])
+                Bs.append([ux0, max(uy0, lo), ux1, min(uy1, hi)])
             if 1e-6 < py <= 0.15 and (h[3] - h[1] <= 0.45 or h[2] - h[0] > h[3] - h[1]):
-                c = (ox0 + ox1) / 2
-                Bs.append([max(ux0, c - 0.15), uy0, min(ux1, c + 0.15), uy1])
+                lo, hi = inside((ox0 + ox1) / 2, S[0], S[2], h[0], h[2])
+                Bs.append([max(ux0, lo), uy0, min(ux1, hi), uy1])
             for B in Bs:                  # stay in the outer part of the stub (away from the block edge)
                 if h[3] > S[3] + 1e-6 and h[1] >= S[1] - 1e-6: B[1] = max(B[1], S[3] - 0.3)
                 if h[1] < S[1] - 1e-6 and h[3] <= S[3] + 1e-6: B[3] = min(B[3], S[1] + 0.3)

@@ -40,14 +40,17 @@ _SLOT_FINAL = {"slot_ah": True, "slot_ah_h": True, "slot_ah_p": True, "slot_ah_f
                "slot_ah_50": True, "slot_ah_800": True, "slot_ref": True, "slot_dummy": True}
 for _i, (_c, _f) in enumerate(_SLOT_FINAL.items()):
     LIB[_c] = dict(gds=f"layout/slot/out/{_c}.gds", lvs=f"layout/slot/{_c}_lvs.spice", prefix=f"s{_i}_",
-                   final=_f, size=(fp.SLOT_W, fp.SLOT_H))
+                   final=_f, size=(fp.SLOT_W, fp.SLOT_H * (2 if _c == fp.SLOT_CELL["CMP"] else 1)))
 # Placeholder pin overrides (cell-local x ranges moved by dx; pins moved to a new edge position). Empty: the
 # D1 placeholder now uses the pins of the 70 x 104 D1 GDS as drawn by the D1 track (2026-11-19 16:12).
 PH_SHIFT = {}
 PH_MOVE = {}
-# CMP slot gap trim: True while slot_cmp_h has its in-slot trim (nibble 6). If the slot track drops it, set
-# False: cfg_out[31..34] (CMP.VTH) are then left unconnected at the top level (macro / TRIM_MASK unchanged).
-CMP_TRIM = False
+# CMP slot gap trim: True while slot_cmp_h has its in-slot trim (nibble 6; since 2026-11-20 the 28 x 87 double
+# slot). False (with the trimless slot_cmp_h_notrim): cfg_out[31..34] (CMP.VTH) are left unconnected at the
+# top level (macro / TRIM_MASK unchanged).
+CMP_TRIM = True
+# aux column lines with no user: they float (connected only by abutment). Column 3 carries vth_cmp (CMP).
+FLOAT_AUX = {"aux1"}
 # Ports that are internal test nodes (left unconnected at the top level)
 OPEN_PORTS = {"vm", "vw", "vs", "d1", "d2", "la1", "dl1", "la2", "dl2"}
 
@@ -61,8 +64,8 @@ def instances():
          "ax": ("adex_a1", fp.BLOCKS["A1 AdEx"][0] + 0.08, fp.BLOCKS["A1 AdEx"][1]),
          "tau0": ("trim_tau4", *fp.BLOCKS[fp.TAU_COLS[0]][:2]),
          "tau2": ("trim_tau4", *fp.BLOCKS[fp.TAU_COLS[2]][:2])}
-    for (r, c), n in fp.slot_map().items():
-        x, y = fp.slot_box(r, c)[:2]
+    for (r, c), n in fp.slot_map().items():          # instance named by map position; CMP: s13 at (0,3)
+        x, y = fp.cell_box((r, c))[:2]
         I[f"s{r}{c}"] = (fp.slot_cell(n), x, y)
     return I
 
@@ -135,7 +138,8 @@ def nets():
     # ---- B1 analog outputs
     for ln in ("vbp_syn", "el", "vbn_leak", "vbp_st", "vbn_prb", "vbn_ref"):
         add(ln, "b1", ln)
-    add("aux1", "b1", "vth_cmp")                 # CMP threshold rides on column 1's aux line
+    cmp_col = fp.grid_col(grid, "CMP")
+    add(f"aux{cmp_col}", "b1", "vth_cmp")        # CMP threshold rides on its column's aux line (column 3)
     add("vbn_ax", "b1", "vbn_ax"); add("vbp_w", "b1", "vbp_w")
     add("vth_ref", "b1", "vth_ref"); add("vth_ref", "r1", "vth_ref")       # abutting pins (notch top)
     add("vreset_src", "b1", "vreset_src"); add("vreset_src", "r1", "vrin")
@@ -146,9 +150,11 @@ def nets():
     for ln in ("vreset", "vsrc", "abus"):
         add(ln, "r1", ln)
     add("en_b", "r1", "en_b")
-    # ---- tau-trim cells: aux of column 0 / 2, codes from nibbles 14 / 15
+    # ---- tau-trim cells (rev B, 2026-11-20): aux of column 0 / 2, codes from nibbles 14 / 15; reference = B1's
+    #      vbn_leak (mirrored on vss: the cells' p-tap ring, hooked up in geom.blocks_power)
     for c, inst in ((0, "tau0"), (2, "tau2")):
         add(f"aux{c}", inst, "aux")
+        add("vbn_leak", inst, "vbn_leak")
         pn = [n for n, cc in fp.el_columns().items() if cc == c][0]
         for j, b in enumerate(nib_bits(tn[f"{pn}.TAU"])):
             add(b, inst, f"c{j}")
