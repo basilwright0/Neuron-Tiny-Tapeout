@@ -858,7 +858,7 @@ def main():
     nseeds = int(os.environ.get("SEEDS", "8"))
     steps = int(os.environ.get("STEPS", "30000"))
     iters = int(os.environ.get("ITERS", "30"))
-    jobs = int(os.environ.get("JOBS", "8"))
+    jobs = min(int(os.environ.get("JOBS", "4")), int(os.environ.get("MAX_LOCAL_JOBS", "4")) if not os.environ.get("ON_BOAT") else 64)
     rows, strips, H, wells = plan_rows()
     print(f"{CELL} -> {NAME}: W {W} H {H}  rows {[r['name'] for r in rows]}")
     if "place" in sys.argv:          # placement only (no routing): cost and overflow per seed

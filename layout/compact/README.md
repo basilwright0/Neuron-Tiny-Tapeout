@@ -7,8 +7,11 @@ Generates the neuron-array slots from the schematic with no hand placement:
 - P&R search: each candidate placement is scored by a trial route (PathFinder on Metal1–3), run in parallel.
 
     scripts/eda.sh "cd layout/compact && CB_W=4 SEED=2 SWEEP='CHAN=1.2;CONG=0' bash build.sh final"   # S slot (clean)
-    cd layout/compact && CB_W=4 SWEEP="CHAN=1.2,1.8;CONG=0,20" SEEDS=4 JOBS=12 python3 -u cgen.py searchonly  # search
+    millstone-heavy --project "Tiny Tapeout" -- env CB_W=4 SWEEP="CHAN=1.2" SEEDS=4 python3 -u cgen.py searchonly  # local search
     scripts/eda.sh "cd sim/tb && PEX_NAME=cslot_ah python3 tb_slot_fi.py typical 27 100 slot_ah"       # PEX f–I
+
+Resource rule (MIL-6 `gpu-vm-schedule` rev 5): at most 4 local workers (JOBS is capped at 4 unless ON_BOAT=1), heavy
+local jobs under `millstone-heavy`; bigger searches and PEX batches on one boat VM, stopped right after.
 
 Outputs land in `out/` (git-ignored): `<name>_paint.tcl`, `.gds`, `_lvs.spice` (reference; netgen merges the folded
 fingers), `_ext.spice`, `_pex.spice`, DRC and LVS reports. The layout cell is named `c<cell>` (`cslot_ah`) while it is in
