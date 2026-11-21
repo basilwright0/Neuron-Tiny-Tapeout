@@ -1,0 +1,83 @@
+
+Circuit 1 cell nfet_03v3 and Circuit 2 cell nfet_03v3 are black boxes.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes nfet_03v3 and nfet_03v3 are equivalent.
+
+Circuit 1 cell pfet_03v3 and Circuit 2 cell pfet_03v3 are black boxes.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes pfet_03v3 and pfet_03v3 are equivalent.
+
+Cell cxslot_ah_50 (0) disconnected node: aux
+Cell cxslot_ah_50 (0) disconnected node: sub
+Cell cxslot_ah_50 (1) disconnected node: sub
+Cell cxslot_ah_50 (1) disconnected node: aux
+Class cxslot_ah_50 (0):  Merged 9 parallel devices.
+Cell cxslot_ah_50 (0) disconnected node: aux
+Cell cxslot_ah_50 (0) disconnected node: sub
+Cell cxslot_ah_50 (1) disconnected node: sub
+Cell cxslot_ah_50 (1) disconnected node: aux
+Subcircuit summary:
+Circuit 1: cxslot_ah_50                    |Circuit 2: cxslot_ah_50                    
+-------------------------------------------|-------------------------------------------
+nfet_03v3 (32->23)                         |nfet_03v3 (23)                             
+pfet_03v3 (18)                             |pfet_03v3 (18)                             
+Number of devices: 41                      |Number of devices: 41                      
+Number of nets: 40                         |Number of nets: 40                         
+---------------------------------------------------------------------------------------
+Resolving symmetries by property value.
+Resolving symmetries by pin name.
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: cxslot_ah_50                    |Circuit 2: cxslot_ah_50                    
+-------------------------------------------|-------------------------------------------
+vm                                         |vm                                         
+en                                         |en                                         
+hold                                       |hold                                       
+vbp_syn                                    |vbp_syn                                    
+sta                                        |sta                                        
+stb                                        |stb                                        
+vbp_st                                     |vbp_st                                     
+vsrc                                       |vsrc                                       
+vss                                        |vss                                        
+spk                                        |spk                                        
+vbn_leak                                   |vbn_leak                                   
+el                                         |el                                         
+vbn_ref                                    |vbn_ref                                    
+vreset                                     |vreset                                     
+vbn_prb                                    |vbn_prb                                    
+rsel                                       |rsel                                       
+sub_b                                      |sub_b                                      
+abus                                       |abus                                       
+mreset                                     |mreset                                     
+vdd                                        |vdd                                        
+aux                                        |aux                                        
+sub                                        |sub                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes cxslot_ah_50 and cxslot_ah_50 are equivalent.
+
+Final result: Circuits match uniquely.
+.
