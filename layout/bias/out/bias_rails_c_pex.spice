@@ -1,0 +1,95 @@
+* NGSPICE file created from bias_rails_c.ext - technology: gf180mcuD
+
+.subckt r_w1_l14p555 a_n100_1456# a_n100_n1578# VSUBS
+X0 a_n100_1456# a_n100_n1578# VSUBS ppolyf_u_1k r_width=1u r_length=14.56u
+C0 a_n100_n1578# VSUBS 0.27003f
+C1 a_n100_1456# VSUBS 0.27003f
+.ends
+
+.subckt p_w4_l0p5 a_n138_n400# a_50_n400# a_n50_n444# w_n224_n530# VSUBS
+X0 a_50_n400# a_n50_n444# a_n138_n400# w_n224_n530# pfet_03v3 ad=1.76p pd=8.88u as=1.76p ps=8.88u w=4u l=0.5u
+C0 w_n224_n530# a_n50_n444# 0.07993f
+C1 a_n138_n400# a_n50_n444# 0.05179f
+C2 w_n224_n530# a_50_n400# 0.07442f
+C3 a_n138_n400# a_50_n400# 0.12527f
+C4 w_n224_n530# a_n138_n400# 0.07442f
+C5 a_50_n400# a_n50_n444# 0.05179f
+C6 a_50_n400# VSUBS 0.16249f
+C7 a_n138_n400# VSUBS 0.16249f
+C8 w_n224_n530# VSUBS 1.42464f
+.ends
+
+.subckt p_w10_l10 w_n1174_n1130# a_n1000_n1044# a_1000_n1000# a_n1088_n1000# VSUBS
+X0 a_1000_n1000# a_n1000_n1044# a_n1088_n1000# w_n1174_n1130# pfet_03v3 ad=4.4p pd=20.88u as=4.4p ps=20.88u w=10u l=10u
+C0 w_n1174_n1130# a_n1000_n1044# 1.0092f
+C1 a_n1088_n1000# a_n1000_n1044# 0.38624f
+C2 w_n1174_n1130# a_1000_n1000# 0.41194f
+C3 w_n1174_n1130# a_n1088_n1000# 0.41194f
+C4 a_1000_n1000# a_n1000_n1044# 0.38624f
+C5 a_1000_n1000# VSUBS 0.65771f
+C6 a_n1088_n1000# VSUBS 0.65771f
+C7 w_n1174_n1130# VSUBS 15.9194f
+.ends
+
+.subckt bias_rails_c vsn vsp vgln vglp en_b vdd vss
+XR0 vsp m1_342_438# vss r_w1_l14p555
+XR1 vsp m1_782_438# vss r_w1_l14p555
+XR2 m1_1222_3522# m1_782_438# vss r_w1_l14p555
+XR3 m1_1222_3522# m1_1662_438# vss r_w1_l14p555
+XR4 vgln m1_1662_438# vss r_w1_l14p555
+XHDR vdd m1_342_438# en_b vdd vss p_w4_l0p5
+XR5 vgln m1_2542_438# vss r_w1_l14p555
+XR6 vglp m1_2542_438# vss r_w1_l14p555
+XR7 vglp m1_3422_438# vss r_w1_l14p555
+XR9 m1_3862_3522# vsn vss r_w1_l14p555
+XR8 m1_3862_3522# m1_3422_438# vss r_w1_l14p555
+XR10 vss vsn vss r_w1_l14p555
+XC2 vsp vdd vsp vsp vss p_w10_l10
+XC1 vss vsn vss vss vss p_w10_l10
+C0 vsn vdd 0.00661f
+C1 vsp vglp 0.16572f
+C2 m1_1662_438# m1_782_438# 0.00961f
+C3 m1_3422_438# m1_2542_438# 0.00961f
+C4 vsn en_b 0.00115f
+C5 vsp vgln 0.07625f
+C6 vdd en_b 1.36198f
+C7 m1_3422_438# m1_342_438# 0.0285f
+C8 vsp m1_3862_3522# 0.02981f
+C9 vsp m1_1222_3522# 0.09037f
+C10 m1_342_438# m1_782_438# 0.0401f
+C11 vsn m1_2542_438# 0
+C12 vsp vsn 0.81189f
+C13 vgln vglp 0.17255f
+C14 vsp vdd 1.60715f
+C15 vsp en_b 0.24632f
+C16 m1_342_438# vsn 0.18087f
+C17 m1_342_438# vdd 0.17301f
+C18 m1_3862_3522# vglp 0.01054f
+C19 m1_342_438# en_b 0.02808f
+C20 m1_1662_438# m1_2542_438# 0.00961f
+C21 m1_1222_3522# vgln 0.01049f
+C22 vsn vglp 0.14758f
+C23 vdd vglp 0.06028f
+C24 m1_342_438# m1_1662_438# 0.02539f
+C25 vsn vgln 0.59161f
+C26 m1_3422_438# vsn 0.03433f
+C27 vglp en_b 0.00265f
+C28 m1_342_438# m1_2542_438# 0.02465f
+C29 vdd m1_3862_3522# 0.01537f
+C30 m1_1222_3522# vsn 0.063f
+C31 m1_3862_3522# en_b 0.00238f
+C32 m1_3862_3522# vss 0.01668f
+C33 vsn vss 2.43428f
+C34 m1_3422_438# vss 0.00649f
+C35 vglp vss 0.71006f
+C36 m1_2542_438# vss 0.04057f
+C37 en_b vss 0.77429f
+C38 vdd vss 2.40243f
+C39 vgln vss 0.3466f
+C40 m1_1662_438# vss 0.04061f
+C41 m1_1222_3522# vss 0.03291f
+C42 m1_782_438# vss 0.04119f
+C43 m1_342_438# vss 1.80172f
+C44 vsp vss 7.7207f
+.ends
+

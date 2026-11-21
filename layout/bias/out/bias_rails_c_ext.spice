@@ -1,0 +1,31 @@
+* NGSPICE file created from bias_rails_c.ext - technology: gf180mcuD
+
+.subckt r_w1_l14p555 a_n100_1456# a_n100_n1578# VSUBS
+X0 a_n100_1456# a_n100_n1578# VSUBS ppolyf_u_1k r_width=1u r_length=14.56u
+.ends
+
+.subckt p_w4_l0p5 a_n138_n400# a_50_n400# a_n50_n444# w_n224_n530#
+X0 a_50_n400# a_n50_n444# a_n138_n400# w_n224_n530# pfet_03v3 ad=1.76p pd=8.88u as=1.76p ps=8.88u w=4u l=0.5u
+.ends
+
+.subckt p_w10_l10 w_n1174_n1130# a_n1000_n1044# a_1000_n1000# a_n1088_n1000#
+X0 a_1000_n1000# a_n1000_n1044# a_n1088_n1000# w_n1174_n1130# pfet_03v3 ad=4.4p pd=20.88u as=4.4p ps=20.88u w=10u l=10u
+.ends
+
+.subckt bias_rails_c vsn vsp vgln vglp en_b vdd vss
+XR0 vsp m1_342_438# vss r_w1_l14p555
+XR1 vsp m1_782_438# vss r_w1_l14p555
+XR2 m1_1222_3522# m1_782_438# vss r_w1_l14p555
+XR3 m1_1222_3522# m1_1662_438# vss r_w1_l14p555
+XR4 vgln m1_1662_438# vss r_w1_l14p555
+XHDR vdd m1_342_438# en_b vdd p_w4_l0p5
+XR5 vgln m1_2542_438# vss r_w1_l14p555
+XR6 vglp m1_2542_438# vss r_w1_l14p555
+XR7 vglp m1_3422_438# vss r_w1_l14p555
+XR9 m1_3862_3522# vsn vss r_w1_l14p555
+XR8 m1_3862_3522# m1_3422_438# vss r_w1_l14p555
+XR10 vss vsn vss r_w1_l14p555
+XC2 vsp vdd vsp vsp p_w10_l10
+XC1 vss vsn vss vss p_w10_l10
+.ends
+
