@@ -94,3 +94,56 @@ channel reserved for the analog column lines, trim tracks broken by a Metal4 jum
   fixed), and the S-edge code order differs from B1's top-edge order; both are absorbed by routing today, but a
   `mkpins.py` re-run + re-harden would shorten those jogs. `probe_en_b` and decoded D1 tap selects would let the
   top-level glue row go.
+
+## PEX spot checks (in progress)
+
+> **RESUME HERE (paused 2026-11-20).** Nothing committed. No containers running.
+>
+> **Extraction (done).** `sim/tb/top/ext_rc.tcl` (magic, final GDS flattened, `extract do resistance` + `extresist all`,
+> all coupling C) -> `work/pexr/top_rc_flat.spice`: R networks on VDPWR / VGND (every device terminal) and on the
+> nets extresist keeps (vsrc, abus, el, vreset, stb, ...); all other nets are one node with all their C.
+> `ext_c.tcl` -> `work/pex/top_c_flat.spice` (C only). Benches use the R+C netlist through `sim/tb/top/topnet.py`
+> (macro replaced by ideal drivers behind 1.5 k; glue row kept as transistors) and `topbench.py` (ua[0] current,
+> ua[1] 500 ohm + 2 pF + 200 pF, nominal codes, schematic-B1 "precondition" switches released at 0.5 us because the
+> full-chip op never converges by Newton and ngspice's transient-op leaves the nA bias lines unsettled).
+> Bugs found and fixed in the benches before any valid run: vth_ref code (now 37 at S = 100, 48 at S = 1000;
+> AH trip calibrated to Vth), macro outputs driven on the right flat aliases (`topnet.resolve`; the first round had
+> the probe lines floating, so all earlier probe / kick / icur results were discarded).
+>
+> **Results so far (typical 27 C):**
+> - **Check 4, IR drop** (`pgrid.py`: KLayout trace + 0.2 um raster mesh, device-terminal currents from
+>   `tb_top_icur.py`; PDN at the Metal4 stripe ends / top ends only / whole stripe): slots <= 0.01 mV, D1 / AdEx
+>   < 0.01 mV, R1 with the pad driver on and IB_X2 (R1 544 uA) VDD 5.9 / 7.2 mV, VSS 4.2 / 4.9 mV mean / max
+>   (top-ends-only PDN 12-16 mV). **B1: VSS rise 16 / 23 mV, VDD drop 12 / 18 mV in every PDN model -> FAIL.**
+>   B1's power enters only at its east edge (0.8 um stripes x 342.6 / 345) and its receivers sit at the west end:
+>   receiver ground is ~22 mV above the far mirrors' ground (VDD ~14 mV low), i.e. n-line mirror currents ~x1.9,
+>   p-lines ~x1.5 versus the DAC (`sim/results/top/pgrid_*.txt`, "bias mirrors"). **Proposed fix (not applied):**
+>   via3 drops from the Metal4 stripes that already cross B1 (x 121.0 VDPWR / 123.6 VGND) onto B1's Metal3 vdd / vss
+>   under them; what-if (`pgrid.py ... b1vias_w`): offsets 0.1-0.8 mV (1.5 mV top-only PDN). Needs a DRC-clean pad
+>   placement on B1's Metal3 (pieces at y 40-45 / 46.6-55.5 under those stripes) and build / drc / precheck.
+>   Macro 1 mA into its straps moves the array rails by < 2 uV (B1 / R1 ~1 mV/mA with a top-only PDN).
+> - **Check 3, static coupling** (`tb_top_coupling.py`, `sim/results/top/coupling.txt`, top-level-added C only):
+>   **stim A (rt_out[0], row-band track 0) adds 550-680 aF to the vm of H1/H2/H3/P2/P3 and 176-328 aF to AH50/CMP
+>   -> 8-10 mV estimated kick per edge (FAIL vs "a few mV")**; cause: those slots run vm on Metal3 up to y 31.5,
+>   0.74 um below track 0. Fix options: Metal4 hop of track 0 over the vm segments (top level) or move the vm
+>   Metal3 down / add a Metal3 shield in the slot. All other digital lines add <= 1.5 mV per neuron. Shared bias
+>   lines see large digital C on high-impedance nodes (e.g. vbn_leak 31.8 fF of 293 fF, 3.2 fF from HOLD; vbp_syn
+>   2.1 fF from stim A of 185 fF): tens of mV kicks estimated, to be confirmed by the transient.
+> - **Check 2, DC** (`tb_top_bias.py dc`, `bias_dc_S*.txt`): far end - driver end at S = 100 / 1000: el +0.16 mV,
+>   vsrc <= 0.45 mV, vreset <= 0.05 mV, all other lines are single nodes (0 by construction) -> << 1 LSB from wiring;
+>   the real DC error is the B1 rail offset above. Code-step settling (`bias_step_S1000.txt`) is preliminary: that
+>   run wrapped r1 (+4 codes from 30); 0.5 LSB settling at S = 1000 was ~15 us (vbn_leak), 29 us (vbn_ref), 7 us
+>   (vbp_syn), 35 us (vbn_ax), x10 at S = 100. Rerun with -4 codes was stopped.
+>
+> **Not yet run validly:** check 1 probe chain (`tb_top_probe.py dc|step [corner T]`, incl. ss 0), check 3 transient
+> (`tb_top_kick.py`), check 2 spiking neighbours (`tb_top_bias.py spk on|off`), `tb_top_bias.py step 1000` (-4
+> codes), magic-network cross-check of the B1 ground rise (`tb_top_gndchk.py`), ss / 0 C IR drop
+> (`tb_top_icur.py ss 0` then `pgrid.py`). Each full-chip transient takes ~10 min to its op plus 10-60 min;
+> run at most ~5 at once (`scripts/eda.sh "nice -n 15 python3 sim/tb/top/<bench> ..."`).
+> **Next step:** launch those runs, then write the final tables here and the firmware rules into `docs/info.md`;
+> report the B1 via3 fix and the track-0 kick for approval before any layout change. Also still open:
+> `sim/tb/tb_readout.py` PEX port map lacks `vth_ref` / `vsrc`.
+>
+> Benches: `sim/tb/top/` (topnet, topbench, ext_c.tcl, ext_rc.tcl, pgrid, tb_top_icur, tb_top_coupling,
+> tb_top_bias, tb_top_kick, tb_top_probe, tb_top_gndchk). Outputs: `sim/results/top/` (git-ignored) and
+> `layout/top/work/pex*/` (git-ignored).

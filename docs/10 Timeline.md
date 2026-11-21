@@ -1,61 +1,89 @@
-# Timeline to tapeout (status 2026-11-19)
+# Timeline to tapeout (updated 2026-11-20)
 
-**Shuttle:** TTGF26c closes **2026-12-07**; chips are expected ~2027-05-12.
+**Shuttle:** TTGF26c closes **2026-12-07**. Chips are expected around 2027-05-12.
 
-| Gate | Date | Definition |
-|---|---|---|
-| G1 | Nov 15 | Core schematics simulated vs the reference model; readout settles | **done** |
-| G2 | **Nov 22** | Every block DRC/LVS clean with measured area; final floorplan; 1×2 confirmed | in progress |
-| G3 | **Nov 29** | **MVP submittable:** full-chip layout, full LVS, PEX spot checks, local precheck green, `docs/info.md`, GitHub repo + CI green | upcoming |
-| G4 | Dec 5 | Final review and fixes; the user submits and pays (~€220 for 1×2 + 2 analog pins) | upcoming |
-| — | Dec 6–7 | Buffer before the shuttle closes | |
+**Rule:** the work is split into three milestones. Each one ends with a complete, verified design pushed to GitHub with
+green CI, and each is a valid submission on its own. A later milestone replaces the submitted design only once it
+passes the same checks. If time runs out, the last finished milestone is submitted.
 
-## Completed
+## Milestone overview
 
-| Area | What | State |
-|---|---|---|
-| Planning | Conversation summary, reconciliation, research, design plan, frozen plan (`08`), TT Q&A (`07`), hardwiring experiment (`09`), speed limits + 10000× roadmap | docs |
-| Simulation infrastructure | Python ↔ ngspice harness, reference models, testbenches | done |
-| Control block rev E | Config latches, probe decode, bias codes, digital LIF; 14/14 tests; **166 × 166 µm**, v2 pin order | **verified** (DRC/LVS/antenna/timing clean) |
-| Bias generator rev C | Fixed range per DAC (speed via ua[0]), V-to-I voltage path, ESD; **265 × 115 µm** notched frame | **verified** (DRC 0/0, LVS) |
-| R1 corner | Pad driver (400 µA), Vreset buffer, `vsrc` buffer, ua[1] strap; 40 × 40 µm | **verified** |
-| Neuron core | Starved detector + reset keeper, wider leak OTA, EL 1.30 V, synapse, gap trim, τ trim, probe-tap fix | schematic verified at all corners |
-| Slot variants | S, F, AH50, AH800, REF, DUMMY routed on the new cells; τ-trim cell clean | layout verification running |
-| D1 dendrite | Schematic on new cells (cold corners fixed, clustered vs distributed works) | layout at 70 × 104 in progress |
-| AdEx | Schematic on new cells (adaptation matches the model) | layout at ~38 µm wide in progress |
-| Floorplan v2 | Block frames fixed from measured shapes | plan doc §10; `floorplan.py` update pending |
-| Characterization | Speed envelope (1000×, ~2000× with firmware), mismatch MCs, corner sweeps | docs |
+| Milestone | Plan phases | Target date | Result |
+|---|---|---|---|
+| **M1: baseline** | Phase 0 | ~Nov 23 | The current design, PEX-checked and fixed, pushed, CI green |
+| **M2: compact + fast** | Phases 1a, 1b, 1c, 2 | ~Dec 1 | Compact neurons, array and blocks; 10000× support (levels 1–3) |
+| **M3: new neurons** | Phases 3, 4, 5 | Dec 5 | Minimal neurons, GIF neuron, control block rev F |
+| — | — | Dec 6–7 | Buffer for CI and submission (the user submits and pays) |
 
-## Still to do
+Each milestone ends with about 1–1.5 days of integration and verification:
+- top-level assembly;
+- full-chip LVS and DRC (KLayout, antenna, Magic);
+- the PEX batch on a Boat VM (`sim/tb/top/run_batch.sh`, about 3 h of machine time);
+- the local TT precheck;
+- commit, push and the GitHub CI run.
 
-### By G2 (Nov 22): blocks finished
-1. **Slots:** DRC/LVS/PEX on all 9 variants on the fixed cells; route H and CMP; derive P; post-layout f–I. *(slot track)*
-2. **D1:** keeper on its plateau detectors; route at 70 × 104 with both trims; DRC/LVS/PEX; post-layout clustered/distributed. *(D1 track)*
-3. **AdEx:** route at ~38 × 75 with the keeper; DRC/LVS/PEX; functional checks. *(AdEx track)*
-4. **Floorplan:** put the measured boxes into `floorplan.py`, re-check geometry, confirm the bias-line channel (~7 µm at y ~131–138) and the 1×2 margin. *(integrator)*
-5. Commit.
+## M1: Phase 0, baseline (~Nov 21–23)
 
-### By G3 (Nov 29): MVP submittable
-| Days | Work |
+- **PEX spot checks:**
+  - probe chain (settling done; DC transfer re-run as ramps);
+  - kicks, bias distribution, spiking-neighbour ripple;
+  - IR drop at typical and ss / 0 °C.
+- **Fixes:**
+  - B1 supply: via3 drops from the Metal4 stripes at x 121.0 / 123.6 onto B1's Metal3 rails;
+  - stimulus-A track kick, if the transient confirms it;
+  - any firmware rules the results call for.
+- **Verify, commit, push, CI green.**
+
+## M2: Phases 1a, 1b, 1c and 2, compact and fast (~Nov 23 – Dec 1)
+
+| Phase | Work |
 |---|---|
-| Nov 23–24 | **Neuron array assembly:** 4×4 slots by abutment; connect row Metal3 tracks to the control block's W edge; column lines to the bias channel; τ-trim cells to `aux` (col 0, col 2); `vth_cmp` to col 1 `aux`. |
-| Nov 24–25 | **Top-level assembly in magic:** place the control macro, B1, R1, D1, AdEx, the array and the τ cells; Metal4 power stripes as ports (full height, ≥ 0.8 µm); route the channels (bias lines, probe bus, R1 feed-throughs, spikes, D1/AdEx lines, TT pin jogs); tie-high cells on uio_oe; ua[0]/ua[1] connections. |
-| Nov 26 | **Full-chip checks:** magic DRC, KLayout gf180mcu deck (as precheck runs it), antenna; **top-level LVS** with netgen (macro + analog blocks against a top-level SPICE netlist). |
-| Nov 27 | **PEX spot checks:** one neuron through the probe chain to the pad; bias distribution to the far array column; reset and probe-enable kicks. Fix anything found. |
-| Nov 28 | **Local TT precheck** (tt-support-tools, gf180mcuD); `docs/info.md` (pinout, register map, bring-up procedure, firmware rules); final `info.yaml`. |
-| Nov 28–29 | **GitHub repo** (user creates it) → push → TT GDS / precheck CI green. **G3.** |
+| Generator (first) | Compact layout generator: shared diffusion, common well strips, row-based placement, and an automatic place-and-route search (placement scored by a trial route). Proven on the S slot first. |
+| 1a | All slot variants compacted, with the 10000× level-2 changes (wider reset switch, refractory and synapse bias taps) built in |
+| 1b | Compact array tile (row band, column lines, variable row heights), verified with tile-level PEX before the top level |
+| 1c | 10000× levels 1–3: firmware rules, level-2 silicon, and level-3 non-scaling bias lines for the comparators, detectors and buffers. Gate: post-layout simulation of every neuron type at 10000× across corners at 27 °C plus ss / 0 °C. |
+| 2 | B1 split into sub-blocks (reference/ESD, 5 current DACs, V-to-I + 3 resistor DACs, threshold DAC, buffers), carrying the level-3 lines. D1 and AdEx regenerated on the new generator. |
 
-### By G4 (Dec 5)
-- Fix anything CI or review finds.
-- Optional, only if time allows: the D1 ff/85 plateau outlier, Monte Carlo of the rev C DACs, a bring-up firmware sketch for the RP2350.
-- **The user submits and pays.**
+**Design rule:** the level-3 bias lines are **fixed, with no new DAC codes**. The control block's register map then
+stays the same, and at most the macro is re-hardened for a new pin order (about half a day).
+
+**Fallback:** if the compact S slot isn't clean and smaller after about 2 days, the milestone shrinks to B1 and 10000× on
+the existing layouts.
+
+Level 4 (wider leak OTA, 10000× at every corner) is not planned; it would make every neuron about 10 % larger.
+
+## M3: Phases 3, 4 and 5, new neurons (~Dec 1–5)
+
+| Phase | Work |
+|---|---|
+| 3 | Minimal neurons: no probe, no trim, fixed bias (fixed mirror ratios off the master), built on the compact generator |
+| 4 | GIF neuron: comparator front end, spike-triggered adaptation current, adaptive threshold. Expected near AdEx size (~2–3k µm²). |
+| 5 | Control block rev F (bank-switched spike outputs for the extra neurons, new probe addresses, re-harden, cocotb tests), then final integration |
+
+The schematics for phases 3 and 4 are designed during M2, so M3 is mostly layout and integration. If M2 slips, M3 drops
+the GIF or the minimal neurons, and M2 is submitted.
+
+## Completed (as of 2026-11-20)
+
+| Area | State |
+|---|---|
+| Planning, research, frozen design (`08`), TT Q&A (`07`), hardwiring protocol (`09`), speed study and 10000× roadmap | done |
+| Control block rev E (166 × 166 µm), 14/14 cocotb tests | verified |
+| B1 rev C (265 × 115 µm), R1 corner (40 × 40 µm) | verified |
+| Neuron array: all slot variants on the fixed cells; CMP double slot with its gap trim; τ-trim rev B on `vbn_leak` | verified |
+| D1 (70 × 104 µm), AdEx (38 × 73 µm) | verified |
+| Full chip: LVS match, DRC 0 (KLayout, antenna, Magic), local precheck pass | commit `946cd68` |
+| README, datasheet (`docs/info.md`), `info.yaml` (TT docs check passes), layout renders | done |
 
 ## Needs from the user
-- **Create the GitHub repo**, by about Nov 27, so CI can run before G3.
-- **Approve submission and payment**, at G4.
+- Approve each push (pushing publishes the repository).
+- Approve layout fixes that change the design (B1 vias, stimulus-A track).
+- Submit and pay at the end (~€220 for 1×2 + 2 analog pins).
 
 ## Main risks
-- **Top-level routing:** the bias channel to the array is tight (~7 µm), and the probe bus and R1 feed-throughs must thread through B1's corridor.
-- **Top-level LVS** of the mixed hardened-macro + analog design: the first full-chip run usually turns up naming and connectivity issues. Budget a day.
-- **Slot routing:** H and CMP are still converging. If either fails, a placement tweak costs 2–3 h.
-- **Agent and tooling interruptions** (Docker stops, session restarts): mitigated by commits and the RESUME HERE notes.
+- **M2 schedule:** the generator rework is on the critical path for every M2 block.
+- **M3 has no slack:** the GIF and control rev F are each several days of work.
+- **Top-level re-integration** at each milestone: the first full-chip run after big block changes usually turns up
+  connectivity issues. A day is budgeted per milestone.
+- **Tool interruptions** (Docker, session restarts, usage limits): mitigated by commits at each milestone, RESUME notes
+  and unattended batches on Boat.
