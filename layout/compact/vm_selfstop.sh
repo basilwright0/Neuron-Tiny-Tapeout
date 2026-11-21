@@ -1,6 +1,8 @@
 #!/bin/bash
-# Runs ON the boat VM: when the done marker appears, shorten the VM's own lifetime to GRACE seconds (default 600) so it
-# auto-stops (snapshot kept) even if no local watcher is alive. Usage: vm_selfstop.sh <VM id> <done marker> [GRACE]
-ID=$1; MARK=$2; GRACE=${3:-600}
+# Runs ON the boat VM: when the done marker appears, wait GRACE seconds (default 300, time to copy results back),
+# then stop the VM itself (`boat stop` snapshots the disk; resume to fetch anything left).
+# Usage: vm_selfstop.sh <VM id> <done marker> [GRACE]. Note: `boat extend self --ttl` does NOT stop a VM.
+ID=$1; MARK=$2; GRACE=${3:-300}
 until [ -f "$MARK" ]; do sleep 30; done
-BOAT_ID=$ID /home/user/.ascii/boat extend self --ttl "$GRACE" > /home/user/selfstop.log 2>&1
+sleep "$GRACE"
+BOAT_ID=$ID /home/user/.ascii/boat stop self > /home/user/selfstop.log 2>&1
