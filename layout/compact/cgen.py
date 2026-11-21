@@ -76,6 +76,11 @@ if os.environ.get("CHAN"):
     ROWPLAN = [("chan", float(os.environ["CHAN"])) if e[0] == "chan" else e for e in ROWPLAN]
 WFOLD = {"n": 2.0, "p": 2.0}
 TALL = {"XC.XC": 3.54, "XPM.XMF": 4.0}         # devices folded for the tall cap row (finger W)
+# AH800 (M2 layout B): its 11.7 x 11.6 mcap_r gets its own bottom row, 2 fingers of 5.85 x 11.6 (~25 um long)
+XROW_W = float(os.environ.get("XROW_W", "5.85" if CELL == "slot_ah_800" else "0"))
+if XROW_W:
+    TALL["XC2.XC"] = XROW_W
+    ROWPLAN = ROWPLAN[:1] + [("row", "n", "up", XROW_W, "NX"), ("ptap",)] + ROWPLAN[1:]
 MEMCAP = "XC.XC"
 CHAIN_LEN = float(os.environ.get("CHAIN_LEN", "0"))
 CHAIN_MAX = float(os.environ.get("CHAIN_MAX", "0"))   # greedy chainer length cap (0: one row width)   # 0: greedy chainer; > 0: merge chainer, max chain length
