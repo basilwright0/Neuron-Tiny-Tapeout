@@ -180,7 +180,7 @@ XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
 XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
-XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+* XPR (vr probe tap) dropped (user decision 2026-11-21 22:33 UTC, MIL-36): XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 .ends slot_ah_400
 
