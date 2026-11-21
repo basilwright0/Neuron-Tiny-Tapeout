@@ -73,10 +73,10 @@ PHYS, D1_CH, ADEX_CH, REF_SLOT, _fp, _where = _slot_table()
 # Probe decoder of the control macro (rev E, hardened): SEL -> (row, col), frozen (docs/regmap.md section 3.1).
 SLOT = {0: (0, 1), 1: (1, 2), 2: (0, 2), 4: (1, 3), 5: (2, 3), 6: (1, 0), 7: (2, 0),
         8: (3, 0), 9: (3, 1), 10: (2, 1), 11: (3, 2), 12: (1, 1), 14: (2, 2), 15: (3, 3)}
-# Since the CMP double slot (2026-11-20) CMP sits at (1,3) and S2 at (1,1): the floorplan equals the decoder
-# with channels 4 and 12 swapped, so probe SEL 4 reads CMP's membrane and SEL 12 reads S2's (spike channels
-# are unchanged). Every decoded address still holds a probe tap.
-assert PHYS == {**SLOT, 4: SLOT[12], 12: SLOT[4]}, PHYS
+# M2 layout B (2026-11-21): the slots moved, the decoder did not. Every decoded address must hold a probe tap and
+# every array neuron must sit at a decoded address; SEL k then reads the neuron at SLOT[k] (PROBE_NAME, docs/regmap.md).
+assert set(PHYS.values()) == set(SLOT.values()), PHYS
+PROBE_NAME = {k: _fp.slot_map()[rc] for k, rc in SLOT.items()}
 # (0,3) is CMP's lower half (formerly the dummy slot): no tap, never selected
 DUMMY_SLOT = (0, 3)
 assert _fp.cell_at(*DUMMY_SLOT)[0] == _where["CMP"] and DUMMY_SLOT not in _where

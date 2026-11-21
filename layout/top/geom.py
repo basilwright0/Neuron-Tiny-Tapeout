@@ -64,7 +64,7 @@ def pin_pt(cell, name):
 
 
 # ======================================================================== array
-TRK0, TRKP = 32.38, 0.56                       # slot row band: track k centre at slot y + 32.38 + 0.56 k
+TRKP = 0.56                                    # row band: track k centre at fp.row_y0(r) + fp.row_trk0(r) + 0.56 k
 SHARED = {0: "rt_out[0]", 1: "rt_out[1]", 2: "rt_out[2]", 3: "rt_out[3]", 5: "probe_sub", 6: "probe_sub_b"}
 SHARED_EAST_ROW = 2                            # row whose shared tracks continue east to the macro (rt_out y)
 PINTRK = {"sta": 0, "stb": 1, "hold": 2, "mreset": 3, "rsel": 4, "sub": 5, "sub_b": 6}
@@ -75,8 +75,9 @@ def array(F):
     tn = fp.TRIM_NIBBLES
     ax0, ay0, ax1, ay1 = fp.BLOCKS["NA neuron array 4x4"]
     jumps = {}
+    xoff = 0                                # fan-out columns used by lower rows below AdEx's top (CH_NAE)
     for r in range(4):
-        y0 = ay0 + r * fp.SLOT_H
+        y0, TRK0 = fp.row_y0(r), fp.row_trk0(r)
         net_of = {k: n for k, n in SHARED.items()}
         net_of[4] = f"probe_rsel[{r}]"
         vias = []                                              # (k, x)
@@ -85,8 +86,8 @@ def array(F):
             """Pins of the cell covering (r, c) whose label lies on row r's band (double slots have two)."""
             rc, name = fp.cell_at(r, c)
             pins = geo(fp.slot_cell(name))["pins"]
-            off = (r - fp.slot_origin(rc)[0]) * fp.SLOT_H
-            return name, {pn: p for pn, p in pins.items() if off <= p[0]["pt"][1] < off + fp.SLOT_H}
+            off = fp.row_y0(r) - fp.row_y0(fp.slot_origin(rc)[0])
+            return name, {pn: p for pn, p in pins.items() if off <= p[0]["pt"][1] < off + fp.ROW_H[r]}
         trims = [c for c in range(4) if "t0" in here(c)[1] and (here(c)[0] != "CMP" or C.CMP_TRIM)]
         for c in range(4):
             name, pins = here(c)
@@ -106,7 +107,9 @@ def array(F):
                     vias.append((base + j, sx + pins[f"t{j}"][0]["pt"][0]))
         # tracks: west end (shared: to the join line), east end (to the fan-out)
         east = [k for k in sorted(net_of) if k not in SHARED or r == SHARED_EAST_ROW]
-        xe = {k: gx(ax1 + 0.71 + 0.7 * j) for j, k in enumerate(east)}
+        xe = {k: gx(ax1 + 0.71 + 0.7 * (xoff + j)) for j, k in enumerate(east)}
+        if fp.row_y0(r + 1) < fp.BLOCKS["A1 AdEx"][3]:   # this row's lines run north past AdEx: keep the columns
+            xoff += len(east)
         xw = {k: gx(ax0 - 0.69 - 0.7 * j) for j, k in enumerate(sorted(SHARED))}
         for k, net in net_of.items():
             ty = y0 + TRK0 + TRKP * k
@@ -115,12 +118,12 @@ def array(F):
             F.p("metal3", (xa, ty - 0.14, xb, ty + 0.14), net)
             if k in xe:              # east fan-out: via2 + Metal2 to the terminal (row 0 up, rows 1-3 down)
                 F.p("via2", (xe[k] - 0.14, ty - 0.14, xe[k] + 0.14, ty + 0.14), net)
-                if r == 0:
-                    yt = gy(y0 + 44.2)
+                if r == 0:              # up: 0.7 above the row top (row 1's band is far above)
+                    yt = gy(y0 + fp.ROW_H[0] + 0.7)
                     F.p("metal2", (xe[k] - 0.14, ty - 0.2, xe[k] + 0.14, yt + 0.14), net)
                     F.term(net, [("metal2", (xe[k] - 0.14, yt - 0.42, xe[k] + 0.14, yt + 0.14))])
                 else:
-                    yt = gy(y0 + 31.0)
+                    yt = gy(y0 + TRK0 - 1.38)
                     F.p("metal2", (xe[k] - 0.14, yt - 0.14, xe[k] + 0.14, ty + 0.2), net)
                     F.term(net, [("metal2", (xe[k] - 0.14, yt - 0.14, xe[k] + 0.14, yt + 0.42))])
             if k in SHARED:
@@ -153,7 +156,7 @@ def array(F):
         xa = max(xa, kb)
     hops.append((xa, ax1 - 0.6))
     for r in range(4):
-        jy = round(ay0 + r * fp.SLOT_H + TRK0, 3)
+        jy = round(fp.row_y0(r) + fp.row_trk0(r), 3)
         idx = [i for i, (lay, rr, net) in enumerate(F.shapes) if lay == "metal3" and rr[1] == round(jy - 0.14, 3)]
         assert len(idx) == 1, (r, idx)
         lay, rr, net = F.shapes.pop(idx[0])
@@ -175,10 +178,10 @@ def array(F):
     xw = {k: gx(ax0 - 0.69 - 0.7 * j) for j, k in enumerate(sorted(SHARED))}
     d1y = C.instances()["d1"][2]
     for k, net in SHARED.items():
-        ya = ay0 + TRK0 + TRKP * k
+        ya = ay0 + fp.row_trk0(0) + TRKP * k
         if k <= 3 and C.PH_MOVE.get("dend_d1"):     # rt_out joins continue down to west-edge D1 inputs
             ya = d1y + 99.5
-        yb = ay0 + 3 * fp.SLOT_H + TRK0 + TRKP * k
+        yb = fp.row_y0(3) + fp.row_trk0(3) + TRKP * k
         F.p("metal2", (xw[k] - 0.14, ya - 0.2, xw[k] + 0.14, yb + 0.2), net)
     # column-bottom terminals (row 0 cells): column lines enter from below on Metal2
     for c in range(4):
@@ -186,7 +189,7 @@ def array(F):
         pins = geo(cell)["pins"]
         sx = ax0 + c * fp.SLOT_W
         # en_c enters at the TOP of the array (keeps the bias channel for the analog lines)
-        q = [q for q in geo(fp.slot_cell(fp.cell_at(3, c)[1]))["pins"]["en"][0]["rects"] if q[3] >= fp.SLOT_H - 0.01][0]
+        q = [q for q in geo(fp.slot_cell(fp.cell_at(3, c)[1]))["pins"]["en"][0]["rects"] if q[3] >= fp.ROW_H[3] - 0.01][0]
         yt3 = ay1
         F.p("metal2", (sx + q[0], yt3 - 0.02, sx + q[2], yt3 + 0.7), f"en_c{c}")
         F.term(f"en_c{c}", [("metal2", (sx + q[0], yt3 + 0.42, sx + q[2], yt3 + 0.7))])
