@@ -62,7 +62,7 @@ ROWPLAN = [("ring",), ("row", "n", "up", 4.0, "NC"), ("chan", 0.6), ("row", "p",
            ("row", "p", "up", 2.0, "P1"), ("chan", 0.6), ("row", "n", "down", 2.0, "N1"), ("ptap",),
            ("row", "n", "up", 2.0, "N2"), ("chan", 0.6), ("row", "n", "down", 2.0, "N3"), ("ring",)]
 # cells with more n devices (gap-trim ladder): extra n rows on top
-EXTRA_N = {"slot_ah_h": 1, "slot_ah_p": 1}.get(CELL, int(os.environ.get("EXTRA_N", "0")))
+EXTRA_N = {"slot_ah_h": 1, "slot_ah_p": 1, "slot_cmp_h": 1}.get(CELL, int(os.environ.get("EXTRA_N", "0")))
 if EXTRA_N:
     # two short rows (W <= 0.5: the ladder and the trim switches) around one more p-tap strip
     if os.environ.get("SHORT_ROWS", "low") == "top":
@@ -88,6 +88,10 @@ ROUTE_FIRST = ["vm", "vr", "spk"]
 
 
 # ============================================================================ netlist, chains
+# the Cfb MOM is drawn only for cells whose schematic has the spk-vm feedback cap (AH detectors; not det_cmp)
+HAS_CFB = any({c["a"], c["b"]} == {"spk", "vm"} for c in flatten.flatten(CELL)[2])
+
+
 def netlist():
     ports, devs, caps = flatten.flatten(CELL)
     fingers = []
@@ -525,7 +529,7 @@ def build_geometry(pl):
         G.labels.append((net, "metal2", (rr[0], rr[3] - 0.5, rr[2], rr[3] - 0.2), "signal"))
     # ------------------------------------------------ MOM Cfb over the membrane cap's first finger
     G.capbox, G.mom = capbox, None
-    if capbox and "spk" in ports and MOM["nf"]:
+    if capbox and HAS_CFB and MOM["nf"]:
         gb = G.capgates[0]
         G.mom = mom_cap(G, gb)
     # Metal1 vss shield over the cap gate under the Metal2 column lines (no bias/switching line couples to vm),
