@@ -24,9 +24,13 @@ CUT = 0.13           # via1 cut half-size (0.26)
 
 
 def rgap(a, b):
-    """Chebyshev gap between rectangles (0 if they touch or overlap)."""
+    """Gap between rectangles (0 if they touch or overlap): Euclidean at corners (diagonal neighbours), as the
+    KLayout gf180mcu deck measures it and magic accepted in the compact S slot (2026-11-21), otherwise the
+    orthogonal distance."""
     dx = max(0.0, b[0] - a[2], a[0] - b[2])
     dy = max(0.0, b[1] - a[3], a[1] - b[3])
+    if dx > 0 and dy > 0:
+        return math.hypot(dx, dy)
     return max(dx, dy)
 
 
@@ -118,6 +122,8 @@ class Router:
             if n == net and not via:
                 continue
             if r[0] - x1 >= sp or x0 - r[2] >= sp or r[1] - y1 >= sp or y0 - r[3] >= sp:
+                continue
+            if rgap(r, rect) >= sp:            # diagonal neighbours: Euclidean corner gap
                 continue
             if n == net:
                 if r != rect:

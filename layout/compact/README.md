@@ -40,12 +40,13 @@ development, so it never clashes with `layout/slot`.
 
 | Cell | Size | Placement | Magic DRC | KLayout DRC | LVS | PEX |
 |---|---|---|---|---|---|---|
-| cslot_ah (S), **baseline** | 28.0 × 31.22 (874 µm², −28 % vs 1218) | MOM_STYLE=tall, seed 1, CHAN 1.8 | 0 | 0 | match | Cfb 6.51 fF, vm wiring 11.0 fF |
+| cslot_ah (S), **baseline, level 2 (XSW 1 µm)** | 28.0 × 31.22 (874 µm², −28 % vs 1218) | MOM_STYLE=tall, seed 1, CHAN 1.8 | 0 | 0 | match | Cfb 6.14 fF, vm wiring 11.0 fF; f–I 0.887–0.896 |
 | cslot_ah (S), smallest | 28.0 × 29.42 (824 µm², −32 %) | gate MOM, seed 2, CHAN 1.2 | 0 | 0 | match | Cfb 5.0 fF (below 6–10), vm 9.0 fF |
-| cslot_ah_h (H) | 28.0 × 35.36 planned (two short W ≤ 0.5 rows for the ladder) | CHAIN_MAX 13, STEPS 80000 | search running | | | |
+| cslot_ah_h (H) | 35.36 / 37.76 tried (two short W ≤ 0.5 rows for the ladder) | CHAIN_MAX 13, STEPS 80000 | **not routed**: 19–30 nets fail (ladder XT.n*, detector) | | | |
 
 Post-layout f–I (typical 27 °C, S = 100), PEX/schematic over 1.5–8× rheobase: baseline **0.850–0.860**, smallest
 0.876–0.889 (old layout 0.817–0.829). Baseline vm swing 1.254–1.475 V (schematic 1.230–1.496).
 
-**Open:** H/P/F/CMP/AH50/AH800/REF; level-2 reset switch `wsw=1u` (edit `slot.spice` only when no search is running:
-trials re-read the netlist); corner sims.
+**Open:** H routability (move the ladder rows below the band?), P/F/CMP/AH50/AH800/REF, corner sims. Edit `slot.spice`
+only when no search is running (trials re-read the netlist). Router gaps are Euclidean at corners since 2026-11-21.
+A search worker needs ~0.85 GB: at most 2 workers fit the 2.5 GB `millstone-heavy` cap.
