@@ -46,6 +46,10 @@ use r_w1_l14p555  R10
 timestamp 1794972955
 transform 1 0 4840 0 1 2018
 box -100 -1578 100 1578
+use p_w4_l0p5  HDR
+timestamp 1794972958
+transform 1 0 5558 0 1 1370
+box -224 -530 224 530
 use p_w10_l10  C1
 timestamp 1794972957
 transform 1 0 1728 0 1 5406
@@ -54,8 +58,4 @@ use p_w10_l10  C2
 timestamp 1794972957
 transform 1 0 4744 0 1 5406
 box -1174 -1130 1174 1130
-use p_w4_l0p5  HDR
-timestamp 1794972958
-transform 1 0 2300 0 1 8024
-box -224 -530 224 530
 << end >>

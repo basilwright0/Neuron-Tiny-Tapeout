@@ -238,6 +238,6 @@ def vdacr_pack(k):
 if __name__ == "__main__":
     name = sys.argv[1]
     import os
-    gen = vdacr_pack if os.environ.get("VDACR_PACK") == "1" else vdacr
+    gen = vdacr_pack if os.environ.get("VDACR_PACK", "1") == "1" else vdacr   # M3 (b1int): packed by default; VDACR_PACK=0 = M2 leaves
     f = vi() if name == "bias_vi" else gen(name.split("_", 1)[1])
     sys.exit(1 if f else 0)

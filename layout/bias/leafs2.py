@@ -42,8 +42,8 @@ def res_extent(w, l):
 
 
 # ============================================================================ bias_rails
-def rails(compact=False):
-    c = Cell("bias_rails_c" if compact else "bias_rails")
+def rails(compact=False, name=None):
+    c = Cell(name or ("bias_rails_c" if compact else "bias_rails"))
     nodes = ["top", "vsp", "a1", "a2", "a3", "vgln", "b1", "vglp", "c1", "c2", "vsn", "vss"]
     named = {"top", "vsp", "vgln", "vglp", "vsn", "vss"}
     bb = res_extent(1.0, RUNIT_L)
@@ -500,6 +500,7 @@ def ladder():
 
 if __name__ == "__main__":
     name = sys.argv[1]
-    f = {"bias_rails": rails, "bias_master": master, "vref_string64": vref, "vdac6": vdac6, "bias_rangegen": rangegen,
+    # M3 (b1int): bias_rails is the compact b1a re-pack by default (same ports / pin x); RAILS_C=0 = M2 cell
+    f = {"bias_rails": lambda: rails(__import__("os").environ.get("RAILS_C", "1") == "1", "bias_rails"), "bias_master": master, "vref_string64": vref, "vdac6": vdac6, "bias_rangegen": rangegen,
          "bias_ladder": ladder, "bias_rails_c": lambda: rails(True)}[name]()
     sys.exit(1 if f else 0)
