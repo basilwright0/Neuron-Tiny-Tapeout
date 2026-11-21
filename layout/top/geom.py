@@ -107,9 +107,12 @@ def array(F):
                     vias.append((base + j, sx + pins[f"t{j}"][0]["pt"][0]))
         # tracks: west end (shared: to the join line), east end (to the fan-out)
         east = [k for k in sorted(net_of) if k not in SHARED or r == SHARED_EAST_ROW]
-        xe = {k: gx(ax1 + 0.71 + 0.7 * (xoff + j)) for j, k in enumerate(east)}
-        if fp.row_y0(r + 1) < fp.BLOCKS["A1 AdEx"][3]:   # this row's lines run north past AdEx: keep the columns
-            xoff += len(east)
+        past = fp.row_y0(r + 1) < fp.BLOCKS["A1 AdEx"][3]  # this row's lines run north past AdEx (CH_NAE)
+        pitch = 0.56 if past else 0.7          # CH_NAE: 16 lines (rsel, 3 spk, 12 trim) at the Metal2 minimum pitch
+        xe = {k: gx(ax1 + 0.71 + xoff + pitch * j) for j, k in enumerate(east)}
+        if past:                                # keep the columns (xoff is a distance here)
+            xoff += pitch * len(east)
+            assert ax1 + 0.71 + xoff - pitch + 0.14 <= fp.BLOCKS["A1 AdEx"][0] + 0.85 - 0.5, "CH_NAE overflow"
         xw = {k: gx(ax0 - 0.69 - 0.7 * j) for j, k in enumerate(sorted(SHARED))}
         for k, net in net_of.items():
             ty = y0 + TRK0 + TRKP * k
@@ -118,8 +121,8 @@ def array(F):
             F.p("metal3", (xa, ty - 0.14, xb, ty + 0.14), net)
             if k in xe:              # east fan-out: via2 + Metal2 to the terminal (row 0 up, rows 1-3 down)
                 F.p("via2", (xe[k] - 0.14, ty - 0.14, xe[k] + 0.14, ty + 0.14), net)
-                if r == 0:              # up: 0.7 above the row top (row 1's band is far above)
-                    yt = gy(y0 + fp.ROW_H[0] + 0.7)
+                if past:                # up past AdEx's top (the router keeps 0.42 off AdEx: no room east of it)
+                    yt = gy(fp.BLOCKS["A1 AdEx"][3] + 1.0)
                     F.p("metal2", (xe[k] - 0.14, ty - 0.2, xe[k] + 0.14, yt + 0.14), net)
                     F.term(net, [("metal2", (xe[k] - 0.14, yt - 0.42, xe[k] + 0.14, yt + 0.14))])
                 else:
