@@ -216,3 +216,46 @@ def build_chains(fingers, degree, wmatch=True):
                     ch.items.insert(0, (f, fl))
         chains.append(ch)
     return chains
+
+
+def reverse(ch):
+    return Chain(ch.typ, [(f, not fl) for f, fl in reversed(ch.items)])
+
+
+def chain_width(ch, contacted):
+    return draw_chain(ch, contacted)["width"]
+
+
+def merge_chains(fingers, degree, contacted, wmax_len=12.0, supply=("vdd", "vss")):
+    """Chain by merging chain ends: start from single fingers, repeatedly join the best-scoring pair of chains whose
+    facing end nets match (either chain may be reversed). Score: uncontacted internal node (degree 2) 8, signal net 3,
+    supply net 2, equal widths at the junction 1. Merged chains stay shorter than wmax_len (placement freedom)."""
+    return _merge_rest([Chain(f.typ, [(f, False)]) for f in fingers], degree, contacted, wmax_len, supply, set())
+
+
+def _merge_rest(chains, degree, contacted, wmax_len, supply, banned):
+    while True:
+        best = None
+        for i, a in enumerate(chains):
+            for j, b in enumerate(chains):
+                if i >= j:
+                    continue
+                for ra in (False, True):
+                    A = reverse(a) if ra else a
+                    for rb in (False, True):
+                        B = reverse(b) if rb else b
+                        net = A.nets()[-1]
+                        if net != B.nets()[0] or (id(a), id(b)) in banned:
+                            continue
+                        sc = (8 if degree.get(net, 0) == 2 else 2 if net in supply else 3)
+                        sc += 1 if abs(A.items[-1][0].W - B.items[0][0].W) < 1e-9 else 0
+                        if best is None or sc > best[0]:
+                            best = (sc, i, j, A, B, a, b)
+        if best is None:
+            return chains
+        sc, i, j, A, B, a, b = best
+        m = Chain(A.typ, A.items + B.items)
+        if chain_width(m, contacted) > wmax_len:
+            banned.add((id(a), id(b)))
+            continue
+        chains = [c for k, c in enumerate(chains) if k not in (i, j)] + [m]

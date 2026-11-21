@@ -25,7 +25,7 @@ HERE = Path(__file__).resolve().parent
 SLOT = HERE.parent / "slot"
 sys.path[:0] = [str(HERE), str(SLOT)]
 import flatten                                   # noqa: E402
-from geom import fold, build_chains, draw_chain, snap, DIFF_SP, Chain   # noqa: E402
+from geom import fold, build_chains, merge_chains, draw_chain, snap, DIFF_SP, Chain   # noqa: E402
 from crouter import Router, rgap                 # noqa: E402
 
 OUT = HERE / "out"
@@ -51,6 +51,7 @@ BAND_TOP_GAP = 0.90                                       # band top below the c
 TRACK = {"sta": 0, "stb": 1, "hold": 2, "mreset": 3, "rsel": 4, "sub": 5, "sub_b": 6}
 PINS = {"sta": 17.40, "stb": 15.30, "hold": 14.00, "mreset": 17.40, "rsel": 15.30, "sub": 14.00, "sub_b": 17.40}
 STRAPS = {"spk": 16.60}
+STRAP_TRACKS = {"spk": (7, 10)}
 SUPPLY = {"vdd", "vss"}
 
 # row plan, bottom to top. ("ring"): p-tap ring edge; ("ptap"/"ntap"): tap strips; ("row", typ, dir, wmax, name):
@@ -65,7 +66,9 @@ if os.environ.get("CHAN"):
 WFOLD = {"n": 2.0, "p": 2.0}
 TALL = {"XC.XC": 3.535, "XPM.XMF": 4.0}         # devices folded for the tall cap row (finger W)
 MEMCAP = "XC.XC"
-CB_W = float(os.environ.get("CB_W", "6.0"))     # column-band escape weight (per um)
+CHAIN_LEN = float(os.environ.get("CHAIN_LEN", "0"))   # 0: greedy chainer; > 0: merge chainer, max chain length
+CB_W = float(os.environ.get("CB_W", "6.0"))
+CONG = float(os.environ.get("CONG", "0"))       # weight of the congestion (RUDY overflow) term     # column-band escape weight (per um)
 NETW = {"vm": 4.0, "vr": 2.0, "spk": 1.5}         # HPWL weights
 # Cfb MOM over the membrane cap's first finger (Metal1-3 fingers, spk/vm); value tuned by PEX
 MOM = dict(nf=11, pitch=0.58, fw=0.30)
@@ -99,7 +102,10 @@ def make_chains(fingers, deg):
         for grp in ([f for f in tall if f.dev == k] for k in TALL):
             if grp:
                 chains += build_chains(grp, deg)
-        chains += build_chains(rest, deg)
+        if CHAIN_LEN > 0:       # merge-based chaining, chains capped at CHAIN_LEN um
+            chains += merge_chains(rest, deg, lambda n, i: deg.get(n, 0) != 2, CHAIN_LEN)
+        else:
+            chains += build_chains(rest, deg)
     return chains
 
 
@@ -165,6 +171,19 @@ class Placement:
             self.fixed.setdefault(n, []).append((None, self.track_y(8.5)))
         self.assign = [[] for _ in rows]
         self.memcap = next((i for i, ch in enumerate(chains) if any(f.dev == MEMCAP for f, _ in ch.items)), None)
+        # strap lane: the band straps (spk over tracks 7-10; trim bits over 11-18) run in a reserved x lane just west
+        # of the column lines; chains in the rows they cross skip it
+        self.straps = [n for n in STRAPS if n in PORTS]
+        self.lane = None
+        if self.straps:
+            lx1 = snap(COLS[0][1] - COLS[0][2] / 2)
+            self.strap_x = [snap(lx1 - 0.28 - 0.15 - 0.58 * k) for k in range(len(self.straps))]
+            lx0 = snap(self.strap_x[-1] - 0.15 - 0.62)
+            y0 = min(self.track_y(STRAP_TRACKS[n][0]) for n in self.straps) - 0.7
+            y1 = max(self.track_y(STRAP_TRACKS[n][1]) for n in self.straps) + 0.7
+            self.lane = (lx0, lx1)
+            for r in rows:
+                r["lane"] = self.lane if (r["y0"] < y1 and r["y1"] > y0) else None
 
     def track_y(self, k):
         return snap(self.band[0] + 0.14 + TRACK_PITCH * k)
@@ -194,19 +213,26 @@ class Placement:
     def layout(self):
         """chain index -> (x, row index, mirrored)."""
         pos = {}
+        self.ends = []
         for r, a in enumerate(self.assign):
             x = self.rows[r]["x0"]
+            lane = self.rows[r].get("lane")
             for ci, m in a:
+                if ci == self.memcap:       # the membrane cap sits flush east, under the column band (shielded)
+                    pos[ci] = (snap(self.rows[r]["x1"] - self.geo[ci]["width"]), r, m)
+                    continue
+                w = self.geo[ci]["width"]
+                if lane and x < lane[1] and x + w > lane[0]:
+                    x = lane[1]
                 pos[ci] = (x, r, m)
-                x += self.geo[ci]["width"] + DIFF_SP
+                x += w + DIFF_SP
+            self.ends.append(x - DIFF_SP + (self.geo[self.memcap]["width"] + DIFF_SP
+                                            if self.memcap is not None and any(ci == self.memcap for ci, _ in a) else 0))
         return pos
 
     def overflow(self):
-        ov = 0.0
-        for r, a in enumerate(self.assign):
-            w = sum(self.geo[ci]["width"] for ci, _ in a) + DIFF_SP * max(0, len(a) - 1)
-            ov += max(0.0, w - (self.rows[r]["x1"] - self.rows[r]["x0"]))
-        return ov
+        self.layout()
+        return sum(max(0.0, e - self.rows[r]["x1"]) for r, e in enumerate(self.ends))
 
     def term_points(self, pos=None):
         pos = pos or self.layout()
@@ -241,13 +267,42 @@ class Placement:
             for x, y in ps:
                 if x > cb0 and not (net in COLX and abs(x - COLX[net]) < 0.3):
                     c += CB_W * (x - cb0)
-        # the membrane cap (with the Cfb MOM over it) stays west of the Metal2 column band
-        for ci, (x, r, m) in pos.items():
-            if ci == self.memcap:
-                c += 200.0 * max(0.0, x + self.geo[ci]["width"] - (COLS[0][1] - 0.6))
         # supply S/D in a row of the other supply must be routed: mild penalty
         c += 400.0 * self.overflow()
+        if CONG > 0:
+            c += CONG * self.congestion(pts)
         return c
+
+    def congestion(self, pts, BIN=2.0):
+        """RUDY-style routing overflow: each signal net's bbox spreads 1/h horizontal and 1/w vertical tracks over
+        its area; capacity per um: Metal3 (horizontal) only below the row band, Metal2 (vertical) only west of the
+        column lines, plus a little Metal1 everywhere."""
+        nx, ny = int(math.ceil(W / BIN)), int(math.ceil(self.H / BIN))
+        dh = [[0.0] * nx for _ in range(ny)]
+        dv = [[0.0] * nx for _ in range(ny)]
+        for net, ps in pts.items():
+            if net in SUPPLY or len(ps) < 2:
+                continue
+            xs = [p[0] for p in ps]
+            ys = [p[1] for p in ps]
+            x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+            w, h = max(x1 - x0, 0.6), max(y1 - y0, 0.6)
+            for j in range(int(y0 // BIN), min(ny, int(y1 // BIN) + 1)):
+                fy = (min(y1 + 0.3, (j + 1) * BIN) - max(y0 - 0.3, j * BIN)) / BIN
+                for i in range(int(x0 // BIN), min(nx, int(x1 // BIN) + 1)):
+                    fx = (min(x1 + 0.3, (i + 1) * BIN) - max(x0 - 0.3, i * BIN)) / BIN
+                    f = max(0.0, fx) * max(0.0, fy)
+                    dh[j][i] += f * BIN / h
+                    dv[j][i] += f * BIN / w
+        ov = 0.0
+        cb = COLS[0][1] - 0.3
+        for j in range(ny):
+            yc = (j + 0.5) * BIN
+            ch = BIN * (0.4 + (1.0 / 0.56 if yc < self.band[0] - 0.3 else 0.0))
+            for i in range(nx):
+                cv = BIN * (0.4 + (1.0 / 0.56 if (i + 0.5) * BIN < cb else 0.0))
+                ov += max(0.0, dh[j][i] - ch * 0.5) + max(0.0, dv[j][i] - cv * 0.5)
+        return ov
 
     def move(self):
         """Random move; returns an undo closure."""
@@ -372,7 +427,12 @@ def build_geometry(pl):
         if any(f.dev == MEMCAP for f, _ in pl.chains[ci].items):
             gx = [tf((x0, 0, x1, f.W)) for (f, x0, x1) in g["gates"]]
             capbox = (min(b[0] for b in gx), min(b[1] for b in gx), max(b[2] for b in gx), max(b[3] for b in gx))
-            G.capgates = gx
+            G.capgates = sorted(gx)
+            # Metal1 vss shield over the cap gate under the Metal2 column lines (no bias/switching line couples to vm)
+            for b in gx:
+                x0 = max(b[0], COLS[0][1] - 0.6)
+                if x0 < b[2] - 0.3:          # covers the vss contact stripes beside the gate too
+                    G.p("metal1", (x0 - 0.375 if x0 == b[0] else x0, b[1], b[2] + 0.375, b[3]), "vss", "m1")
     # ------------------------------------------------ ring, strips, wells
     ring = [(0, 0, W, RING), (0, H - RING, W, H), (0, 0, RING, H), (W - RING, 0, W, H)]
     c = (RING - 0.23) / 2
@@ -442,11 +502,11 @@ def build_geometry(pl):
         G.p("metal2", rr, net, "m2")
         G.term(net, [("m2", rr)])
         G.labels.append((net, "metal2", rr, "signal"))
-    for net in STRAPS:
-        if net not in ports:
-            continue
-        y0, y1 = snap(pl.track_y(7) - 0.2), snap(pl.track_y(10) + 0.2)
-        rr = pick(net, lambda x: (x - 0.15, y0, x + 0.15, y1))
+    for k, net in enumerate(pl.straps):
+        a, b = STRAP_TRACKS[net]
+        y0, y1 = snap(pl.track_y(a) - 0.2), snap(pl.track_y(b) + 0.2)
+        x = pl.strap_x[k]
+        rr = (x - 0.15, y0, x + 0.15, y1)
         placed.append(rr)
         G.p("metal2", rr, net, "m2")
         G.term(net, [("m2", rr)])
@@ -640,9 +700,13 @@ def place_one(seed, steps):
 
 def set_params(params):
     """Search knobs per trial: CB_W (column-band escape weight), CHAN (routing channel height), NETW_vm ..."""
-    global ROWPLAN, CB_W
+    global ROWPLAN, CB_W, CHAIN_LEN, CONG
     for k, v in (params or {}).items():
-        if k == "CHAN":
+        if k == "CONG":
+            CONG = v
+        elif k == "CHAIN_LEN":
+            CHAIN_LEN = v
+        elif k == "CHAN":
             ROWPLAN = [("chan", v) if e[0] == "chan" else e for e in ROWPLAN]
         elif k == "CB_W":
             CB_W = v
@@ -651,6 +715,13 @@ def set_params(params):
 
 
 def trial(args):
+    try:
+        return _trial(args)
+    except Exception as e:          # a failed trial never stops the search
+        return dict(seed=args[0], params=args[3], cost=0, failed=[f"error: {e}"], wl=0, t=0)
+
+
+def _trial(args):
     seed, steps, iters, params = args
     set_params(params)
     t0 = time.time()
@@ -660,6 +731,9 @@ def trial(args):
     G = build_geometry(pl)
     import access
     blocked = access.check(pl, G, verbose=False)
+    if not blocked:
+        import solo
+        blocked = solo.check(pl, G)
     if blocked:
         return dict(seed=seed, params=params, cost=c, failed=["blocked:" + b[0] for b in blocked], wl=0,
                     t=time.time() - t0)
@@ -780,6 +854,7 @@ def main():
         return 0
     if "trial" in sys.argv:          # one placement, one routing schedule, preview with wires
         seed = int(os.environ.get("SEED", "0"))
+        set_params(sweep()[0])
         pl, c = place_one(seed, steps)
         G = build_geometry(pl)
         t0 = time.time()
