@@ -41,7 +41,10 @@ def has(net):
 U = 200                              # magic internal units per um in device files (magscale 1 10)
 
 # ============================================================================ cell frame
-W, H1 = 28.0, 43.5                   # H1: one slot row
+W = 28.0
+# H1: one slot row. M2 regrouped array (2026-11-21): the tall rows use SLOT_H1=45.74 with NTRACK=23 (4 extra
+# trim tracks for a third trimmed slot per row); the defaults reproduce the Latin-square cells.
+H1 = float(os.environ.get("SLOT_H1", "43.5"))
 H = 2 * H1 if DOUBLE else H1
 RING = 0.60                          # p-tap (VSS) ring width, on the cell edge (merges with neighbours)
 
@@ -53,10 +56,10 @@ COLS = [("vbp_syn", 19.05, 0.30), ("vdd", 19.85, 0.60), ("el", 20.65, 0.30), ("a
 # VSS needs no Metal2 column: the p-tap ring's Metal1 left/right edges abut top-to-bottom.
 # Metal3 feed-through band (row digital lines): no cell metal3 inside, vm kept out of it.
 # 19 tracks at the Metal3 minimum pitch (0.28 + 0.28): centres 32.38 + 0.56 k, k = 0..18 (top 42.46).
-NTRACK = 19
+NTRACK = int(os.environ.get("NTRACK", "19"))
 TRACK_PITCH = 0.56
 TRACK_Y0 = 32.38
-BAND = (0.0, round(TRACK_Y0 - 0.14, 3), W, 42.60)
+BAND = (0.0, round(TRACK_Y0 - 0.14, 3), W, round(TRACK_Y0 + TRACK_PITCH * (NTRACK - 1) + 0.14, 3))
 BANDS = [BAND] + ([(0.0, BAND[1] + H1, W, BAND[3] + H1)] if DOUBLE else [])
 # Fixed track assignment of the row signals (docs: layout/slot/README.md):
 #   k = 0 sta, 1 stb, 2 hold, 3 mreset (rt_out, shared by every slot), 4 rsel (probe row select),
@@ -85,7 +88,7 @@ if TRIM:
 STRAP_Y = (BAND[1], BAND[3] - 0.1)
 # a strap only spans the tracks its signal may be assigned to (spk: k 7..10, trim bits: k 11..18)
 STRAP_BOTTOM = {n: (31.95 if n.startswith("t") else round(track_y(7) - 0.2, 3)) for n, _ in STRAPS}
-STRAP_TOP = {n: round(track_y(10 if n == "spk" else 18) + 0.2, 3) for n, _ in STRAPS}
+STRAP_TOP = {n: round(track_y(10 if n == "spk" else NTRACK - 1) + 0.2, 3) for n, _ in STRAPS}
 KEEPOUT = {}       # the former trim / synapse keep-outs now hold the synapse and the gap trim
 # n-well island for all PMOS, with its own n-tap (VDD) ring; VDD rail = ring's bottom edge
 NWELL = (0.90, 21.20, 21.60, 29.80)
@@ -194,7 +197,7 @@ if CMP:
 HEAD_DOWN = {"XC2.XC"}                # devices whose gate head is drawn below the diffusion
 # Metal1 vss shield plates (AH800: over XC2, from above its gate head to the top ring)
 # y0 30.66: the plate is "wide metal" (> 10 um), so M1.2b needs 0.30 um to the XC2 gate-head pad (top 30.34)
-PLATES = [(0.60, 30.66, 13.48, 43.50)] if CELL == "slot_ah_800" else []
+PLATES = [(0.60, 30.66, 13.48, H1)] if CELL == "slot_ah_800" else []
 FLIP = {"XPM.XSW", "XPR.XSW", "XR.XNR", "XS.XWA", "XS.XWB", "XS.XPH", "XS.XQA", "XS.XQB"}
 if PROBE_CHAIN:
     FLIP |= {"XPM.XSC", "XPM.XSB", "XPR.XSB"}
