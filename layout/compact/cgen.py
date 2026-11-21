@@ -136,21 +136,25 @@ def plan_rows():
     def rh(e):
         return TAP_GAP + max(e[3], 0.36) + HEADS
     rows, strips, y = [], [], 0.0
-    for i, e in enumerate(ROWPLAN):
+    plan = list(ROWPLAN)
+    if os.environ.get("CHANS"):      # per-channel heights in plan order (all on the 0.005 grid), e.g. a row height
+        ch = iter(float(v) for v in os.environ["CHANS"].split(","))   # between the CHAN steps: 3.87,3.875,3.875
+        plan = [("chan", next(ch)) if e[0] == "chan" else e for e in plan]
+    for i, e in enumerate(plan):
         k = e[0]
         if k in ("ring", "ptap", "ntap"):
             h = RING if k == "ring" else TAP
-            strips.append((k, y, y + h))
+            strips.append((k, snap(y), snap(y + h)))
             y += h
         elif k == "chan":
             y += e[1]
         else:
             h = rh(e)
             if e[2] == "up":
-                assert ROWPLAN[i - 1][0] in ("ring", "ptap", "ntap"), e
+                assert plan[i - 1][0] in ("ring", "ptap", "ntap"), e
                 rows.append(dict(name=e[4], typ=e[1], dir=1, wmax=e[3], base=y + TAP_GAP, y0=y, y1=y + h))
             else:
-                assert ROWPLAN[i + 1][0] in ("ring", "ptap", "ntap"), e
+                assert plan[i + 1][0] in ("ring", "ptap", "ntap"), e
                 rows.append(dict(name=e[4], typ=e[1], dir=-1, wmax=e[3], base=y + h - TAP_GAP, y0=y, y1=y + h))
             y += h
     H = snap(y)
