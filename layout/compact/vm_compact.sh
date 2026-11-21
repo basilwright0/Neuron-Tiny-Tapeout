@@ -4,6 +4,7 @@
 set -u
 CELLS="$1"; SWEEP="$2"; SEEDS="${3:-6}"
 cd "$(dirname "$0")"
+mkdir -p out          # git-ignored: absent in a fresh clone
 IMG=hpretl/iic-osic-tools:2026.08
 docker image inspect $IMG >/dev/null 2>&1 || docker pull $IMG > out/pull.log 2>&1
 for C in $CELLS; do
