@@ -155,7 +155,89 @@ def vdacr(k):
     return finish(c, W, H, None, base=0.6)
 
 
+# ============================================================================ vdacr_* (MIL-133 B1-b re-pack)
+def res_cols(rs, slack=0.7, gap=1.4):
+    """Pack the chain's resistors into columns: tall strips alone, consecutive short ones stacked
+    (chain order kept, so a lower strip's top net is the upper strip's bottom net)."""
+    hts = [res_extent(w, l) for _, _, _, w, l in rs]
+    hmax = max(b[3] - b[1] for b in hts)
+    cols, cur, ch = [], [], 0.0
+    for it, b in zip(rs, hts):
+        h = b[3] - b[1]
+        if cur and ch + gap + h <= hmax + slack:
+            cur.append((it, b)); ch += gap + h
+        else:
+            if cur:
+                cols.append(cur)
+            cur, ch = [(it, b)], h
+    cols.append(cur)
+    return cols
+
+
+def vdacr_pack(k):
+    """Same netlist as vdacr(): short chain segments stacked in shared columns, tight device rows."""
+    name = f"vdacr_{k}"
+    rs = sch_res(name)
+    nb = 6 if k == "vt" else 5
+    sw = (12.0, 0.28) if nb == 6 else (8.0, 0.28)
+    GX = float(__import__("os").environ.get("VDACR_GX", "1.2"))
+    c = Cell(name)
+    cols = res_cols(rs)
+    pitch = 1.2
+    rw = sum(max(b[2] - b[0] for _, b in col) for col in cols) + pitch * (len(cols) - 1)
+    ext_p = c.mos_extent("pfet", 1.0, 1.0, 1, "top")
+    ext_s = c.mos_extent("nfet", sw[0] / 2, sw[1], 2, "top")
+    pw = nb * (ext_p[2] - ext_p[0]) + (nb - 1) * GX
+    sww = nb * (ext_s[2] - ext_s[0]) + (nb - 1) * 1.0
+    MR = float(__import__("os").environ.get("VDACR_MR", "1.3"))
+    W = snap(max(rw + 2 * (RING + MR), pw + 2 * (RING + 1.6), sww + 2 * (RING + 2.4), (nb + 1) * 2.8 + 2.4))
+    XL, XR = RING + 0.9, W - RING - 0.9
+    G = 1.2
+    y = RING + 0.9
+    pp = (W - 2 * RING - 2.0) / (nb + 1)
+    for b in range(nb):
+        pin(c, f"b{b}", RING + 1.0 + pp * (b + 0.5), y + 0.3)
+    pin(c, "vdd", RING + 1.0 + pp * (nb + 0.5), y + 0.3, "power")
+    y += 0.6 + G
+    nwb = y
+    y += 1.0
+    invp = [(f"IB{b}p", "pfet", 1.0, 1.0, 1, ["vdd", f"bb{b}"], f"b{b}", "top") for b in range(nb)]
+    y, _, _ = place_row(c, y, invp, XL, XR, GX)
+    c.tap("n", (XL + 0.5, y + 0.6, XR - 0.5, y + 1.2), "vdd")
+    c.p("nwell", (XL - 0.5, nwb, XR + 0.5, y + 1.8))
+    y += 1.8 + 1.4
+    invn = [(f"IB{b}n", "nfet", 0.5, 1.0, 1, ["vss", f"bb{b}"], f"b{b}", "top") for b in range(nb)]
+    y, _, _ = place_row(c, y, invn, XL, XR, GX + 0.4); y += G
+    sws = []
+    for b in range(nb):
+        top_, bot_ = f"n{b}", ("vss" if b == nb - 1 else f"n{b + 1}")
+        sws.append((f"SW{b}", "nfet", sw[0] / 2, sw[1], 2, [top_, bot_, top_], f"bb{b}", "top"))
+    y, _, _ = place_row(c, y, sws, XL, XR, 1.0); y += G
+    c.tap("p", (XL + 1.0, y - 0.6, XR - 1.0, y), "vss"); y += 0.4 + 1.2
+    y0 = y
+    x = (W - rw) / 2
+    ytop = y0
+    for col in cols:
+        cw = max(b[2] - b[0] for _, b in col)
+        yy = y0
+        for (nm, a, bn, w, l), bb in col:
+            r = c.res(nm, w, l, x + cw / 2 - (bb[0] + bb[2]) / 2, yy - bb[1], a, bn)
+            yy = r["bbox"][3] + 1.4
+            ytop = max(ytop, r["bbox"][3])
+        x += cw + pitch
+    nets = {a for _, a, _, _, _ in rs} | {b for _, _, b, _, _ in rs}
+    c.forbid_box(("m1",), ((W - rw) / 2 - 0.8, y0 - 0.8, (W + rw) / 2 + 0.8, ytop + 0.8), allowed=nets)
+    y = ytop + 1.4
+    pin(c, "out", W / 2, y + 0.3)
+    H = snap(y + 0.6 + 0.6 + RING)
+    frame(c, W, H)
+    c.label("vss", "metal1", (0.1, 0.1, 0.5, 0.5), "ground")
+    return finish(c, W, H, None, base=0.6)
+
+
 if __name__ == "__main__":
     name = sys.argv[1]
-    f = vi() if name == "bias_vi" else vdacr(name.split("_", 1)[1])
+    import os
+    gen = vdacr_pack if os.environ.get("VDACR_PACK") == "1" else vdacr
+    f = vi() if name == "bias_vi" else gen(name.split("_", 1)[1])
     sys.exit(1 if f else 0)

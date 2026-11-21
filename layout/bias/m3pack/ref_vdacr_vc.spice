@@ -1,0 +1,26 @@
+.subckt vdacr_vc out b0 b1 b2 b3 b4 vdd vss
+XRB0 out rb1 vss ppolyf_u_1k r_width=1u r_length=12.86u
+XRB1 rb1 rb2 vss ppolyf_u_1k r_width=1u r_length=12.86u
+XRB2 rb2 rb3 vss ppolyf_u_1k r_width=1u r_length=12.86u
+XRB3 rb3 n0 vss ppolyf_u_1k r_width=1u r_length=12.86u
+XRS0 n0 n1 vss ppolyf_u_1k r_width=2u r_length=1.315u
+XIB0p bb0 b0 vdd vdd pfet_03v3 W=1u L=1u
+XIB0n bb0 b0 vss vss nfet_03v3 W=0.5u L=1u
+XSW0 n0 bb0 n1 vss nfet_03v3 W=8u L=0.28u
+XRS1 n1 n2 vss ppolyf_u_1k r_width=2u r_length=2.625u
+XIB1p bb1 b1 vdd vdd pfet_03v3 W=1u L=1u
+XIB1n bb1 b1 vss vss nfet_03v3 W=0.5u L=1u
+XSW1 n1 bb1 n2 vss nfet_03v3 W=8u L=0.28u
+XRS2 n2 n3 vss ppolyf_u_1k r_width=1u r_length=2.59u
+XIB2p bb2 b2 vdd vdd pfet_03v3 W=1u L=1u
+XIB2n bb2 b2 vss vss nfet_03v3 W=0.5u L=1u
+XSW2 n2 bb2 n3 vss nfet_03v3 W=8u L=0.28u
+XRS3 n3 n4 vss ppolyf_u_1k r_width=1u r_length=5.175u
+XIB3p bb3 b3 vdd vdd pfet_03v3 W=1u L=1u
+XIB3n bb3 b3 vss vss nfet_03v3 W=0.5u L=1u
+XSW3 n3 bb3 n4 vss nfet_03v3 W=8u L=0.28u
+XRS4 n4 vss vss ppolyf_u_1k r_width=1u r_length=10.35u
+XIB4p bb4 b4 vdd vdd pfet_03v3 W=1u L=1u
+XIB4n bb4 b4 vss vss nfet_03v3 W=0.5u L=1u
+XSW4 n4 bb4 vss vss nfet_03v3 W=8u L=0.28u
+.ends vdacr_vc
