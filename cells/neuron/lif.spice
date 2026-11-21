@@ -25,12 +25,12 @@ XN y  a   vss vss nfet_03v3 W={wn} L={lnn}
 * spk high -> vr charged to VDD -> reset nfet holds vm at vreset; vr then discharges with
 * I_ref (from vbn_ref) and the reset switch fades out as vr falls below vreset + Vt.
 * t_ref ~ Cr * (3.3 - (vreset+~0.75)) / I_ref.  Cr = 50 fF NMOS cap (flat for vr > 1 V).
-.subckt refrac spk vm vr vreset vbn_ref vdd vss wcr=3.54u
+.subckt refrac spk vm vr vreset vbn_ref vdd vss wcr=3.54u wsw=0.5u
 Xi  spk spkb vdd vss inv3
 XPC vr  spkb vdd vdd pfet_03v3 W=1u L=0.28u
 XNR vr  vbn_ref vss vss nfet_03v3 W=2u L=4u
 XCR vr  vss mcap wl={wcr}
-XSW vm  vr  vreset vss nfet_03v3 W=0.5u L=0.5u
+XSW vm  vr  vreset vss nfet_03v3 W={wsw} L=0.5u
 .ends refrac
 
 * ------------------------------------------------------------- det_cmp ---
