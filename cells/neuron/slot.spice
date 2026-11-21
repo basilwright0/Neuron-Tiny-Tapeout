@@ -19,6 +19,7 @@
 *              there aux has no tau-trim cell, so the integrator connects B1's vth_cmp to column 3's aux).
 *              vsrc feeds through.
 *   slot_ah_50  AH50: as slot_ah with a 50 fF membrane (mcap 3.54 x 3.54).
+*   slot_ah_400 AH400: as slot_ah_800 with mcap_r 7.07 x 9.6 (~270 fF; fits the 7.07 cap row), ~470 fF total (M2 array).
 *   slot_ah_800 AH800: as slot_ah with 200 fF + ~540 fF (mcap_r 11.7 x 11.6 in the former trim space,
 *              Metal1 vss shield over it) = ~740 fF; the hold switch moves into the main n-well.
 *   slot_ref   REF slot (0,0): one prb_tap on el (sb = sub; PROBE_SUB = 3 -> row 0, column 0, sub = 1),
@@ -168,6 +169,20 @@ XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 .ends slot_ah_800
+
+* AH400 (M2, MIL-127 N11, 2026-11-21): as slot_ah_800 with half the extra cap (one 7.07 x 9.6 finger = the adopted 5.85 x 11.6 area,
+* ~270 fF; Cm ~470 fF total). Replaces AH800 in the M2 array (row 3).
+.subckt slot_ah_400 vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
++ vbp_syn sta stb hold mreset cfb=8f wf=4u lf=2u
+XC  vm vss mcap wl=7.07u
+XC2 vm vss mcap_r w=7.07u l=9.6u
+XL  vl el la vbn_leak vdd vss leak_ota_degx
+XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
+XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
+.ends slot_ah_400
 
 * REF: el, en, abus, vbn_prb, rsel, sub used; the other column lines feed through.
 .subckt slot_ref rsel sub el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn wf=4u lf=2u

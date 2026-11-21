@@ -81,6 +81,14 @@ XROW_W = float(os.environ.get("XROW_W", "5.85" if CELL == "slot_ah_800" else "0"
 if XROW_W:
     TALL["XC2.XC"] = XROW_W
     ROWPLAN = ROWPLAN[:1] + [("row", "n", "up", XROW_W, "NX"), ("ptap",)] + ROWPLAN[1:]
+# AH400 (MIL-127 N11): no extra row; the cap row NC grows to NC_W (7.07) so XC is one 7.07 x 7.07 finger and the
+# 5.85 x 11.6 mcap_r fits beside it (~21 um of the ~26 um row)
+NC_W = float(os.environ.get("NC_W", "7.07" if CELL == "slot_ah_400" else "0"))
+if NC_W:
+    TALL.update({"XC.XC": NC_W, "XC2.XC": NC_W})
+    if os.environ.get("NC_XMF", "0") != "1":     # the probe follower leaves the cap row (folded in the n rows)
+        TALL.pop("XPM.XMF")
+    ROWPLAN = [("row", "n", "up", NC_W, "NC") if e[:1] == ("row",) and e[4] == "NC" else e for e in ROWPLAN]
 MEMCAP = "XC.XC"
 CHAIN_LEN = float(os.environ.get("CHAIN_LEN", "0"))
 CHAIN_MAX = float(os.environ.get("CHAIN_MAX", "0"))   # greedy chainer length cap (0: one row width)   # 0: greedy chainer; > 0: merge chainer, max chain length

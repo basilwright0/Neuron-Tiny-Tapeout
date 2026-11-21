@@ -44,7 +44,7 @@ B1_NOTCHES = {"R1": (262.0, 12.0, 302.0, 54.0), "TAU2": (80.0, 116.0, 103.0, 126
 B1_CORRIDOR = (276.0, 54.0, 302.0, 126.5)                             # Metal3-free in B1: R1 feed-throughs
 BLOCKS = {
     "C1 control macro":     (MACRO_X, MACRO_Y, MACRO_X + MACRO_S, MACRO_Y + MACRO_S),
-    "NA neuron array 4x4":  (8.0, 140.0, 120.0, 140.0 + 2 * 45.74 + 29.42 + 37.44),  # M2 layout B: 158.34 tall
+    "NA neuron array 4x4":  (8.0, 140.0, 120.0, 140.0 + 2 * 45.74 + 29.42 + 32.49),  # M2 layout B: 153.39 tall
     "D1 dendrite":          (8.0, 12.0, 78.0, 116.0),
     "B1 bias generator":    B1_BOX,
     "R1 readout corner":    (262.0, 14.0, 302.0, 54.0),
@@ -56,7 +56,7 @@ ABUT = {("B1 bias generator", "R1 readout corner")}                   # R1 sits 
 STRAP_UA1 = (280.64, 0.0, 286.64, 14.0)                               # r1_ua1: ua[1] Metal3 strap through CH_BOT
 EST = {  # measured areas (um^2) of what goes in each box
     "C1 control macro": 166 * 166,
-    "NA neuron array 4x4": 4 * 28.0 * (2 * 45.74 + 29.42 + 37.44),
+    "NA neuron array 4x4": 4 * 28.0 * (2 * 45.74 + 29.42 + 32.49),
     "D1 dendrite": 70 * 104,
     "B1 bias generator": 264.5 * 114.5 - 40 * 42 - 23 * 10.5,
     "R1 readout corner": 40 * 40,
@@ -94,7 +94,8 @@ GLUE_ROW = (170.0, 5.5)  # probe-enable / D1 tap-select glue (or4, 4x nor3, 3x i
 # M2 regrouped array, layout B (user decisions 2026-11-21 14:32 and 19:24 UTC, MIL-36 `array-regroup-plan`): the
 # Latin square is replaced by two tall rows of trimmed slots at the bottom (layout/slot cells, 45.74 um per row,
 # 23-track band) and two compact rows on top (layout/compact cells, 19-track band): row 2 at 29.42 um, row 3 at
-# 37.44 um (the compact AH800 needs its own cap row; F2/F3/AH50 are built at the same height, cx* cells).
+# 32.49 um (AH400, MIL-127 N11: its extra cap sits in a 7.07 um cap row; F2/F3/AH50 are built at the same
+# height, cx* cells).
 # Row 0 is the bottom row of the array. Tall rows at the bottom keep every neuron probeable: the macro's probe
 # decoder (rev E, fixed: SEL = row x column) reads REF at (0,0) (PROBE_SUB = 3) and never selects (0,3), so REF
 # (tall slot_ref) sits at (0,0) and the lower half of the CMP double slot at (0,3).
@@ -104,28 +105,28 @@ GLUE_ROW = (170.0, 5.5)  # probe-enable / D1 tap-select glue (or4, 4x nor3, 3x i
 # rows 0-1 of column 3 (lower-left slot (0,3)); its other row pins (rt_out, sub/sub_b, spk, t0..t3) sit on the
 # row-0 band (BAND_ROW). P2/P3 keep columns 0/2 (tau-trim cells), CMP keeps column 3 (aux = vth_cmp).
 # The SEL -> neuron names follow this map (docs/regmap.md).
-MAP = {(3, 0): "F2", (3, 1): "F3", (3, 2): "AH50", (3, 3): "AH800",
+MAP = {(3, 0): "F2", (3, 1): "F3", (3, 2): "AH50", (3, 3): "AH400",
        (2, 0): "S1", (2, 1): "S2", (2, 2): "S3", (2, 3): "F1",
        (1, 0): "P2", (1, 1): "H2", (1, 2): "H3", (1, 3): "CMP",
        (0, 0): "REF", (0, 1): "H1", (0, 2): "P3"}
 SPIKE_CH = {"S1": 0, "F1": 1, "H1": 2, "ADEX": 3, "S2": 4, "F2": 5, "H2": 6, "P2": 7,
-            "S3": 8, "F3": 9, "H3": 10, "P3": 11, "CMP": 12, "D1": 13, "AH50": 14, "AH800": 15}
+            "S3": 8, "F3": 9, "H3": 10, "P3": 11, "CMP": 12, "D1": 13, "AH50": 14, "AH400": 15}
 DOUBLE = {"CMP": (0, 3)}             # name -> lower-left slot of a 2-row cell
 BAND_ROW = {"CMP": 0}                # row band of a double slot's row pins other than rsel
 # Trim nibble assignment, fixed so it matches the control block's TRIM_MASK (nibbles 0,2-8,14,15).
 TRIM_NIBBLES = {"H1.VTH": 0, "H2.VTH": 2, "P2.VTH": 3, "H3.VTH": 4, "P3.VTH": 5, "CMP.VTH": 6,
                 "D1.PLAT1": 7, "D1.PLAT2": 8, "P2.TAU": 14, "P3.TAU": 15}
 SLOT_W = 28.0
-TALL_H, COMPACT_H, COMPACT_X_H = 45.74, 29.42, 37.44
+TALL_H, COMPACT_H, COMPACT_X_H = 45.74, 29.42, 32.49
 ROW_H = (TALL_H, TALL_H, COMPACT_H, COMPACT_X_H)
 ROW_NTRACK = (23, 23, 19, 19)        # row band tracks: 0-10 shared/spk, then 4 trim tracks per trimmed slot
 TRKP = 0.56
 SLOT_CELL = {"S": "cslot_ah", "F": "cslot_ah_f", "H": "slot_ah_h", "P": "slot_ah_p", "REF": "slot_ref",
              "CMP": "slot_cmp_h", "F2": "cxslot_ah_f", "F3": "cxslot_ah_f", "AH50": "cxslot_ah_50",
-             "AH800": "cslot_ah_800"}
+             "AH400": "cslot_ah_400"}
 # compact cells (layout/compact/final) and their heights; the others are tall layout/slot cells
 COMPACT_CELLS = {"cslot_ah": COMPACT_H, "cslot_ah_f": COMPACT_H, "cxslot_ah_f": COMPACT_X_H,
-                 "cxslot_ah_50": COMPACT_X_H, "cslot_ah_800": COMPACT_X_H}
+                 "cxslot_ah_50": COMPACT_X_H, "cslot_ah_400": COMPACT_X_H}
 TAU_COLS = {0: "TE0 tau trim col 0", 2: "TE2 tau trim col 2"}         # P2 in column 0, P3 in column 2
 
 
