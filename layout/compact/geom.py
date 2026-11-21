@@ -168,7 +168,7 @@ def draw_chain(ch, contacted):
                 regions=regions, top=top)
 
 
-def build_chains(fingers, degree, wmatch=True):
+def build_chains(fingers, degree, wmatch=True, maxlen=None):
     """Greedy shared-diffusion chaining of one device type.
 
     degree[net] = number of device terminals (S/D and gate) on the net in the whole cell plus external pins;
@@ -209,11 +209,11 @@ def build_chains(fingers, degree, wmatch=True):
                 if best is None:
                     break
                 _, f, fl = best
+                trial = Chain(ch.typ, ch.items + [(f, fl)] if side == "R" else [(f, fl)] + ch.items)
+                if maxlen and draw_chain(trial, lambda n, i: degree.get(n, 0) != 2)["width"] > maxlen:
+                    break                       # row-width cap: the rest starts a new chain
                 left.remove(f)
-                if side == "R":
-                    ch.items.append((f, fl))
-                else:
-                    ch.items.insert(0, (f, fl))
+                ch.items = trial.items
         chains.append(ch)
     return chains
 

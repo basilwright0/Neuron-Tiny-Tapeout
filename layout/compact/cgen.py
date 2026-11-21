@@ -50,8 +50,8 @@ BAND_H = round(TRACK_PITCH * (NTRACK - 1) + 0.28, 3)      # 10.36
 BAND_TOP_GAP = 0.90                                       # band top below the cell top (as in the 43.5 slot)
 TRACK = {"sta": 0, "stb": 1, "hold": 2, "mreset": 3, "rsel": 4, "sub": 5, "sub_b": 6}
 PINS = {"sta": 17.40, "stb": 15.30, "hold": 14.00, "mreset": 17.40, "rsel": 15.30, "sub": 14.00, "sub_b": 17.40}
-STRAPS = {"spk": 16.60}
-STRAP_TRACKS = {"spk": (7, 10)}
+STRAPS = {"spk": 16.60, "t0": 0, "t1": 0, "t2": 0, "t3": 0}      # x chosen in the strap lane (value unused)
+STRAP_TRACKS = {"spk": (7, 10), "t0": (11, 18), "t1": (11, 18), "t2": (11, 18), "t3": (11, 18)}
 SUPPLY = {"vdd", "vss"}
 
 # row plan, bottom to top. ("ring"): p-tap ring edge; ("ptap"/"ntap"): tap strips; ("row", typ, dir, wmax, name):
@@ -61,12 +61,19 @@ SUPPLY = {"vdd", "vss"}
 ROWPLAN = [("ring",), ("row", "n", "up", 4.0, "NC"), ("chan", 0.6), ("row", "p", "down", 2.0, "P0"), ("ntap",),
            ("row", "p", "up", 2.0, "P1"), ("chan", 0.6), ("row", "n", "down", 2.0, "N1"), ("ptap",),
            ("row", "n", "up", 2.0, "N2"), ("chan", 0.6), ("row", "n", "down", 2.0, "N3"), ("ring",)]
+# cells with more n devices (gap-trim ladder): extra n rows on top
+EXTRA_N = {"slot_ah_h": 1, "slot_ah_p": 1}.get(CELL, int(os.environ.get("EXTRA_N", "0")))
+if EXTRA_N:
+    # two short rows (W <= 0.5: the ladder and the trim switches) around one more p-tap strip
+    ROWPLAN = ROWPLAN[:-1] + [("ptap",), ("row", "n", "up", 0.5, "N4"), ("chan", 0.6), ("row", "n", "down", 0.5, "N5"),
+                              ("ring",)]
 if os.environ.get("CHAN"):
     ROWPLAN = [("chan", float(os.environ["CHAN"])) if e[0] == "chan" else e for e in ROWPLAN]
 WFOLD = {"n": 2.0, "p": 2.0}
 TALL = {"XC.XC": 3.535, "XPM.XMF": 4.0}         # devices folded for the tall cap row (finger W)
 MEMCAP = "XC.XC"
-CHAIN_LEN = float(os.environ.get("CHAIN_LEN", "0"))   # 0: greedy chainer; > 0: merge chainer, max chain length
+CHAIN_LEN = float(os.environ.get("CHAIN_LEN", "0"))
+CHAIN_MAX = float(os.environ.get("CHAIN_MAX", "0"))   # greedy chainer length cap (0: one row width)   # 0: greedy chainer; > 0: merge chainer, max chain length
 CB_W = float(os.environ.get("CB_W", "6.0"))
 CONG = float(os.environ.get("CONG", "0"))       # weight of the congestion (RUDY overflow) term     # column-band escape weight (per um)
 NETW = {"vm": 4.0, "vr": 2.0, "spk": 1.5}         # HPWL weights
@@ -105,7 +112,7 @@ def make_chains(fingers, deg):
         if CHAIN_LEN > 0:       # merge-based chaining, chains capped at CHAIN_LEN um
             chains += merge_chains(rest, deg, lambda n, i: deg.get(n, 0) != 2, CHAIN_LEN)
         else:
-            chains += build_chains(rest, deg)
+            chains += build_chains(rest, deg, maxlen=CHAIN_MAX or (W - 2 * RING - 2 * DIFF_SP - 2.0))
     return chains
 
 
@@ -723,9 +730,11 @@ def place_one(seed, steps):
 
 def set_params(params):
     """Search knobs per trial: CB_W (column-band escape weight), CHAN (routing channel height), NETW_vm ..."""
-    global ROWPLAN, CB_W, CHAIN_LEN, CONG
+    global ROWPLAN, CB_W, CHAIN_LEN, CONG, CHAIN_MAX
     for k, v in (params or {}).items():
-        if k == "CONG":
+        if k == "CHAIN_MAX":
+            CHAIN_MAX = v
+        elif k == "CONG":
             CONG = v
         elif k == "CHAIN_LEN":
             CHAIN_LEN = v

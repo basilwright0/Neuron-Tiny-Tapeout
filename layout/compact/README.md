@@ -6,7 +6,7 @@ Generates the neuron-array slots from the schematic with no hand placement:
 - row-based placement: simulated annealing on weighted HPWL with hard penalties;
 - P&R search: each candidate placement is scored by a trial route (PathFinder on Metal1–3), run in parallel.
 
-    scripts/eda.sh "cd layout/compact && CB_W=4 SEED=2 SWEEP='CHAN=1.2;CONG=0' bash build.sh final"   # S slot (clean)
+    scripts/eda.sh "cd layout/compact && MOM_STYLE=tall CB_W=4 SEED=1 SWEEP='CHAN=1.8;CONG=0' bash build.sh final"  # S (baseline)
     millstone-heavy --project "Tiny Tapeout" -- env CB_W=4 SWEEP="CHAN=1.2" SEEDS=4 python3 -u cgen.py searchonly  # local search
     scripts/eda.sh "cd sim/tb && PEX_NAME=cslot_ah python3 tb_slot_fi.py typical 27 100 slot_ah"       # PEX f–I
 
@@ -38,15 +38,14 @@ development, so it never clashes with `layout/slot`.
 
 ## Status (2026-11-21)
 
-| Cell | Size | Route | Magic DRC | KLayout DRC | LVS | PEX |
+| Cell | Size | Placement | Magic DRC | KLayout DRC | LVS | PEX |
 |---|---|---|---|---|---|---|
-| cslot_ah (S) | 28.0 × 29.42 (824 µm², −32 % vs 1218) | seed 2, CHAN 1.2, clean | 0 | 0 | match | Cfb 5.0 fF (**below the 6–10 window**), vm wiring 9.0 fF (was 18.7) |
+| cslot_ah (S), **baseline** | 28.0 × 31.22 (874 µm², −28 % vs 1218) | MOM_STYLE=tall, seed 1, CHAN 1.8 | 0 | 0 | match | Cfb 6.51 fF, vm wiring 11.0 fF |
+| cslot_ah (S), smallest | 28.0 × 29.42 (824 µm², −32 %) | gate MOM, seed 2, CHAN 1.2 | 0 | 0 | match | Cfb 5.0 fF (below 6–10), vm 9.0 fF |
+| cslot_ah_h (H) | 28.0 × 35.36 planned (two short W ≤ 0.5 rows for the ladder) | CHAIN_MAX 13, STEPS 80000 | search running | | | |
 
-Post-layout f–I (typical 27 °C, S = 100), PEX/schematic over 1.5–8× rheobase: **0.876–0.889** (old layout 0.817–0.829).
-vm swings 1.263–1.455 V in PEX vs 1.230–1.496 in schematic.
+Post-layout f–I (typical 27 °C, S = 100), PEX/schematic over 1.5–8× rheobase: baseline **0.850–0.860**, smallest
+0.876–0.889 (old layout 0.817–0.829). Baseline vm swing 1.254–1.475 V (schematic 1.230–1.496).
 
-**Open:**
-- **Cfb.** The larger MOM styles (`MOM_STYLE=tall|head`) give more Cfb but no seed has routed them clean yet (best: 2
-  nets). Options: the 1.8 µm channel placement (H 31.2, routed clean with the small MOM), MOM tuning per seed, or
-  accept a smaller Cfb after a detector check.
-- **Not yet:** the other variants (H/P/F/CMP/AH50/AH800/REF), the level-2 reset-switch width (`wsw`), corner sims.
+**Open:** H/P/F/CMP/AH50/AH800/REF; level-2 reset switch `wsw=1u` (edit `slot.spice` only when no search is running:
+trials re-read the netlist); corner sims.
