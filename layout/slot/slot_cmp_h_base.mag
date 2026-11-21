@@ -110,10 +110,10 @@ use n_w3p54_l3p54  XR_XCR_XC
 timestamp 1795051080
 transform 1 0 4850 0 1 5000
 box -466 -422 466 422
-use n_w0p5_l0p5  XR_XSW
+use n_w1_l0p5  XR_XSW
 timestamp 1795051080
 transform 1 0 2560 0 1 1640
-box -162 -118 162 118
+box -162 -168 162 168
 use n_w4_l2  XPM_XMF
 timestamp 1795051080
 transform 1 0 3640 0 1 680

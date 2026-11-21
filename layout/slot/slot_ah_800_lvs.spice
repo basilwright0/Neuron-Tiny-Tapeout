@@ -27,7 +27,7 @@ XXR_Xi_XP XR.spkb spk vdd vdd pfet_03v3 W=1u L=0.28u
 XXR_XPC vr XR.spkb vdd vdd pfet_03v3 W=1u L=0.28u
 XXR_XNR vr vbn_ref vss vss nfet_03v3 W=2u L=4u
 XXR_XCR_XC vss vr vss vss nfet_03v3 W=3.54u L=3.54u
-XXR_XSW vm vr vreset vss nfet_03v3 W=0.5u L=0.5u
+XXR_XSW vm vr vreset vss nfet_03v3 W=1u L=0.5u
 XXPM_XMF vdd vm XPM.prb vss nfet_03v3 W=4u L=2u
 XXPM_XME XPM.prb en XPM.s vss nfet_03v3 W=1u L=0.28u
 XXPM_XMB XPM.s vbn_prb vss vss nfet_03v3 W=2u L=2u
