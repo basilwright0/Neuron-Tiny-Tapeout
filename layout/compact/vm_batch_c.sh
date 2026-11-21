@@ -5,6 +5,6 @@
 #   row3:  F and AH50 at H 32.49 (CHANS 2.225,2.225,2.22), names cx*             -> /home/user/row3c2_{out.tgz,done}
 cd "$(dirname "$0")/../.."
 case "$1" in
-ah400) TAG=ah400 bash layout/compact/vm_compact.sh "slot_ah_400" "CHAN=1.2;CONG=0" 8 ;;
+ah400) CB_W=${CB_W:-12} TAG=ah400 bash layout/compact/vm_compact.sh "slot_ah_400" "CHAN=1.2;CONG=0" 8 ;;
 row3)  CHANS=2.225,2.225,2.22 NAME_PREFIX=cx TAG=row3c2 bash layout/compact/vm_compact.sh "slot_ah_f slot_ah_50" "CHAN=2.225;CONG=0" 6 ;;
 esac
