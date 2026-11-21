@@ -68,14 +68,14 @@ transform 1 0 26200 0 1 14960
 box 0 0 5080 6982
 use bias_rails  Xr
 timestamp 0
-transform 1 0 36600 0 1 8800
+transform 1 0 32000 0 1 8800
 box 0 0 6200 9512
 use bias_master  Xm
 timestamp 0
-transform 1 0 46300 0 1 200
+transform 1 0 41700 0 1 200
 box 0 0 6400 12466
 use vdacr_vt  Xd3
 timestamp 0
-transform 0 -1 52792 1 0 13260
+transform 0 -1 48192 1 0 13260
 box 0 0 7280 8012
 << end >>
