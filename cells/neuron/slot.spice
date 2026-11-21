@@ -89,7 +89,7 @@ XP2  vm  a   vdd vdd pfet_03v3 W={wl} L={ll}
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -100,7 +100,7 @@ XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -112,7 +112,7 @@ XT  la vm vbn_leak t0 t1 t2 t3 vdd vss trim_gap4
 XC  vm vss mcap wl=7.07u
 XL  vl el la aux vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -125,7 +125,7 @@ XT  la vm aux t0 t1 t2 t3 vdd vss trim_gap4
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx wt=1u
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -139,7 +139,7 @@ XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm aux spk vbp_st vdd vss det_cmp
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -151,7 +151,7 @@ XT  la vm vbn_leak t0 t1 t2 t3 vdd vss trim_gap4
 XC  vm vss mcap wl=3.54u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -163,7 +163,7 @@ XC  vm vss mcap wl=7.07u
 XC2 vm vss mcap_r w=11.7u l=11.6u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -179,7 +179,7 @@ XPM el abus en rsel sub vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus vss vss vss vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus vss vss vss vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -193,7 +193,7 @@ XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm aux spk vbp_st vdd vss det_cmp
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
