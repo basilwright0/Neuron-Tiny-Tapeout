@@ -65,12 +65,17 @@ ROWPLAN = [("ring",), ("row", "n", "up", 4.0, "NC"), ("chan", 0.6), ("row", "p",
 EXTRA_N = {"slot_ah_h": 1, "slot_ah_p": 1}.get(CELL, int(os.environ.get("EXTRA_N", "0")))
 if EXTRA_N:
     # two short rows (W <= 0.5: the ladder and the trim switches) around one more p-tap strip
-    ROWPLAN = ROWPLAN[:-1] + [("ptap",), ("row", "n", "up", 0.5, "N4"), ("chan", 0.6), ("row", "n", "down", 0.5, "N5"),
-                              ("ring",)]
+    if os.environ.get("SHORT_ROWS", "low") == "top":
+        ROWPLAN = ROWPLAN[:-1] + [("ptap",), ("row", "n", "up", 0.5, "N4"), ("chan", 0.6),
+                                  ("row", "n", "down", 0.5, "N5"), ("ring",)]
+    else:   # low (default): right above the cap row, below the Metal3-free band (Metal3 available for the ladder)
+        i = ROWPLAN.index(("chan", 0.6))          # the channel above the cap row
+        ROWPLAN = ROWPLAN[:i + 1] + [("row", "n", "down", 0.5, "N5"), ("ptap",), ("row", "n", "up", 0.5, "N4"),
+                                     ("chan", 0.6)] + ROWPLAN[i + 1:]
 if os.environ.get("CHAN"):
     ROWPLAN = [("chan", float(os.environ["CHAN"])) if e[0] == "chan" else e for e in ROWPLAN]
 WFOLD = {"n": 2.0, "p": 2.0}
-TALL = {"XC.XC": 3.535, "XPM.XMF": 4.0}         # devices folded for the tall cap row (finger W)
+TALL = {"XC.XC": 3.54, "XPM.XMF": 4.0}         # devices folded for the tall cap row (finger W)
 MEMCAP = "XC.XC"
 CHAIN_LEN = float(os.environ.get("CHAIN_LEN", "0"))
 CHAIN_MAX = float(os.environ.get("CHAIN_MAX", "0"))   # greedy chainer length cap (0: one row width)   # 0: greedy chainer; > 0: merge chainer, max chain length
@@ -178,6 +183,8 @@ class Placement:
             self.fixed.setdefault(n, []).append((None, self.track_y(8.5)))
         self.assign = [[] for _ in rows]
         self.memcap = next((i for i, ch in enumerate(chains) if any(f.dev == MEMCAP for f, _ in ch.items)), None)
+        # a single-finger cap (AH50) stays west of the column band so the Cfb MOM can sit on it
+        self.cap_east = self.memcap is not None and len(chains[self.memcap].items) >= 2
         # strap lane: the band straps (spk over tracks 7-10; trim bits over 11-18) run in a reserved x lane just west
         # of the column lines; chains in the rows they cross skip it
         self.straps = [n for n in STRAPS if n in PORTS]
@@ -225,7 +232,7 @@ class Placement:
             x = self.rows[r]["x0"]
             lane = self.rows[r].get("lane")
             for ci, m in a:
-                if ci == self.memcap:       # the membrane cap sits flush east, under the column band (shielded)
+                if ci == self.memcap and self.cap_east:   # multi-finger cap: flush east, under the column band
                     pos[ci] = (snap(self.rows[r]["x1"] - self.geo[ci]["width"]), r, m)
                     continue
                 w = self.geo[ci]["width"]
@@ -234,7 +241,7 @@ class Placement:
                 pos[ci] = (x, r, m)
                 x += w + DIFF_SP
             self.ends.append(x - DIFF_SP + (self.geo[self.memcap]["width"] + DIFF_SP
-                                            if self.memcap is not None and any(ci == self.memcap for ci, _ in a) else 0))
+                                            if self.cap_east and any(ci == self.memcap for ci, _ in a) else 0))
         return pos
 
     def overflow(self):
@@ -275,6 +282,9 @@ class Placement:
                 if x > cb0 and not (net in COLX and abs(x - COLX[net]) < 0.3):
                     c += CB_W * (x - cb0)
         # supply S/D in a row of the other supply must be routed: mild penalty
+        if self.memcap is not None and not self.cap_east:
+            x, r, m = pos[self.memcap]
+            c += 200.0 * max(0.0, x + self.geo[self.memcap]["width"] - (COLS[0][1] - 0.9))
         c += 400.0 * self.overflow()
         if CONG > 0:
             c += CONG * self.congestion(pts)
