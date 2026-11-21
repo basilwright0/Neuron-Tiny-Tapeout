@@ -183,8 +183,6 @@ class Placement:
             self.fixed.setdefault(n, []).append((x, None))
         for n in PINS:
             self.fixed.setdefault(n, []).append((None, self.track_y(TRACK[n])))
-        for n in STRAPS:
-            self.fixed.setdefault(n, []).append((None, self.track_y(8.5)))
         self.assign = [[] for _ in rows]
         self.memcap = next((i for i, ch in enumerate(chains) if any(f.dev == MEMCAP for f, _ in ch.items)), None)
         # a single-finger cap (AH50) stays west of the column band so the Cfb MOM can sit on it
@@ -196,6 +194,10 @@ class Placement:
         if self.straps:
             lx1 = snap(COLS[0][1] - COLS[0][2] / 2)
             self.strap_x = [snap(lx1 - 0.28 - 0.15 - 0.58 * k) for k in range(len(self.straps))]
+            # each strap pins its net at its lane x (pulls the spike output and the trim-switch gates towards it)
+            for k, n in enumerate(self.straps):
+                a, b = STRAP_TRACKS[n]
+                self.fixed.setdefault(n, []).append((self.strap_x[k], self.track_y((a + b) / 2)))
             lx0 = snap(self.strap_x[-1] - 0.15 - 0.62)
             y0 = min(self.track_y(STRAP_TRACKS[n][0]) for n in self.straps) - 0.7
             y1 = max(self.track_y(STRAP_TRACKS[n][1]) for n in self.straps) + 0.7
