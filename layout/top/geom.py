@@ -143,6 +143,34 @@ def array(F):
                     for vx in (vl, vr):
                         F.p("via3", (vx - 0.14, jy - 0.14, vx + 0.14, jy + 0.14), net)
                     break
+    # stim A (track 0) on Metal4 across the array (PEX: its Metal3 ran 0.74 um from the slots' vm Metal3, 8-19 mV
+    # kick per edge); back on Metal3 only under the x 50 / 52.6 stripes; sta drops become via2 + via3 stacks
+    keep = [(x - 0.6, x + w + 0.6) for _, x, w in fp.STRIPES if x < ax1 and x + w > ax0]
+    hops, xa = [], ax0 + 0.6
+    for ka, kb in sorted(keep):
+        if ka > xa:
+            hops.append((xa, ka))
+        xa = max(xa, kb)
+    hops.append((xa, ax1 - 0.6))
+    for r in range(4):
+        jy = round(ay0 + r * fp.SLOT_H + TRK0, 3)
+        idx = [i for i, (lay, rr, net) in enumerate(F.shapes) if lay == "metal3" and rr[1] == round(jy - 0.14, 3)]
+        assert len(idx) == 1, (r, idx)
+        lay, rr, net = F.shapes.pop(idx[0])
+        cuts = [rr[0]] + [v for a, b in hops for v in (a, b)] + [rr[2]]
+        for xl, xr in zip(cuts[0::2], cuts[1::2]):                # Metal3 pieces: track ends and stripe gaps
+            xl = xl if xl == rr[0] else xl - 0.19
+            xr = max(xr, xl + 0.6) if xr == rr[2] else xr + 0.19     # east end stub: >= 0.6 long (Metal3 min area)
+            F.p("metal3", (xl, rr[1], xr, rr[3]), net)
+        for a, b in hops:
+            F.p("metal4", (a - 0.19, jy - 0.14, b + 0.19, jy + 0.14), net)
+            for vx in (a, b):
+                F.p("via3", (vx - 0.14, jy - 0.14, vx + 0.14, jy + 0.14), net)
+        for i, (lay2, q, n2) in enumerate(list(F.shapes)):
+            cx = round((q[0] + q[2]) / 2, 3)
+            if lay2 == "via2" and n2 == net and q[1] == round(jy - 0.14, 3) and any(a < cx < b for a, b in hops):
+                F.p("metal3", (cx - 0.3, jy - 0.14, cx + 0.3, jy + 0.14), net)
+                F.p("via3", q, net)
     # west join lines (Metal2) of the shared nets, row 0 track -> row 3 track
     xw = {k: gx(ax0 - 0.69 - 0.7 * j) for j, k in enumerate(sorted(SHARED))}
     d1y = C.instances()["d1"][2]
@@ -288,6 +316,11 @@ def blocks_power(F):
     xr = stripe_at("VDPWR", 345.4)
     F.p("metal3", (bx + 263.41, vy - 0.2, xr + 0.25, vy + 0.2), "VDPWR")
     F.via("via3", xr, vy, "VDPWR")
+    # B1 west power entry (PEX IR drop: receivers ~22 mV / 14 mV off with east-edge-only power): via3 drops from the
+    # x 121.0 VDPWR / 123.6 VGND stripes onto B1's 0.4 um Metal3 via pads under them (net trace of the 946cd68 GDS)
+    for (lx, ly), net in (((41.6, 28.2), "VDPWR"), ((41.6, 33.0), "VDPWR"), ((44.55, 37.65), "VGND"),
+                          ((44.2, 43.7), "VGND")):
+        F.p("via3", (bx + lx - 0.14, by + ly - 0.14, bx + lx + 0.14, by + ly + 0.14), net)
     # ---- R1: vdd/vss Metal3 rails extended down into CH_BOT, jogs to the strap-pair-2 / east stripes
     rx, ry = I["r1"][1:]
     gr = geo("r1_ua1")["pins"]

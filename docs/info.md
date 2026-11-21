@@ -108,6 +108,8 @@ oscilloscope or ADC reads `ua[1]`.
 
 - **Rewrite the whole configuration after every project enable.** The design is unpowered while deselected.
 - **Change the probe in three steps:** disable it (PROBE_EN = 0 with the old SEL/SUB), change SEL/SUB, then re-enable.
+  Wait at least 2.5 µs after re-enabling before sampling `ua[1]` (post-layout 1 % settling into 200 pF: 2.0 µs
+  typical, 2.05 µs at ss / 0 °C).
 - **Hold BIAS_EN = 0 while changing bias codes**, because a 5-bit code can straddle two bytes.
 - **Change digital-LIF parameters only while LIF_EN = 0**, and wait at least 3 clock cycles after clearing it.
 - **Stop `clk` during analog measurements.** The configuration latches, spike outputs and stimulus pass-throughs work
@@ -123,5 +125,5 @@ oscilloscope or ADC reads `ua[1]`.
 
 - A precision current source or SMU sourcing current into `ua[0]` (the pad sits at about 0.5–0.75 V): 0.1–10 µA in ÷1
   mode or 1.6–160 µA in ÷16 mode.
-- An oscilloscope or ADC on `ua[1]` (0.5–2.3 V output; about 1 µs settling into 200 pF).
+- An oscilloscope or ADC on `ua[1]` (0.5–2.3 V output; up to about 2 µs settling into 200 pF).
 - The Tiny Tapeout demo board's RP2040/RP2350 for configuration, stimulus timing and spike capture (PIO).

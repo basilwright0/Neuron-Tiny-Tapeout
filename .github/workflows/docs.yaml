@@ -1,7 +1,7 @@
 name: docs
 
 on:
-  push:
+  # manual runs only (Actions tab -> Run workflow, or `gh workflow run`)
   workflow_dispatch:
 
 jobs:
