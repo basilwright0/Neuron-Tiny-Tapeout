@@ -71,7 +71,7 @@ CB_W = float(os.environ.get("CB_W", "6.0"))
 CONG = float(os.environ.get("CONG", "0"))       # weight of the congestion (RUDY overflow) term     # column-band escape weight (per um)
 NETW = {"vm": 4.0, "vr": 2.0, "spk": 1.5}         # HPWL weights
 # Cfb MOM over the membrane cap's first finger (Metal1-3 fingers, spk/vm); value tuned by PEX
-MOM = dict(nf=11, pitch=0.58, fw=0.30)
+MOM = dict(nf=int(os.environ.get("MOM_NF", "11")))
 ROUTE_FIRST = ["vm", "vr", "spk"]
 
 
@@ -428,11 +428,6 @@ def build_geometry(pl):
             gx = [tf((x0, 0, x1, f.W)) for (f, x0, x1) in g["gates"]]
             capbox = (min(b[0] for b in gx), min(b[1] for b in gx), max(b[2] for b in gx), max(b[3] for b in gx))
             G.capgates = sorted(gx)
-            # Metal1 vss shield over the cap gate under the Metal2 column lines (no bias/switching line couples to vm)
-            for b in gx:
-                x0 = max(b[0], COLS[0][1] - 0.6)
-                if x0 < b[2] - 0.3:          # covers the vss contact stripes beside the gate too
-                    G.p("metal1", (x0 - 0.375 if x0 == b[0] else x0, b[1], b[2] + 0.375, b[3]), "vss", "m1")
     # ------------------------------------------------ ring, strips, wells
     ring = [(0, 0, W, RING), (0, H - RING, W, H), (0, 0, RING, H), (W - RING, 0, W, H)]
     c = (RING - 0.23) / 2
@@ -516,18 +511,46 @@ def build_geometry(pl):
     if capbox and "spk" in ports and MOM["nf"]:
         gb = G.capgates[0]
         G.mom = mom_cap(G, gb)
+    # Metal1 vss shield over the cap gate under the Metal2 column lines (no bias/switching line couples to vm),
+    # covering the vss contact stripes beside the gate, clear of the MOM
+    if capbox:
+        for b in G.capgates:
+            x0 = max(b[0], COLS[0][1] - 0.6)
+            if G.mom and G.mom["box"][2] > b[0]:
+                x0 = max(x0, G.mom["box"][2] + 0.3)
+            if x0 < b[2] - 0.5:
+                G.p("metal1", (x0 - 0.375 if x0 == b[0] else x0, b[1], b[2] + 0.375, b[3]), "vss", "m1")
+    # static short check: no two nets' drawn metal may touch (DRC cannot see a same-layer short)
+    sh = [(l, r, n) for l, r, n in G.obst if l in ("m1", "m2", "m3") and n]
+    for i, (l, r, n) in enumerate(sh):
+        for l2, r2, n2 in sh[:i]:
+            if l == l2 and n != n2 and r[0] <= r2[2] and r2[0] <= r[2] and r[1] <= r2[3] and r2[1] <= r[3]:
+                raise RuntimeError(f"static short {l} {n}/{n2} at {r} {r2}")
     return G
 
 
 def mom_cap(G, gb):
-    """Interdigitated Metal1-3 fingers inside the gate box gb (spk bottom bar, vm top bar)."""
-    m = MOM
-    nf, pitch, fw = m["nf"], m["pitch"], m["fw"]
-    width = (nf - 1) * pitch + fw
-    x0 = snap((gb[0] + gb[2]) / 2 - width / 2)
-    bar, gapf = 0.50, 0.30
-    y0 = snap(gb[1] + 0.25)
-    y1 = snap(gb[3] - 0.25)
+    """Interdigitated Metal1-3 fingers over the cap gate box gb (spk bottom bar, vm top bar), clear of the vss
+    contact stripes and of the first Metal2 column line.
+    MOM_STYLE=gate (default, routes clean): inside the gate, 0.25 um margins, pitch 0.58 (Cfb 5.0 fF in PEX).
+    MOM_STYLE=tall: from the rail spacing below the gate to the gate top, pitch 0.56 (more Cfb, harder to route);
+    MOM_STYLE=head: tall + through the cap's head zone (top bar vm, as the head pad)."""
+    style = os.environ.get("MOM_STYLE", "gate")
+    if style == "gate":
+        nf, pitch, fw, bar = MOM["nf"], 0.58, 0.30, 0.50
+        width = (nf - 1) * pitch + fw
+        x0 = snap((gb[0] + gb[2]) / 2 - width / 2)
+        y0, y1 = snap(gb[1] + 0.25), snap(gb[3] - 0.25)
+    else:
+        pitch, fw, bar = 0.56, 0.28, 0.40
+        xa = gb[0] + 0.1
+        xb = min(gb[2] - 0.1, COLS[0][1] - COLS[0][2] / 2 - 0.28)
+        nf = int((xb - xa - fw) / pitch) + 1
+        width = (nf - 1) * pitch + fw
+        x0 = snap(xb - width)
+        y0 = snap(gb[1] - TAP_GAP + 0.23)
+        y1 = snap(gb[3] + (0.45 + 0.19 if style == "head" else 0.0))
+    gapf = 0.30
     bot = (x0, y0, x0 + width, y0 + bar)
     top = (x0, y1 - bar, x0 + width, y1)
     shapes = {"spk": [bot], "vm": [top]}
