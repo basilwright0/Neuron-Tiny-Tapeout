@@ -16,7 +16,7 @@ reference model, and to measure what per-neuron configurability buys in accuracy
 
 | Block | Description |
 |---|---|
-| Neuron array (4 × 4 slots) | Axon-hillock LIF neurons with a 200 fF membrane, leak OTA, refractory period, two input synapses (stimulus A and B), hold switch, membrane reset and an in-cell probe follower. Four groups, interleaved as a Latin square: **S** (shared biases, ×3), **F** (leak set by geometry, τ_F = 2 τ_S, ×3), **H** (shared biases plus a 4-bit threshold trim, ×3) and **P** (threshold trim plus a 4-bit leak-τ trim, ×2). Single variants: **CMP** (comparator-based LIF with a threshold trim, double-height slot), **AH50** and **AH800** (50 fF and ~740 fF membranes) and **REF** (probe of the resting-potential line, for calibration). |
+| Neuron array (4 × 4 slots) | Axon-hillock LIF neurons with a 200 fF membrane, leak OTA, refractory period, two input synapses (stimulus A and B), hold switch, membrane reset and an in-cell probe follower. Four groups (M2: two rows of trimmed slots, two compact rows): **S** (shared biases, ×3), **F** (leak set by geometry, τ_F = 2 τ_S, ×3), **H** (shared biases plus a 4-bit threshold trim, ×3) and **P** (threshold trim plus a 4-bit leak-τ trim, ×2). Single variants: **CMP** (comparator-based LIF with a threshold trim, double-height slot), **AH50** and **AH400** (50 fF and ~470 fF membranes) and **REF** (probe of the resting-potential line, for calibration). |
 | AdEx (channel 3) | Adaptive exponential integrate-and-fire neuron with a programmable adaptation current (`vbp_w`). |
 | D1 dendrite (channel 13) | Soma plus two dendritic subunits with an all-or-none plateau nonlinearity. Star or chain topology; clustered or distributed stimulus. |
 | Digital LIF | 12-bit bit-serial LIF in the control block. It is clocked by `clk` and performs one update per `ui[7]` tick, reproducing the software model exactly. |
@@ -55,7 +55,7 @@ All `uio` pins are outputs (`uio_oe` tied high). `uio_in`, `ena` and `ua[2..5]` 
 | 0, 4, 8 | S1, S2, S3 | 7, 11 | P2, P3 |
 | 1, 5, 9 | F1, F2, F3 | 12 | CMP |
 | 2, 6, 10 | H1, H2, H3 | 13 | D1 |
-| 3 | AdEx | 14, 15 | AH50, AH800 |
+| 3 | AdEx | 14, 15 | AH50, AH400 |
 
 **Probe select:** PROBE SEL equals the spike channel for every neuron except two. SEL = 4 shows CMP's membrane and
 SEL = 12 shows S2's (CMP and S2 swapped array positions after the control block was frozen).

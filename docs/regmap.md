@@ -126,10 +126,11 @@ AH50 have no vr tap since M2):
 
 | PROBE_SEL | 0 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 14 | 15 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| neuron | H1 | H3 | P3 | CMP | F1 | P2 | S1 | F2 | F3 | S2 | AH50 | H2 | S3 | AH800 |
+| neuron | H1 | H3 | P3 | CMP | F1 | P2 | S1 | F2 | F3 | S2 | AH50 | H2 | S3 | AH400 |
 
 `test/regmap.py` checks that every decoded position holds a neuron and every neuron is decoded (`PROBE_NAME`).
-Spike channels are unchanged (`SPIKE_CH`).
+Spike channels are unchanged (`SPIKE_CH`); channel 15 is AH400 since M2 (MIL-127 N11: AH800 became AH400, so the
+capacitance sweep is AH50 / S / AH400 = 0.25 / 1 / 2×).
 
 | Port | Value |
 |---|---|
