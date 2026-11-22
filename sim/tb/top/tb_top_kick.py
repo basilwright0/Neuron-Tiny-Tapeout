@@ -14,7 +14,14 @@ preconditioning release at 0.5 us, see topbench.chip):
 edge = vm change 20-60 ns after the edge (the capacitive kick, before the synapse / leak act), step = mean of
 1-3 us after minus the pre-event baseline (pre-event slope removed). Hold drift: vm slope in the HOLD window.
 Victims: vm of every array neuron (floorplan MAP, REF excluded), D1 vs / d1 / d2, AdEx vm.
-Writes sim/results/top/kick_<corner>_<T>.txt.   `--list`: print the victims and probe targets only (no PEX).
+Settled start: topbench.chip() holds AdEx vw at 0 V (the post-MRESET state of the firmware init) and D1 vs / d1 /
+d2 at the D1 rest with the other precond nodes until 0.5 us, so the MRESET-on edge at 100 us is no longer a
+settling artefact (was +364 mV AdEx, +148 mV D1 vs; D1 keeps ~-30 mV = its rest 38 mV above vreset).
+Extra sections: stim A against a pre-pulse baseline (the old drift-corrected "stim A off" step carried the synaptic
+ramp past the off edge; the old rows are kept for comparison), AdEx / D1 settling check, and absolute traces
+(vbn_leak, S1 vm / vl, AdEx vw) before / after each event for A/B tracing.
+Writes sim/results/top/kick_<corner>_<T>.txt.   `--list`: print the victims, trace nodes and probe targets only
+(no PEX).   `--deck`: write the deck to $TOP_DECK_DIR (default /tmp/topdeck) and stop (no run).
 """
 import sys
 from pathlib import Path
@@ -31,14 +38,21 @@ H1 = T.slot_pos("H1")                                 # trim nibble 0 (TRIM_NIBB
 assert T.fp.TRIM_NIBBLES["H1.VTH"] == 0
 VICT = {f"{n} {i}": f"{i}.vm" for n, i, c in T.neurons()}
 VICT.update({"D1 vs": "d1.vs", "D1 d1": "d1.d1", "D1 d2": "d1.d2", "AdEx vm": "ax.vm"})
+TRC_SLOT = T.slot_inst("S1")                          # S1 s20 (cslot_ah): vl traced for HOLD-off A/B differences
+
+import numpy as np            # noqa: E402
+import topbench as B          # noqa: E402
+
+TRACE = {"vbn_leak": T.vnode("vbn_leak"), f"S1 vm": T.vnode(f"{TRC_SLOT}.vm"),
+         f"S1 vl": T.san(B.slot_vl(TRC_SLOT)), "AdEx vw": T.vnode("ax.vw")}   # absolute values (V)
 if "--list" in sys.argv:
     print(f"probe: far {FAR_N} {FAR}, then SEL -> H1 {H1}")
     for k, n in VICT.items():
         print(f"  {k:12s} {n}")
+    print(f"trace (absolute): " + ", ".join(f"{k} = {n}" for k, n in TRACE.items()))
+    print(f"precond extra (held to {B.T_REL * 1e6:g} us): " +
+          ", ".join(f"{n} -> {T.vnode(n)} = {v:g} V" for n, v in B.pre_extra(1.30)))
     sys.exit(0)
-
-import numpy as np            # noqa: E402
-import topbench as B          # noqa: E402
 
 S = 100.0
 codes = B.op_point(S)
@@ -84,8 +98,9 @@ TEND = 210e-6
 LINES = ["vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vreset", "vsrc", "vth_ref", "aux3",
          "vbn_ax", "vbp_w"]
 body = B.chip(S, state_over=B.timeline(evs))
-ns = "\n".join(f".nodeset v({T.vnode(n)})={EL}" for n in VICT.values())
+ns = "\n".join(f".nodeset v({T.vnode(n)})={EL}" for n in VICT.values() if n not in dict(B.pre_extra(EL)))
 sv = [f"v({T.vnode(n)})" for n in VICT.values()] + [f"v({T.vnode(n)})" for n in LINES]
+sv += [f"v({n})" for n in TRACE.values() if f"v({n})" not in sv]
 d = B.deck(body + ns + "\n", f"tran 2n {TEND:g} 0 20n", sv, corner=CORNER, temp=TEMP)
 r = B.go(d, f"kick_{CORNER}_{TEMP}")
 t = r["_x"]
@@ -133,6 +148,64 @@ for nm, te in EVENTS:
         rec = (t[late[-1]] - te) * 1e6 if len(late) else 0.0
         row += f" {p_ * 1e3:+6.1f}/{rec:5.1f}us"
     out.append(row)
+
+# ---- stim A against a pre-pulse baseline (the drift fit is taken before the pulse only, so the synaptic ramp
+# during the pulse is not extrapolated past the off edge as in the "stim A off" step above)
+TA_ON, TA_OFF = 190e-6, 192e-6
+out += ["", f"stim A, pre-pulse baseline (linear fit {TA_ON * 1e6 - 1.2:g}-{TA_ON * 1e6 - 0.05:g} us), mV: on = "
+        f"edge 20-60 ns after on; ramp = level 50-10 ns before off - on; off = edge 20-60 ns after off - level "
+        f"50-10 ns before off (local edge); asym = on + off; net = mean 1-3 us after off - baseline (state left by one "
+        f"pulse); old = the drift-corrected off step of the table above"]
+out.append("victim          on   ramp    off   asym    net    old")
+
+
+def stimA(y):
+    pre = (t > TA_ON - 1.2e-6) & (t < TA_ON - 0.05e-6)
+    p = np.polyfit(t[pre], y[pre], 1) if pre.sum() > 3 else (0, np.mean(y[pre]))
+    z = y - np.polyval(p, t)
+    w = lambda a, b: np.mean(z[(t > a) & (t < b)])
+    on = w(TA_ON + 20e-9, TA_ON + 60e-9)
+    lvl = w(TA_OFF - 50e-9, TA_OFF - 10e-9)
+    off = w(TA_OFF + 20e-9, TA_OFF + 60e-9) - lvl
+    net = w(TA_OFF + 1e-6, TA_OFF + 3e-6)
+    return on, lvl - on, off, on + off, net
+
+
+for k, n in VICT.items():
+    y = r[f"v({T.vnode(n)})".lower()]
+    on, ramp, off, asym, net = stimA(y)
+    old = kick(y, TA_OFF)[1]
+    out.append(f"{k:12s} {on * 1e3:+6.2f} {ramp * 1e3:+6.2f} {off * 1e3:+6.2f} {asym * 1e3:+6.2f} {net * 1e3:+6.2f} "
+               f"{old * 1e3:+6.1f}")
+
+# ---- AdEx / D1 settling (the firmware-style init must leave them at rest before the window)
+out += ["", f"settling before the window (precond to {B.T_REL * 1e6:g} us incl. AdEx vw = 0, D1 = EL + "
+        f"{B.D1_OFS * 1e3:g} mV): value at 59 us (V), slope 40-59 us (mV/ms), MRESET-on edge (mV; D1 vs expected "
+        f"~-30 = rest -> vreset, block-level schematic -31.7)"]
+TE_MR = dict(EVENTS)["MRESET on"]
+sm = (t > 40e-6) & (t < 59e-6)
+for k, n in [("AdEx vm", "ax.vm"), ("AdEx vw", "ax.vw"), ("D1 vs", "d1.vs"), ("D1 d1", "d1.d1"), ("D1 d2", "d1.d2"),
+             ("S1 vm", f"{TRC_SLOT}.vm")]:
+    y = r[f"v({T.vnode(n)})".lower()]
+    e_ = kick(y, TE_MR)[0]
+    out.append(f"  {k:8s} {np.interp(59e-6, t, y):.4f}  {np.polyfit(t[sm], y[sm], 1)[0]:+8.2f}  {e_ * 1e3:+8.2f}"
+               + ("" if k in ("AdEx vw",) or abs(e_) < (50e-3 if k.startswith("D1") else 10e-3)
+                  else "   <- not settled"))
+
+# ---- absolute traces for A/B tracing (HOLD-off offset: vl state of the leak OTA, vbn_leak)
+out += ["", "absolute traces (V): mean in the 1 us before each event / mean 1-3 us after it"]
+out.append("event                 " + " ".join(f"{k:>17s}" for k in TRACE) + "   S1 vl-vm (mV)")
+for nm, te in EVENTS:
+    row = f"{nm:21s} "
+    vals = {}
+    for k, n in TRACE.items():
+        y = r[f"v({n})".lower()]
+        a = np.mean(y[(t > te - 1e-6) & (t < te - 0.05e-6)])
+        b = np.mean(y[(t > te + 1e-6) & (t < te + 3e-6)])
+        vals[k] = (a, b)
+        row += f"  {a:7.4f}/{b:7.4f}"
+    dv = [1e3 * (vals["S1 vl"][i] - vals["S1 vm"][i]) for i in (0, 1)]
+    out.append(row + f"   {dv[0]:+7.2f}/{dv[1]:+7.2f}")
 txt = "\n".join(out)
 print(txt)
 (B.OUT / f"kick_{CORNER}_{TEMP}.txt").write_text(txt + "\n")

@@ -7,7 +7,9 @@
 Lines that have no R network in the extraction (extresist keeps only the nets whose R matters) are one node: their
 far end equals the driver end by construction; what can still differ is the local ground / supply of the mirror
 devices, which is the IR-drop result of pgrid.py (check 4).
-Writes sim/results/top/bias_<mode>_*.txt.
+spk also reports the ripple of every shared line at each array slot's own terminal, per neuron row (diagnosis of
+the victim rate shift with spiking neighbours).
+Writes sim/results/top/bias_<mode>_*.txt.   `--deck`: write the deck to $TOP_DECK_DIR (default /tmp/topdeck), no run.
 """
 import sys
 from collections import defaultdict
@@ -19,7 +21,8 @@ import topbench as B          # noqa: E402
 import topnet as T            # noqa: E402
 from ngs import crossings     # noqa: E402
 
-MODE = sys.argv[1] if len(sys.argv) > 1 else "dc"
+ARGV = [sys.argv[0]] + [a for a in sys.argv[1:] if not a.startswith("--")]
+MODE = ARGV[1] if len(ARGV) > 1 else "dc"
 LINES = ["vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vreset", "vreset_src", "vsrc", "vth_ref",
          "aux0", "aux2", "aux3", "vbn_ax", "vbp_w"]
 DRIVER = {"vsrc": "r1", "vreset": "r1"}            # others: b1
@@ -68,7 +71,7 @@ def ends(ln):
 
 
 if MODE == "dc":
-    S = float(sys.argv[2]) if len(sys.argv) > 2 else 100.0
+    S = float(ARGV[2]) if len(ARGV) > 2 else 100.0
     sv, keys = [], []
     for ln in LINES:
         drv, far = ends(ln)
@@ -99,7 +102,7 @@ if MODE == "dc":
     (B.OUT / f"bias_dc_S{S:g}.txt").write_text("\n".join(lines) + "\n")
 
 elif MODE == "step":
-    S = float(sys.argv[2]) if len(sys.argv) > 2 else 100.0
+    S = float(ARGV[2]) if len(ARGV) > 2 else 100.0
     c0 = B.op_point(S)
     c1 = {k: v - 4 for k, v in c0.items()}          # every DAC -4 codes (no wrap at the S >= 300 codes)
     TS, TEND = 40e-6 * 100 / S + 5e-6, 40e-6 * 100 / S + 5e-6 + 800e-6 * 100 / S
@@ -137,7 +140,7 @@ elif MODE == "step":
     (B.OUT / f"bias_step_S{S:g}.txt").write_text("\n".join(lines) + "\n")
 
 elif MODE == "spk":
-    ON = (sys.argv[2] if len(sys.argv) > 2 else "on") == "on"
+    ON = (ARGV[2] if len(ARGV) > 2 else "on") == "on"
     S = 1000.0
     g = 200e-15 * S / 10e-3
     rheo = g * 0.08
@@ -159,6 +162,17 @@ elif MODE == "spk":
         nn = sorted(term[gq].get(VICTIM, set())) or [T.net(ln)]
         near[ln] = nn[0]
         sv.append(f"v({T.san(nn[0])})")
+    # per-neuron ripple: each shared line at every array slot's own terminal (R-network lines; single-node lines
+    # give one node for all slots), to see whether the victim row / column sees more ripple than the others
+    SLOTS = [i for _, i, _ in T.neurons()]
+    at_slot = {}
+    for ln in sh:
+        gq = f(T.net(ln))
+        for s_ in SLOTS:
+            nn = sorted(term[gq].get(s_, set())) or [T.net(ln)]
+            at_slot[(ln, s_)] = nn[0]
+            sv.append(f"v({T.san(nn[0])})")
+    sv += [f"v({T.vnode(s + '.vm')})" for s in SLOTS]
     sv += [f"v({T.vnode(s + '.spk')})" for s in SPIKERS]
     r = B.go(B.deck(body, f"tran 5n {TEND:g} 0 5n", sorted(set(sv))), f"bias_spk_{'on' if ON else 'off'}")
     t = r["_x"]
@@ -179,4 +193,24 @@ elif MODE == "spk":
     for ln in sh:
         y = r[f"v({T.san(near[ln])})".lower()][m]
         log(f"  {ln:10s} {y.mean():.4f}  {1e3 * (y.max() - y.min()):8.2f}  {1e3 * y.std():7.3f}")
+    log("")
+    log("shared-line ripple per neuron, at each slot's own terminal of the line (after 30 us): p-p (mV) / mean - "
+        "mean at the victim (mV); rows = array rows (r0 bottom); * = victim, + = spiking neighbour")
+    log("slot   name    " + " ".join(f"{ln:>14s}" for ln in sh) + "   vm p-p (mV)")
+    names = {i: n for n, i, _ in T.neurons()}
+    for row_ in range(4):
+        rs = [s_ for s_ in SLOTS if s_[1] == str(row_)]
+        pp_row = {ln: 0.0 for ln in sh}
+        for s_ in rs:
+            tag = "*" if s_ == VICTIM else "+" if s_ in SPIKERS else " "
+            cells = ""
+            for ln in sh:
+                y = r[f"v({T.san(at_slot[(ln, s_)])})".lower()][m]
+                y0 = r[f"v({T.san(near[ln])})".lower()][m].mean()
+                pp = 1e3 * (y.max() - y.min())
+                pp_row[ln] = max(pp_row[ln], pp)
+                cells += f" {pp:6.2f}/{1e3 * (y.mean() - y0):+6.2f}"
+            v_ = r[f"v({T.vnode(s_ + '.vm')})".lower()][m]
+            log(f"{s_}{tag}  {names[s_]:6s} {cells}   {1e3 * (v_.max() - v_.min()):8.1f}")
+        log(f"row {row_} max p-p " + " ".join(f"{pp_row[ln]:14.2f}" for ln in sh))
     (B.OUT / f"bias_spk_{'on' if ON else 'off'}.txt").write_text("\n".join(lines) + "\n")

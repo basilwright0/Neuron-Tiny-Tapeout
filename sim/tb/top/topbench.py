@@ -40,6 +40,39 @@ def op_point(S=100.0):
 
 PRE_LINES = ["vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_ax", "vbp_w"]
 T_REL = 0.5e-6
+D1_OFS = 0.038                          # D1 rest - EL (schematic dend_d1, typical 27 C, S = 100: 1.338 V at EL 1.30)
+
+
+def pre_extra(el):
+    """Block-state nodes that the full-chip op leaves away from rest, held through the same switches as PRE_LINES:
+    AdEx vw powers up near VDD (MRESET clamps it to VSS, XR1 / XR2; its rest without spikes is ~0 V), so it is held
+    at 0 V; D1 vs / d1 / d2 are held at the D1 rest (EL + D1_OFS: the D1 leak OTAs settle ~38 mV above EL, tau
+    ~150 us, so holding them at EL or pulsing MRESET early leaves a +0.2..0.3 V/ms drift through the kick window).
+    Without this AdEx vm sat at ~0.88 V and D1 vs drifted 1.28 -> 1.09 V (MRESET-on artefacts +364 / +148 mV in
+    the 330bf04 run). Block-level schematic check (sub-circuit, same switches, MRESET at 100 us): AdEx vm 1.306 V
+    at 59 us, MRESET-on edge -6.8 mV (was +391); D1 vs 1.339 V, slope -0.3 mV/ms, edge -31.7 mV = vs rest ->
+    vreset (was +113)."""
+    d1 = el + D1_OFS
+    return [("ax.vw", 0.0), ("d1.vs", d1), ("d1.d1", d1), ("d1.d2", d1)]
+
+
+def slot_vl(inst):
+    """Raw flat node of a slot's leak-OTA output vl: the source of XHL, the HOLD pfet (W 1u, L 0.28u) between
+    <inst>.vm and vl, gate = HOLD (rt_out[2]). vl has no label, so it is an a_x_y# node in the flat netlist."""
+    hold = T.net("rt_out[2]")
+    vm = f"{inst}.vm"
+    for l in T.load()["lines"]:
+        if l[0] not in "Xx" or "pfet" not in l or vm not in l:
+            continue
+        t = l.split()
+        nn = [x for x in t[1:] if "=" not in x]
+        kv = dict(x.lower().split("=") for x in t[1:] if "=" in x)
+        if len(nn) < 4 or nn[1] != hold or kv.get("l") != "0.28u" or kv.get("w") != "1u":
+            continue
+        d, s = nn[0], nn[2]
+        if vm in (d, s):
+            return s if d == vm else d
+    raise KeyError(f"vl of {inst}")
 
 
 def sch_bias(S, codes=None, ib_x2=0):
@@ -61,9 +94,10 @@ def sch_bias(S, codes=None, ib_x2=0):
 
 def chip(S=100.0, codes=None, probe=None, rt=(0, 0, 0, 0), ib_x2=0, sources=None, power="ideal", cb=CB,
          state_over=None, precond=True, **kw):
-    """precond: the slow current-mode bias lines (PRE_LINES) and every membrane are held at their schematic /
-    rest values through switches that open at T_REL = 0.5 us (the full-chip op does not converge by Newton, and
-    ngspice's transient-op fallback leaves these nA-biased lines unsettled)."""
+    """precond: the slow current-mode bias lines (PRE_LINES), every membrane and the block-state nodes of
+    pre_extra() (AdEx vw = 0, D1 vs / d1 / d2 = D1 rest) are held at their schematic / rest values through switches
+    that open at T_REL = 0.5 us (the full-chip op does not converge by Newton, and ngspice's transient-op fallback
+    leaves these nA-biased lines and block states unsettled)."""
     codes = codes or op_point(S)
     st = T.config(codes=codes, probe=probe, rt=rt, ib_x2=ib_x2)
     st.update(state_over or {})
@@ -74,13 +108,14 @@ def chip(S=100.0, codes=None, probe=None, rt=(0, 0, 0, 0), ib_x2=0, sources=None
     for p in ("clk", "rst_n", "ena") + tuple(f"ui_in[{i}]" for i in range(8)) + tuple(f"uio_in[{i}]" for i in range(8)):
         tt.append(f"Rtie_{T.san(p)} {T.node(p)} 0 1k")
     el = 1.50 if S >= 300 else 1.30          # help the op: every membrane starts at EL
-    vms = [f"s{r}{c}.vm" for r in range(4) for c in range(4) if f"s{r}{c}.vm" in T.names()] + ["d1.vs", "ax.vm"]
+    vms = [f"s{r}{c}.vm" for r in range(4) for c in range(4) if f"s{r}{c}.vm" in T.names()] + ["ax.vm"]
     ns = [f".nodeset v({T.vnode(n)})={el}" for n in vms]
+    ns += [f".nodeset v({T.vnode(n)})={v:g}" for n, v in pre_extra(el)]
     if precond:
         vb = sch_bias(S, codes=codes, ib_x2=ib_x2)
         tt += [".model swpre sw vt=1.65 vh=0.1 ron=100 roff=1e16",
                f"Vpre_ctl pre_ctl 0 PWL(0 3.3 {T_REL:g} 3.3 {T_REL + 1e-9:g} 0)"]
-        for k, (n, v) in enumerate(list(vb.items()) + [(m, el) for m in vms]):
+        for k, (n, v) in enumerate(list(vb.items()) + [(m, el) for m in vms] + pre_extra(el)):
             tt += [f"Vpre{k} pre{k} 0 {v:.5f}", f"Spre{k} pre{k} {T.vnode(n)} pre_ctl 0 swpre"]
     return body + "\n".join(tt + ns) + "\n"
 
@@ -118,7 +153,20 @@ quit
 """
 
 
+DECK_ONLY = "--deck" in sys.argv          # benches: write the deck and stop (no ngspice run)
+
+
 def go(d, name, timeout=6 * 3600):
+    """Run a deck. With --deck on the command line: write it to $TOP_DECK_DIR (default /tmp/topdeck)/<name>.cir
+    and exit (deck-generation check, no simulation)."""
+    if DECK_ONLY:
+        import os
+        dd = Path(os.environ.get("TOP_DECK_DIR", "/tmp/topdeck"))
+        dd.mkdir(parents=True, exist_ok=True)
+        f = dd / f"{name}.cir"
+        f.write_text(d.replace("__OUT__", str(dd / f"{name}.dat")))
+        print(f"--deck: wrote {f} ({len(d.splitlines())} lines), not run")
+        sys.exit(0)
     OUT.mkdir(parents=True, exist_ok=True)
     return run(d, f"top/{name}", timeout=timeout)
 
