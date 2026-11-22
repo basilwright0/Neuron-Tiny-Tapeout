@@ -113,6 +113,12 @@ def array(F):
         if past:                                # keep the columns (xoff is a distance here)
             xoff += pitch * len(east)
             assert ax1 + 0.71 + xoff - pitch + 0.14 <= fp.BLOCKS["A1 AdEx"][0] + 0.85 - 0.5, "CH_NAE overflow"
+        if past:                                # staircase levels for the east lines (see below)
+            y, lim, ylev = gy(fp.BLOCKS["A1 AdEx"][3] + 1.0), fp.row_y0(r + 1) + fp.row_trk0(r + 1) + TRKP * 4 - 0.56, []
+            while len(ylev) < len(east):
+                if lim < y < fp.row_y0(r + 2) + 0.7:
+                    y = gy(fp.row_y0(r + 2) + 0.7)
+                ylev.append(y); y = round(y + 0.56, 3)
         xw = {k: gx(ax0 - 0.69 - 0.7 * j) for j, k in enumerate(sorted(SHARED))}
         for k, net in net_of.items():
             ty = y0 + TRK0 + TRKP * k
@@ -122,9 +128,15 @@ def array(F):
             if k in xe:              # east fan-out: via2 + Metal2 to the terminal (row 0 up, rows 1-3 down)
                 F.p("via2", (xe[k] - 0.14, ty - 0.14, xe[k] + 0.14, ty + 0.14), net)
                 if past:                # up past AdEx's top (the router keeps 0.42 off AdEx: no room east of it)
-                    yt = gy(fp.BLOCKS["A1 AdEx"][3] + 1.0)
-                    F.p("metal2", (xe[k] - 0.14, ty - 0.2, xe[k] + 0.14, yt + 0.14), net)
-                    F.term(net, [("metal2", (xe[k] - 0.14, yt - 0.42, xe[k] + 0.14, yt + 0.14))])
+                    # no router via fits inside a 0.56 bundle (0.38 pads), so step the columns up in a staircase
+                    # (east-most lowest, 0.56 apart) and drop the via2 here (0.28 wide, legal at this pitch); the
+                    # router starts from a Metal3 stub, free to run east over the lower columns.  Metal3 is free
+                    # below row 1's first east track (k 4) and again above row 1's band.
+                    yt = ylev[len(east) - 1 - east.index(k)]
+                    F.p("metal2", (xe[k] - 0.14, ty - 0.2, xe[k] + 0.14, yt + 0.19), net)
+                    F.p("via2", (xe[k] - 0.14, yt - 0.14, xe[k] + 0.14, yt + 0.14), net)
+                    F.p("metal3", (xe[k] - 0.19, yt - 0.14, xe[k] + 0.42, yt + 0.14), net)
+                    F.term(net, [("metal3", (xe[k] - 0.14, yt - 0.14, xe[k] + 0.42, yt + 0.14))])
                 else:
                     yt = gy(y0 + TRK0 - 1.38)
                     F.p("metal2", (xe[k] - 0.14, yt - 0.14, xe[k] + 0.14, ty + 0.2), net)
