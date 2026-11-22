@@ -180,3 +180,12 @@ This only works if the phase-2 B1 split and D1/AdEx regeneration land by ~Nov 29
   2. **`vbn_ref` (and `vbp_syn`) LSB ×2** halves refractory/weight code resolution at every speed. The register format is unchanged, but the code meaning changes.
   3. **Conditional:** if Vreset or vsrc still fail, either re-lay R1 (+~1 d) or accept feature rules at 10000: t_ref ≥ 0.5 µs instead of 200 ns, and ≤ 4 neurons stimulated together.
   4. **Conditional:** if phase 2 slips, level 3 falls back to the existing layouts per the Timeline.
+
+## Step-0 pre-check results (2026-11-22, schematic, local; logs in sim/results/level3_step0/)
+- **AdEx decay current (tb_itau.py): the §2.5 hypothesis is refuted.** The 3 x 0.22/15 stack keeps 0.75x (tt/27) / 0.74x (ss/0) of linear scaling from S = 100 to 10000 (Itau 10.06 pA -> 758 pA). The predicted 2-3x collapse doesn't happen. A 1.33x shortfall can't explain the measured 2.3x tau_w error, so the main cause is elsewhere (likely the DPI / Ig path). The 4 x 1/16 stack holds 0.91x but gives 15.6 pA instead of 10 pA; it fixes only ~20 % of the error. **Next:** find the real tau_w cause before changing AdEx.
+- **Vreset with the 1 µm reset switch (tb_vreset.py, S = 10000, 15 corner/temperature cases): conditional pass, no R1 change.** The line settles within 0.2 mV everywhere (recovery 67-91 ns). The remaining error is the switch fading, so a buffer tail leg wouldn't help.
+  - At Vreset 1.30 V: worst error 5.67 mV at ss/85 (tt/27 0.98 mV, ss/0 3.65 mV), against 15.6 mV with the 0.5 µm switch.
+  - At 1.50 V with nominal I_ref: 26.2 mV, fail.
+  - At 1.50 V with I_ref recalibrated for t_ref (x0.66 tt, x0.5 ss): tt/27 1.57 mV, ss/0 4.63 mV, ss/85 5.09 mV (0.09 over the 5 mV spec).
+- **vbn_ref code range (tb_bias_top.py):** the receiver swap (rx_n2 -> rx_n1) works (code 31 = 1.99-3.60x target), but it **is probably not needed**. Raising EL to 1.5 V shortens t_ref (0.50-0.66x), which calls for *less* I_ref (about code 12 at ss/0 with no swap), not the 1.5-2x more assumed in §5.1. Baseline at EL 1.3, ss/0: code 23.8 needed, code 31 = 1.00x. **Decision (reversible, taken overnight under Chief's rule):** don't swap. This keeps the full code resolution; revisit only if the post-layout tref check needs more than code 31.
+- Runtime ~4 min in total.
