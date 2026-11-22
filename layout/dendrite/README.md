@@ -37,6 +37,7 @@ Build used: `scripts/eda.sh "ROUTE_HW=1.5 SKIPDEV=1 bash layout/dendrite/build.s
   - There are no keep-outs any more.
 - **Detector reset devices:** XK/XQ of each plateau detector sit in a short second pmos row (y0 + 21.0, x 44.5) in the subunit well. The soma det_ah XK is in the soma pmos row y 25.6.
 - **Routing:** Metal1/2/3, region by region. The trim bits (`ta*`, `tb*`) and the synapse internal nodes (`XY*.da/db/h`, routed first) are kept off Metal3. The trim bits are an antenna fix: ta1 failed ANT.16 with routed Metal3 on top of its 71 µm line. No Metal4/5.
+- **Metal3-only gates (`ANT_M3_GATES`, env `D1_ANT_GATES`):** the spk gate of XS.XR.Xi.XN (0.5/0.28) gets a stacked via1+via2 on its pad and is a Metal3 router terminal; spk Metal1/Metal2 stays 0.4 µm off that pad, so the gate's Metal2 island is the 0.4 µm landing pad. Without this, the level-3 region-0 re-route left the gate on a 134 µm Metal2 island (MOM plate, spine stub, routing) with no spk drain on it: ANT.16_i_ANT.3 ratio 518 > 400.
 - **Pins:** d1 and d2 are Metal2 pads at (9.45, 39.70) and (9.45, 65.10). vs is labelled on a routed vs wire.
 
 ## Status (2026-11-19, new cells, 70 × 104 µm)

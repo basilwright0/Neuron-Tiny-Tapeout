@@ -5,22 +5,6 @@
  <generator>drc: script='/foss/pdks/gf180mcuD/libs.tech/klayout/tech/drc/gf180mcu.drc'</generator>
  <top-cell>dend_d1</top-cell>
  <tags>
-  <tag>
-   <name>RATIO</name>
-   <description/>
-  </tag>
-  <tag>
-   <name>ANT_PERIMETER</name>
-   <description/>
-  </tag>
-  <tag>
-   <name>GATE_AREA</name>
-   <description/>
-  </tag>
-  <tag>
-   <name>DIODES_AREA</name>
-   <description/>
-  </tag>
  </tags>
  <categories>
   <category>
@@ -4728,69 +4712,5 @@
   </cell>
  </cells>
  <items>
-  <item>
-   <tags/>
-   <category>'ANT.16_i_ANT.3'</category>
-   <cell>dend_d1</cell>
-   <visited>false</visited>
-   <multiplicity>1</multiplicity>
-   <comment/>
-   <image/>
-   <values>
-    <value>polygon: (35.25,1.6;35.25,2.1;35.45,2.1;35.45,2.35;35.4,2.35;35.4,2.75;35.45,2.75;35.45,3.3;35.4,3.3;35.4,3.7;35.8,3.7;35.8,3.3;35.75,3.3;35.75,2.75;35.8,2.75;35.8,2.25;37.59,2.25;37.59,2.05;37.86,2.05;37.86,1.65;37.46,1.65;37.46,1.7;37.29,1.7;37.29,1.95;35.53,1.95;35.53,1.6)</value>
-    <value>[#RATIO] float: 517.937142857</value>
-    <value>[#ANT_PERIMETER] float: 72.5112</value>
-    <value>[#GATE_AREA] float: 0.14</value>
-    <value>[#DIODES_AREA] float: 0</value>
-   </values>
-  </item>
-  <item>
-   <tags/>
-   <category>'ANT.16_i_ANT.3'</category>
-   <cell>dend_d1</cell>
-   <visited>false</visited>
-   <multiplicity>1</multiplicity>
-   <comment/>
-   <image/>
-   <values>
-    <value>polygon: (49.6,1.9;49.6,2.3;49.97,2.3;49.97,3.85;49.92,3.85;49.92,4.25;50.32,4.25;50.32,3.85;50.27,3.85;50.27,2.25;57.3,2.25;57.3,2.3;57.7,2.3;57.7,1.9;57.3,1.9;57.3,1.95;50,1.95;50,1.9)</value>
-    <value>[#RATIO] float: 517.937142857</value>
-    <value>[#ANT_PERIMETER] float: 72.5112</value>
-    <value>[#GATE_AREA] float: 0.14</value>
-    <value>[#DIODES_AREA] float: 0</value>
-   </values>
-  </item>
-  <item>
-   <tags/>
-   <category>'ANT.16_i_ANT.3'</category>
-   <cell>dend_d1</cell>
-   <visited>false</visited>
-   <multiplicity>1</multiplicity>
-   <comment/>
-   <image/>
-   <values>
-    <value>polygon: (42.1,1.6;42.1,1.95;42.01,1.95;42.01,2.4;41.18,2.4;41.18,1.9;40.78,1.9;40.78,2.3;40.83,2.3;40.83,2.7;42.1,2.7;42.1,6;42.4,6;42.4,2.1;43.26,2.1;43.26,6;43.56,6;43.56,2.1;44.42,2.1;44.42,6;44.72,6;44.72,2.1;45.58,2.1;45.58,6;45.88,6;45.88,2.1;46.74,2.1;46.74,6;47.04,6;47.04,2.1;47.9,2.1;47.9,6;48.2,6;48.2,2.1;48.78,2.1;48.78,1.6)</value>
-    <value>[#RATIO] float: 517.937142857</value>
-    <value>[#ANT_PERIMETER] float: 72.5112</value>
-    <value>[#GATE_AREA] float: 0.14</value>
-    <value>[#DIODES_AREA] float: 0</value>
-   </values>
-  </item>
-  <item>
-   <tags/>
-   <category>'ANT.16_i_ANT.3'</category>
-   <cell>dend_d1</cell>
-   <visited>false</visited>
-   <multiplicity>1</multiplicity>
-   <comment/>
-   <image/>
-   <values>
-    <value>polygon: (68.05,1;68.05,1.9;68,1.9;68,2.3;68.05,2.3;68.05,19.5;68.01,19.5;68.01,20;68.39,20;68.39,19.5;68.35,19.5;68.35,2.3;68.4,2.3;68.4,1.9;68.35,1.9;68.35,1)</value>
-    <value>[#RATIO] float: 517.937142857</value>
-    <value>[#ANT_PERIMETER] float: 72.5112</value>
-    <value>[#GATE_AREA] float: 0.14</value>
-    <value>[#DIODES_AREA] float: 0</value>
-   </values>
-  </item>
  </items>
 </report-database>

@@ -153,6 +153,11 @@ NO_M3 = {f"t{s}{k}" for s in "ab" for k in range(4)}
 SYN_LOCAL = [f"XY{k}.{n}" for k in (1, 2) for n in ("da", "db", "h")]
 NO_M3 |= set(SYN_LOCAL)
 ROUTE_FIRST = SYN_LOCAL + ["vs", "d1", "d2", "spk"]
+# Gates reached on Metal3 only (antenna ANT.16_i_ANT.3, Metal2 perimeter / gate area <= 400): XS.XR.Xi.XN
+# (0.5/0.28, 0.14 um^2) on spk sat on a 134 um Metal2 island (MOM bottom plate, spine stub y 1-20, routing)
+# with no spk drain on it after the level-3 region-0 re-route: ratio 518. Through a via2 its island is one pad.
+ANT_M3_GATES = set(__import__("os").environ.get("D1_ANT_GATES", "XS.XR.Xi.XN").split(",")) - {""}
+ANT_FORBID = []          # (net, rect): no Metal1/Metal2 of that net here (filled by build())
 ROUTE_LAST = ["vdd", "vss"]
 ITERS = 40
 SCHEDULES = [(1.3, 0.5), (1.6, 0.3), (1.2, 0.7), (1.45, 0.4), (1.3, 0.3)]
@@ -264,6 +269,7 @@ PLACE = {}
 def build():
     ports, devs, caps = flatten.write_lvs(HERE / f"{CELL}_lvs.spice", CELL)
     devs = split_wide(devs)
+    ANT_FORBID.clear()
     lib = {}
     for d in devs:
         c = devcell(d)
@@ -292,7 +298,21 @@ def build():
         L.p("metal1", pad)
         L.p("polycontact", shift((-0.115, hcy - 0.115, 0.115, hcy + 0.115), cx, cy))
         obst.append(("m1", pad, d["g"]))
-        L.term(d["g"], [("m1", pad)])
+        if d["name"] in ANT_M3_GATES:
+            # antenna: reach this gate on Metal3 only (stacked via1 + via2 on its pad); the router may not put
+            # this net's Metal1/Metal2 near the pad, so the gate's Metal2 island is just the 0.4 um landing pad
+            x, y = (pad[0] + pad[2]) / 2, (pad[1] + pad[3]) / 2
+            p4 = (x - 0.2, y - 0.2, x + 0.2, y + 0.2)
+            for lay, r in (("metal1", p4), ("metal2", p4), ("metal3", p4),
+                           ("via1", (x - 0.13, y - 0.13, x + 0.13, y + 0.13)),
+                           ("via2", (x - 0.14, y - 0.14, x + 0.14, y + 0.14))):
+                L.p(lay, r, d["g"])          # metal3/via2 also become router obstacles through L.m3
+                if lay in ("metal1", "metal2", "via1"):
+                    obst.append(({"metal1": "m1", "metal2": "m2", "via1": "v1"}[lay], r, d["g"]))
+            ANT_FORBID.append((d["g"], (x - 0.6, y - 0.6, x + 0.6, y + 0.6)))
+            L.term(d["g"], [("m3", p4)])
+        else:
+            L.term(d["g"], [("m1", pad)])
 
     c = (RING - 0.23) / 2
     # ------------------------------------------------------------------ VDD rails (n-tap at well bottoms)
@@ -529,6 +549,8 @@ def add_forbids(R, mom):
         R.add_forbid(("m1",), r, allowed={"vss"})
     for r in ((0, 0, W, RING), (0, H - RING, W, H), (0, 0, RING, H), (W - RING, 0, W, H)):
         R.add_forbid(("m2",), r)
+    for net, r in ANT_FORBID:
+        R.add_forbid(("m1", "m2"), r, only={net})
 
 
 def route(L, obst, mom):
@@ -811,7 +833,7 @@ def main():
     if "place" in sys.argv:
         preview(L, insts, [], HERE / "preview_place.png")
         return 0
-    key = hashlib.sha1(repr((PLACE, COLS, M3LINES, M3INT, M3X, BRIDGES, FEEDS, REGIONS, KEEPOUT, NWELLS, VSS_STRIPES, MOM, W, H, PINS,
+    key = hashlib.sha1(repr((PLACE, COLS, M3LINES, M3INT, M3X, BRIDGES, FEEDS, REGIONS, KEEPOUT, NWELLS, VSS_STRIPES, MOM, W, H, PINS, sorted(ANT_M3_GATES),
                              open(HERE / "router.py").read())).encode()).hexdigest()
     cache = HERE / "out" / f"route_cache_{CELL}.json"
     (HERE / "out").mkdir(exist_ok=True)
