@@ -83,7 +83,7 @@ RESERVED = {
     "RW B1 west trim": (80.0, 12.0, 103.0, 116.0),
     "RB B1 pocket NB": (234.0, 12.0, 262.0, 52.0),
     "RT array-top strip": (8.0, 302.9, 120.0, 317.7),
-    "RG CH_BOT east of the D1 lines": (199.5, 0.0, 280.0, 11.5),
+    "RG CH_BOT east of the D1 lines": (199.5, 0.0, 280.0, 12.0),
 }
 
 # --------------------------------------------------------------------- power stripes (Metal4, y 5 -> 320.36)

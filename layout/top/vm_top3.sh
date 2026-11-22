@@ -4,7 +4,7 @@
 # (sim/tb/top/vm_pex.sh, JOBS benches at once). Logs land in layout/top/work/vm3/ (inside the tree, for vmwait.sh).
 # Usage (repo root, on the shared queue VM): bash layout/top/vm_top3.sh [nopex]
 cd "$(dirname "$0")/../.."
-L=layout/top/work/vm3; mkdir -p $L
+L=layout/top/work/vm3; rm -rf $L; mkdir -p $L
 step() { echo "$(date -u '+%F %T') $*" | tee -a $L/steps.log; }
 step "start $(nproc) CPUs, $(free -g | awk '/Mem/{print $2}') GB, $(git log --oneline -1 2>/dev/null || echo no-git)"
 bash scripts/eda.sh "DRC_THREADS=4 nice -n 5 bash layout/top/build.sh noroute drc" > $L/build.log 2>&1
