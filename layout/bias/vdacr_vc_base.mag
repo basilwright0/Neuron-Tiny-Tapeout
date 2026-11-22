@@ -62,22 +62,22 @@ use n_w4_l0p28_f2  SW4
 timestamp 1795060336
 transform 1 0 3164 0 1 2962
 box -220 -468 220 468
-use r_w1_l12p86  XRB0
-timestamp 1795062244
-transform 1 0 560 0 1 5458
-box -100 -1408 100 1408
-use r_w1_l12p86  XRB1
-timestamp 1795062244
-transform 1 0 1000 0 1 5458
-box -100 -1408 100 1408
-use r_w1_l12p86  XRB2
-timestamp 1795062244
-transform 1 0 1440 0 1 5458
-box -100 -1408 100 1408
-use r_w1_l12p86  XRB3
-timestamp 1795062244
-transform 1 0 1880 0 1 5458
-box -100 -1408 100 1408
+use r_w1_l14p555  XRB0
+timestamp 1794972955
+transform 1 0 560 0 1 5628
+box -100 -1578 100 1578
+use r_w1_l14p555  XRB1
+timestamp 1794972955
+transform 1 0 1000 0 1 5628
+box -100 -1578 100 1578
+use r_w1_l14p555  XRB2
+timestamp 1794972955
+transform 1 0 1440 0 1 5628
+box -100 -1578 100 1578
+use r_w1_l14p555  XRB3
+timestamp 1794972955
+transform 1 0 1880 0 1 5628
+box -100 -1578 100 1578
 use r_w2_l1p315  XRS0
 timestamp 1795062541
 transform 1 0 2420 0 1 4304

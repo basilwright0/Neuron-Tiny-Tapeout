@@ -4,8 +4,8 @@ magscale 1 10
 timestamp 0
 use vdacr_vc  Xd2
 timestamp 0
-transform 0 -1 7811 1 0 200
-box 0 0 3960 7506
+transform 0 -1 8046 1 0 200
+box 0 0 3960 7846
 use vdacr_vr  Xd1
 timestamp 0
 transform 0 -1 7916 1 0 4560

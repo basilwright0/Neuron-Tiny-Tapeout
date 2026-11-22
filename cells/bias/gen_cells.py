@@ -336,7 +336,7 @@ MQ, MQC = (4.0, 2.0), (4.0, 1.0)   # quarter copy (vth_ref chain) and its cascod
 VDACR = {  # name: (line, bits, base squares, LSB squares, copy)   V = V(vglp) * k * (base + code*lsb) / R0
     "el": ("el", 5, 48.0, 1.0, 1.0),                    # ~1.00 .. 1.63 V (sim, incl. switch R_on)
     "vr": ("vreset_src", 5, 43.0, 1.0, 1.0),            # ~0.90 .. 1.53 V
-    "vc": ("vth_cmp", 5, 53.0, 2.0 / 3.0, 1.0),         # ~1.10 .. 1.51 V
+    "vc": ("vth_cmp", 5, 60.0, 2.0 / 3.0, 1.0),         # ~1.23 .. 1.64 V (M3 vdac: R_base 53 -> 60 sq, +0.14 V for CMP at EL 1.5)
     "vt": ("vth_ref", 6, 69.0, 1.27, 0.25),             # ~0.35 .. 0.75 V, ~6.4 mV LSB
 }
 RSW = {5: (8.0, 0.28), 6: (12.0, 0.28)}   # segment shorting switches (nfet), R_on ~180 / ~120 Ohm

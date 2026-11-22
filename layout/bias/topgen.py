@@ -482,7 +482,7 @@ if M3:
     PINS_REF = json.loads((HERE / "b1_pins_242.json").read_text())
     _rx0 = (1.0 - 43.0, 70.0 - 37.3)          # receiver group: same relative layout as in the old C2
     PLACE_F = {
-        "Xd2": (1.0 + 38.58 - (38.58 - 37.53) / 2, 1.0, 90),
+        "Xd2": (1.0 + 39.23, 1.0, 90),     # M3 vdac: vdacr_vc R_base 60 sq -> 39.23 tall, west edge at x 1.0
         "Xd1": (1.0 + 38.58, 22.8, 90),
         "Xd0": (1.0 + 38.58 - (38.58 - 36.32) / 2, 44.6, 90),
         "Xx0": (44.4 + _rx0[0], 37.3 + _rx0[1], 0), "Xx1": (43.0 + _rx0[0], 46.0 + _rx0[1], 0),

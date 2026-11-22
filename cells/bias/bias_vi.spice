@@ -110,12 +110,12 @@ XIB4p bb4 b4 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
 XIB4n bb4 b4 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
 XSW4 n4 bb4 vss vss nfet_03v3 W=8u L=0.28u ad=4.8p as=4.8p pd=17.2u ps=17.2u
 .ends vdacr_vr
-* vdacr_vc: vth_cmp, 5 bits, copy 1, R_base 53 sq, LSB 0.6667 sq -> 1.087 .. 1.511 V (+ switch R_on)
+* vdacr_vc: vth_cmp, 5 bits, copy 1, R_base 60 sq, LSB 0.6667 sq -> 1.231 .. 1.655 V (+ switch R_on)
 .subckt vdacr_vc out b0 b1 b2 b3 b4 vdd vss
-XRB0 out rb1 vss ppolyf_u_1k r_width=1u r_length=12.86u
-XRB1 rb1 rb2 vss ppolyf_u_1k r_width=1u r_length=12.86u
-XRB2 rb2 rb3 vss ppolyf_u_1k r_width=1u r_length=12.86u
-XRB3 rb3 n0 vss ppolyf_u_1k r_width=1u r_length=12.86u
+XRB0 out rb1 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XRB1 rb1 rb2 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XRB2 rb2 rb3 vss ppolyf_u_1k r_width=1u r_length=14.555u
+XRB3 rb3 n0 vss ppolyf_u_1k r_width=1u r_length=14.555u
 XRS0 n0 n1 vss ppolyf_u_1k r_width=2u r_length=1.315u
 XIB0p bb0 b0 vdd vdd pfet_03v3 W=1u L=1u ad=0.6p as=0.6p pd=3.2u ps=3.2u
 XIB0n bb0 b0 vss vss nfet_03v3 W=0.5u L=1u ad=0.3p as=0.3p pd=2.2u ps=2.2u
