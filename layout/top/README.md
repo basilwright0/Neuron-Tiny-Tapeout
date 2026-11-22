@@ -278,3 +278,36 @@ vbn_leak and one slot's vl in the kick bench, so a future A/B difference can be 
 the HOLD release edge (HOLD on is unchanged). It is a one-time negative vm step that decays with tau_m (100 us at S = 100);
 AH50 -35.7 mV is the worst case. A negative step cannot cause a spike; it delays the next spike after a freeze. Size of
 the in-slot HOLD-off kick: XHL channel charge plus vl-vm sharing.
+
+### PEX run 4 (2026-11-22, CMP 1 uA tail + level 4)
+Chip `dc95628` (CMP tail 0.5 -> 1 uA; level 4 leak-OTA input / diode L 1 -> 0.5 um in the 9 slot/D1 cells; AdEx
+rebuilt for level 3+4), benches `125f1cd` (AdEx vw and D1 preconditioned, released at 0.5 us; stim-A local-edge table;
+absolute vbn_leak / S1 vl / AdEx vw traces; per-slot ripple table in bias_spk). Top-level `routes.json` is unchanged
+from run 3 (B = 9146017). VM 16:58-18:02 UTC: LVS match, node check 0 missing, all 6 benches rc=0; ext_rc 55 warnings (as run 3).
+Edge (step) kick in mV, typical 27 C, S = 100, run 3 -> run 4:
+
+| Event / victim | run 3 (9146017) | run 4 (dc95628) |
+|---|---|---|
+| HOLD on / off, H1/P3/P2/H2/H3 | +8.7 / -16.8 | +8.7 / -16.7 |
+| HOLD off S1..S3 / F1 / F2, F3 / AH400 | -15.2..-15.3 / -7.2 / -11.7 / -3.2 | -15.3..-15.4 / -7.3 / -11.6 / -3.1 |
+| HOLD off AH50 (worst edge kick) | -35.7 | -36.2 |
+| HOLD off CMP / hold drift CMP (mV/ms) | -11.0 / -84.1 | -10.9 / -84.3 |
+| HOLD on D1 vs / d1 / d2, AdEx vm | +10.7 / +14.0 / +16.3, +5.7 | +11.0 / +14.3 / +16.5, **+7.7** |
+| HOLD off D1 vs / d1 / d2, AdEx vm | -17.8 / -25.3 / -23.4, -8.3 | **-19.5 / -27.2 / -25.6**, -9.0 |
+| Hold drift H/P, D1 d1, AdEx vm (mV/ms) | -117..-119, -22.5, -21.6 | -117..-119, -25.2, -29.4 |
+| MRESET on D1 vs / AdEx vm | -1.1 / +2.3 | -19.7 / +3.4 (D1 preconditioned; block-level -31.7) |
+| SUB 0->1 AdEx vm | -6.8 | -3.7 |
+| stim A on / off, AdEx vm | +12.0 / -17.0 | +11.1 / -15.9 |
+| PROBE_EN, SEL, LOAD, stim A (array) | | within 0.2 mV |
+
+The D1 / AdEx rows are not a clean A/B: run 4 preconditions both (run 3 left them drifting), and they are still not at rest
+at 59 us (D1 vs -38, d1 -45, AdEx vm +30 mV/ms). The array kicks (level-4 leak OTA in every slot) moved <= 0.5 mV.
+
+Other files: coupling.txt same within 0.01 fF / 0.01 mV for every array slot and CMP (13.8 fF, probe_en_c[3] 6.27 mV);
+D1 all-lines 17.8 / 32.9 / 23.1 -> 17.7 / 32.9 / 22.8 mV. **AdEx vw <- probe_sub_raw[0] top-added 196 -> 433 aF, 3.00 -> 6.60 mV**,
+now the worst single-line kick on the chip (vw all lines 5.75 -> 9.38 mV; AdEx vm 5.92 -> 6.32 mV) - the rebuilt AdEx cell's
+vw pin/wiring, routes unchanged. bias_dc: lines the same except vreset driver 1.2993 -> 1.2934 V, vsrc far-end drop
+-39..-48 -> -23..-38 mV, aux0 / aux2 0.384 / 0.387 -> 0.406 V (P-cell leak bias, level 4). bias_spk: victim 50.35 -> 51.16 kHz
+(off) / 55.65 -> 56.10 kHz (on), on/off shift +10.5 % -> +9.7 %; ripple with neighbours on: vsrc 101 -> 90, vreset 81 -> 80,
+vbn_leak 11.2 -> 10.4 mV p-p; quiet S1 vm p-p 0.64 / 2.88 -> 0.80 / 2.95 mV. New per-slot table: CMP vm p-p 47.5 (off) /
+73.2 (on) mV vs 0.8-3.7 mV for the other quiet slots (no run-3 value; check). Probe step 1971 ns, PASS (same).
