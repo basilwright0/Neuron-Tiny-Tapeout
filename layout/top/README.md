@@ -303,11 +303,24 @@ Edge (step) kick in mV, typical 27 C, S = 100, run 3 -> run 4:
 The D1 / AdEx rows are not a clean A/B: run 4 preconditions both (run 3 left them drifting), and they are still not at rest
 at 59 us (D1 vs -38, d1 -45, AdEx vm +30 mV/ms). The array kicks (level-4 leak OTA in every slot) moved <= 0.5 mV.
 
-Other files: coupling.txt same within 0.01 fF / 0.01 mV for every array slot and CMP (13.8 fF, probe_en_c[3] 6.27 mV);
-D1 all-lines 17.8 / 32.9 / 23.1 -> 17.7 / 32.9 / 22.8 mV. **AdEx vw <- probe_sub_raw[0] top-added 196 -> 433 aF, 3.00 -> 6.60 mV**,
-now the worst single-line kick on the chip (vw all lines 5.75 -> 9.38 mV; AdEx vm 5.92 -> 6.32 mV) - the rebuilt AdEx cell's
-vw pin/wiring, routes unchanged. bias_dc: lines the same except vreset driver 1.2993 -> 1.2934 V, vsrc far-end drop
+Other files: coupling.txt same within 0.01 fF / 0.01 mV for every array slot and CMP (13.8 fF);
+D1 all-lines 17.8 / 32.9 / 23.1 -> 17.7 / 32.9 / 22.8 mV. As first printed, AdEx vw <- probe_sub_raw[0] 196 -> 433 aF
+(3.00 -> 6.60 mV) looked like the new worst line, but that pair is entirely inside adex_a1: the block PEX
+(`layout/tier2/out/adex_a1_pex.spice`) has vw-sub0 = 433 aF, and the `4230787` AdEx re-route raised it from 196 aF
+(m1/m2 vw and sub0 0.27-0.94 um apart in a1_pmux). probe_sub_raw is a latched PROBE_SUB bit, written only when
+firmware selects a probe tap; the 6 mV step on vw (~0.23 pF) is about half of one spike's increment and decays with
+tau_w ~0.74 ms. **Not a layout issue.**
+**Coupling-script bug fixed:** `tb_top_coupling.py` keyed `pin_of` by extracted names (`g_i0/I`, `s33/en`), which aren't
+flat-netlist nodes, so the block-level subtraction silently returned 0 for some instance pins. It now resolves them with
+`T.net()`, like the victims. With the fix (run-4 netlists), the top-level-added numbers are: AdEx vw 0.89 mV (cfg_out[34]),
+CMP vm 2.13 mV (rt_out[1]; probe_en_c[3] 406 aF is inside slot_cmp_h), D1 vs 3.02 mV (cfg_out[64]; d1_sel0 392 aF is inside
+dend_d1). Worst single top-added lines: D1 d2 <- cfg_out[65] 4.87 mV, D1 d1 <- cfg_out[41] 4.83 mV (latched config bits),
+then rt_out[1] -> P2/P3/H3 vm 2.4 mV. bias_dc: lines the same except vreset driver 1.2993 -> 1.2934 V, vsrc far-end drop
 -39..-48 -> -23..-38 mV, aux0 / aux2 0.384 / 0.387 -> 0.406 V (P-cell leak bias, level 4). bias_spk: victim 50.35 -> 51.16 kHz
 (off) / 55.65 -> 56.10 kHz (on), on/off shift +10.5 % -> +9.7 %; ripple with neighbours on: vsrc 101 -> 90, vreset 81 -> 80,
 vbn_leak 11.2 -> 10.4 mV p-p; quiet S1 vm p-p 0.64 / 2.88 -> 0.80 / 2.95 mV. New per-slot table: CMP vm p-p 47.5 (off) /
-73.2 (on) mV vs 0.8-3.7 mV for the other quiet slots (no run-3 value; check). Probe step 1971 ns, PASS (same).
+73.2 (on) mV vs 0.8-3.7 mV for the other quiet slots. This is the CMP slot's own state, not coupling: at the bench point
+(EL / Vreset 1.50 V) the vth_cmp code clips at 31 (~1.506 V, DAC max 1.511 V), so det_cmp is tripped and vm follows the
+vreset line through the reset switch (vreset p-p at the CMP terminal is 62.8 / 80.4 mV; coupling C unchanged). Resolved by
+the deferred B1 vth_cmp +0.12 V shift (M3); the bench should exclude CMP from the quiet column until then.
+Probe step 1971 ns, PASS (same).

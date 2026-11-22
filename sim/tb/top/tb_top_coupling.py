@@ -120,9 +120,10 @@ for n, al in T.hier_aliases().items():
     for ip in al:
         inst, pin = ip.split(".", 1)
         try:
-            pin_of[inst][f(n)] = pin
-        except Exception:
-            pass
+            g = grp(n)             # extracted names (g_i0/I, s33/en) aren't flat-netlist nodes; resolve like the victims
+        except KeyError:
+            g = f(n)
+        pin_of[inst][g] = pin
 lines = ["Coupling from digital lines to analog nodes (full-chip R+C PEX, coupling C summed over R-network nodes).",
          "kick = 3.3 V x Cc / (C_mem + C_extracted). C_mem: from the slot cell's MOS caps (" +
          ", ".join(sorted({f"{c} {T.membrane_cap(c) * 1e15:.0f} fF" for _, _, c in T.neurons()})) +
