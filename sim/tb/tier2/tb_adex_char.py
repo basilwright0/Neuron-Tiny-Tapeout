@@ -53,7 +53,8 @@ def lib():
     return f"{cells()}\n.include {PEX}" if PEX else cells("adex/adex.spice")
 
 
-REP = "Vrw vrw 0 1.2\nXrw vrw vw 0 0 nfet_03v3 W=0.22u L=8u\n"
+# Iw replica: a copy of XA.XW (cells/adex/adex.spice a1_adapt, W=4u L={lw}, lw default 1u; level-3 fix F5)
+REP = "Vrw vrw 0 1.2\nXrw vrw vw 0 0 nfet_03v3 W=4u L=1u\n"
 
 
 def hdr(corner, temp, seed):

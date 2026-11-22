@@ -202,3 +202,19 @@ This only works if the phase-2 B1 split and D1/AdEx regeneration land by ~Nov 29
   - **D1 trim code (PLAT1/PLAT2, nibbles 7/8): use code ~3, not 8.** A higher code raises the d1 rest and lowers the threshold. Code 3 restores the ~+25 mV offset and gives a plateau at S = 100/1000/10000 for tt/ss/ff. Code 0 fails ss/0 at 10000.
   - S = 100 at code 3: threshold 330 vs 350 pA, plateau 1219 vs 1203 µs, burst rate −7 %. No worse than before.
   - Layout: gate length only, on 2 devices (the 2 XNI). This fits the 70 × 104 footprint; it needs a poly edit and a DRC/LVS rerun.
+
+## Step-1 AdEx (2026-11-22, schematic; sim/results/level3_adex/summary.txt, F5real_*/F5r_* logs)
+- **Root cause of tau_w 2.27x (tt) / 2.54x (ss) at S = 10000:** tau_w = nUT_eff · C_vw / I_net. XW 0.22/8 leaves weak inversion at 10-20 nA (nUT_eff 1.70x tt, 1.81x ss) and the 3 x 0.22/15 stack keeps only 0.756 of linear Itau scaling (1.32x); C_vw +1.6 %, leakage 0.1 %. Product 2.28 (measured 2.27). The §2.5 stack hypothesis alone explains only 1.32x.
+- **Fix F5 (applied in cells/adex/adex.spice, pins unchanged):** XW 0.22/8 → 4/{lw}, lw default 2u; stack XT1..3 3 x 0.22/15 → XT1..5 5 x 0.5/10; XPA L 1 → 2 µm; XPB W 4 → 32 µm. The tb_adex_char.py Iw replica follows XW (4/2).
+- **Verification (tb_adex.py, tau_w in S = 100 units, vs each corner's baseline at S = 100: tt 0.827, ss 0.770, ff 0.890 ms; b 43.9/46.8/39.2 pA):**
+
+| corner | tau_w S=100 / 1000 / 10000 (ms) | b S=100 / 1000 / 10000 (pA) | tau_w ±20 % |
+|---|---|---|---|
+| tt/27 | 0.785 / 0.811 / 0.967 (−5/−2/+17 %) | 44.4 / 45.5 / 37.3 | pass |
+| ss/0 | 0.716 / 0.741 / 0.854 (−7/−4/+11 %) | 49.0 / 50.7 / 40.6 | pass |
+| ff/85 | 0.881 / 0.944 / 1.125 (−1/+6/**+26 %**) | 38.5 / 39.7 / 32.9 | **fail** |
+| ff/85, lw = 1u | 0.849 / 0.896 / 1.047 (−5/+1/+18 %) | 53.3 / 56.3 / 49.8 (+36 %) | pass (tt +7 %, ss +6 % at 10000) |
+- ff/85 residual: the stack ratio is worse there (dvw/dt 0.83x at S = 10000) and nUT_eff +8 %. A 4 x 0.5/12.5 stack is identical to F5 (ff 1.130, within 0.5 %), so stack count doesn't matter. **lw = 1u (XW 4/1) passes tau_w at all 9 points** but raises b ~+30 % at the same code (Ig scales with XW). b is code-trimmable (vbp_w −23 %). Open decision: lw = 1u + b code, or accept ff/85 +26 %.
+- **vbp_w code:** at S = 10000 the ISI ratio rises 2.2 → 3.4 (F5; 4.1 with lw = 1u). About −40 % Iin (vbp_w code) restores ratio 2.35/2.39 (tau 0.958/0.869). This needs a per-S code in the firmware table.
+- **Layout impact:** gate area +36 µm² by W·L (task estimate ~+46 µm² incl. spacing). XPB 2 → 16 µm², stack 9.9 → 25 µm², XW 1.8 → 8 µm². The 5-device stack needs a 4th row in adex_a1. A 4 x 0.5/12.5 stack is electrically equivalent and may fit 3 rows. Needed: t2gen re-placement, then the full rebuild (DRC/LVS/PEX, chip LVS, precheck). Until then the layout/ adex_a1 is LVS-stale against cells/.
+- **AdEx decision (reversible, overnight):** XW = 4/1 (lw = 1u), not 4/2. Reason: F5 with lw = 2u fails τ_w at ff/85 (+26 % at S = 10000); lw = 1u passes all 9 corner/S points (S = 10000: tt +7 %, ss +6 %, ff +18 %). Cost: b +30 % at the same vbp_w code, recovered by ~23 % lower code (calibration only, no new codes). The AdEx layout (layout/tier2 adex_a1) does not match this netlist yet; the full-chip LVS still uses the old adex_a1_lvs.spice until the AdEx block is rebuilt (generator re-placement: stack needs a 4th row, or the 4 × 0.5/12.5 stack variant, which gives the same result).
