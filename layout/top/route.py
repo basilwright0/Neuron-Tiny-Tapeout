@@ -173,7 +173,7 @@ def build():
         for fr in frame_rects(inst, cell, x, y, gg["bbox"]):
             for l in kol:
                 g.keepout(l, fr, m)
-        is_slot = cell.startswith("slot")
+        is_slot = cell.startswith("slot") or cell in fp.COMPACT_CELLS   # array cells: no edge stubs (cslot_*, czslot_*)
         for pn, plist in gg["pins"].items():
             net = used.get((inst, pn))
             if inst == "d1" and pn == "vsrcp":
