@@ -37,7 +37,10 @@ import os
 DEL = float(os.environ.get("FI_DEL", "0"))     # shift EL / Vth / Vreset together (operating-point test)
 if DEL:
     sb.EL, sb.VTH, sb.VRESET = sb.EL + DEL, sb.VTH + DEL, sb.VRESET + DEL
+if os.environ.get("FI_VRST"):                  # absolute Vreset (vreset_src code test; default EL + DEL)
+    sb.VRESET = float(os.environ["FI_VRST"])
 b = sb.Bias(S)
+b.i_ref *= float(os.environ.get("FI_IREF", "1"))   # vbn_ref code test: i_ref x code/14 (IDAC1 nominal code ~14)
 IBSCALE = float(os.environ.get("FI_IBSCALE", "1"))   # 10000x gate, Option 0: leak-code calibration = leak master x IBSCALE
 b.ib *= IBSCALE
 PEXF = os.environ.get("FI_PEX")                 # 10000x gate: absolute path of a <name>_pex.spice (DUT = that subckt)

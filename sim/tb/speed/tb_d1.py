@@ -71,6 +71,13 @@ if os.environ.get("D1_IBSCALE"):    # 10000x gate, Option 0: leak-code calibrati
 
     def bias(**kw):  # noqa: F811
         return _bias3(ib_leak=g_leak(kw.get("S", 100.0)) / dcommon.G_PER_IB * float(os.environ["D1_IBSCALE"]), **kw)
+if os.environ.get("D1_IREF"):       # vbn_ref code test: refractory master x D1_IREF (code/14)
+    _bias4 = bias
+
+    def bias(**kw):  # noqa: F811
+        import re as _r4
+        return _r4.sub(r"^Ibr vdd vbr (\S+)", lambda m_: f"Ibr vdd vbr {float(m_.group(1)) * float(os.environ['D1_IREF'])}",
+                       _bias4(**kw), flags=_r4.M)
 XB = os.environ.get("D1_XB", "xd.xp1.xb")      # plateau detector output (PEX: the extracted net name of XP1.XDT xb)
 S = float(sys.argv[1])
 CASES = [(c.split(":")[0], int(c.split(":")[1])) for c in
