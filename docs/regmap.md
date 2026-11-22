@@ -121,8 +121,8 @@ of the CMP double slot (no tap): no SEL/SUB combination selects it (tested exhau
 
 **M2 layout B (2026-11-21, `floorplan/floorplan.py` `MAP`):** the array is regrouped into two tall rows of trimmed
 slots at the bottom and two compact rows on top. The decoder above is unchanged, so **PROBE_SEL now reads the neuron
-at the decoded position, which is generally not spike channel SEL.** Probe map (PROBE_SUB 0/1 = vm/vr tap; S, F and
-AH50 have no vr tap since M2):
+at the decoded position, which is generally not spike channel SEL.** Probe map (PROBE_SUB 0/1 = vm/vr tap; S, F,
+AH50 and AH400 have no vr tap since M2, so PROBE_SUB = 1 reads nothing on them; the vr tap remains on H, P and CMP):
 
 | PROBE_SEL | 0 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 14 | 15 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|

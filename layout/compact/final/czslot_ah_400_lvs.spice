@@ -1,7 +1,8 @@
-* LVS reference for slot_ah_50: flattened from cells/neuron/slot.spice by layout/slot/flatten.py
+* LVS reference for slot_ah_400: flattened from cells/neuron/slot.spice by layout/slot/flatten.py
 * Cfb (MOM capacitor, value from PEX) omitted: XD.CFB
-.subckt cxslot_ah_50 vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn sta stb hold mreset
-XXC_XC vss vm vss vss nfet_03v3 W=3.54u L=3.54u
+.subckt czslot_ah_400 vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn sta stb hold mreset
+XXC_XC vss vm vss vss nfet_03v3 W=7.07u L=7.07u
+XXC2_XC vss vm vss vss nfet_03v3 W=7.07u L=9.6u
 XXL_XMT XL.t vbn_leak vss vss nfet_03v3 W=2u L=4u
 XXL_XM1 la el XL.s1 vss nfet_03v3 W=4u L=1u
 XXL_XD1 XL.s1 XL.s1 XL.t vss nfet_03v3 W=8u L=1u
@@ -42,4 +43,4 @@ XXS_XQA vss sta XS.da vdd pfet_03v3 W=1u L=0.28u
 XXS_XQB vss stb XS.db vdd pfet_03v3 W=1u L=0.28u
 XXS_XHL vm hold vl vdd pfet_03v3 W=1u L=0.28u
 XXS_XMR vdd mreset vr vss nfet_03v3 W=0.5u L=0.28u
-.ends cxslot_ah_50
+.ends czslot_ah_400

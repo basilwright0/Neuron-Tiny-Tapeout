@@ -74,7 +74,7 @@ The full map, timing and bit packing are in [`docs/regmap.md`](regmap.md).
 | 0x00–0x04 | IDAC | Eight 5-bit DAC codes (leak, refractory, synapse, D1 axial, AdEx adaptation, EL, V_reset, CMP threshold), packed as a 40-bit word, LSB first |
 | 0x05 | VDAC | 6-bit threshold reference `vth_ref` |
 | 0x06 | ANA | Group enables, D1 plateau / chain / stimulus-B steering, BIAS_EN |
-| 0x07 | PROBE | SEL (channel to probe; see the note above), SUB (membrane / secondary node / REF), PROBE_EN |
+| 0x07 | PROBE | SEL (channel to probe; see the note above), SUB (membrane / secondary node / REF; the compact slots S, F, AH50 and AH400 have no secondary-node tap), PROBE_EN |
 | 0x08 | MODE | `ua[0]` mode, OUT_MUX, IB_X2 (readout bias ×2), RT_EN (enables for the `ui[6:3]` pass-throughs) |
 | 0x09–0x0E | LIF | Digital LIF: enable and source, leak shift and refractory, EL, Vth, Vreset, weight |
 | 0x0F–0x16 | TRIM | 4-bit trims: H/P/CMP thresholds, D1 plateau thresholds, P leak-τ |

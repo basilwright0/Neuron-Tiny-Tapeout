@@ -37,9 +37,9 @@ LIB = {
                         prefix="ax_", final=True, size=(38.0, 73.0)),
 }
 # M2 regrouped array: tall trimmed cells from layout/slot (45.74 um per row), compact cells from
-# layout/compact/final (29.42 / 32.49 um; copies of the clean layout/compact/out builds, which are git-ignored).
+# layout/compact/final (29.42 / 34.29 um; copies of the clean layout/compact/out builds, which are git-ignored).
 _SLOT_FINAL = {"slot_ah_h": True, "slot_ah_p": True, "slot_cmp_h": True, "slot_ref": True,
-               "cslot_ah": True, "cslot_ah_f": True, "cxslot_ah_f": True, "cxslot_ah_50": True, "cslot_ah_400": True}
+               "cslot_ah": True, "cslot_ah_f": True, "czslot_ah_f": True, "czslot_ah_50": True, "czslot_ah_400": True}
 for _i, (_c, _f) in enumerate(_SLOT_FINAL.items()):
     _h = fp.COMPACT_CELLS[_c] if _c in fp.COMPACT_CELLS else fp.TALL_H * (2 if _c == fp.SLOT_CELL["CMP"] else 1)
     _d = "layout/compact/final" if _c in fp.COMPACT_CELLS else "layout/slot"

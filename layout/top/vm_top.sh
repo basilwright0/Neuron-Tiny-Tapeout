@@ -10,4 +10,4 @@ tar czf /home/user/top_out.tgz /home/user/top_build.log /home/user/top_precheck.
   layout/top/work/*.lyrdb mag/tt_um_basilwright0_analog_neurons.mag gds/tt_um_basilwright0_analog_neurons.gds \
   lef/tt_um_basilwright0_analog_neurons.lef 2>/dev/null
 echo DONE > /home/user/top_done
-[ -n "$1" ] && BOAT_ID=$1 /home/user/.ascii/boat extend self --ttl 600 > /home/user/selfstop.log 2>&1
+[ -n "$1" ] && bash layout/compact/vm_selfstop.sh "$1" /home/user/top_done 300
