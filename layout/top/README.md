@@ -152,7 +152,8 @@ channel reserved for the analog column lines, trim tracks broken by a Metal4 jum
 
 Typical 27 °C, S = 100, branch `m2-compact` @ 38d6092; M1 = post-stim-A-fix run (`sim/results/top/batch_fix`,
 bias DC / probe from `vm_2026-11-20`). Compared by neuron name (M1 used another slot map); M1 AH800 -> M2 AH400.
-**Pending:** `tb_top_bias.py spk on|off` (still running, not included). Edge kicks in mV (20-60 ns after the edge).
+Spiking-neighbour benches (`tb_top_bias.py spk on|off`): done, see the note at the end. Edge kicks in mV (20-60 ns after
+the edge).
 
 | Event | Tall cells H/P/CMP: M1 -> M2 | Compact cells S/F: M1 (tall) -> M2 | AH50 | AH800 -> AH400 | D1 vs / d2 | AdEx vm |
 |---|---|---|---|---|---|---|
@@ -194,3 +195,20 @@ switch in antiphase (net 145 aF), measured SUB kick on CMP +0.9 -> +1.4 mV. Hold
 mV/ms, F3 -5.7 -> -10.9, AH50 -35 -> -46, CMP -115 -> -63. vbp_st at HOLD +-10 -> +-24 mV (back in 2.3 us); vbp_syn at
 HOLD on +154 -> +178 mV. Bias DC unchanged (el +0.161, vreset <= +0.004, vsrc -0.039..-0.048 mV). Probe step worst
 1969 ns (M1 1965) -> PASS, 31 ns margin.
+
+**Spiking neighbours** (`tb_top_bias.py spk on|off`, S = 1000; victim H2 (s11) at 2x rheobase, H1 / P2 / H3 / S2 at 4x;
+M1 = `vm_2026-11-20`, pre-stim-A-fix, other slot map). Neighbours on vs off: victim rate **+10.5 %** (50.38 -> 55.65 kHz,
+ISI 19.85 -> 17.97 us, jitter +-0.2 -> +-26.7 ns); M1 -0.7 % (+-71 ns jitter). Shared-line ripple p-p with neighbours on,
+M1 -> M2 (mV): vreset 79 -> 97, vsrc 86 -> 90, vbn_ref 23.9 -> 28.6, vbp_st 17.0 -> 19.5, el 11.1 -> 16.2, vbn_leak
+9.3 -> 12.3, vbn_prb 5.4 -> 7.6, vbp_syn 14.1 -> 9.2. Mean shifts are <= 1.7 mV (vreset, vbn_ref; M1 <= 1.1). Quiet
+neuron S1 vm p-p 5.4 mV (M1 s20 5.2). Open: the +10 % rate pull is new in M2 and its cause is not identified yet
+(spike lines into s11 or the shared-line ripple). Find it before calling this acceptable.
+
+**Stim-A reroute** (after the M2 PEX, not yet DRC-checked): the P2 coupling was stim A's west join line (Metal2, 0.4 um
+off column 0); the D1 coupling was its router branch running Metal2 1.1 um along D1's west edge. The join line now sits
+west of the other shared joins (`geom.JOIN_OUTER`, x 3.11) and its bottom end is a router terminal. Router keep-outs
+(`route.NET_KO`) hold rt_out[0] Metal2/3 3 um off D1 and the array. VGND Metal2 shields fill the two vacated places so the
+lines behind them see the same neighbours as before. `route.py reroute 'rt_out[0]'` keeps the run-4 east branch
+(`route.KEEP`). Local RC PEX, rt_out[0] top-added: P2 vm 249 -> 96 aF (3.69 -> 1.42 mV, same as the other tall cells),
+D1 vs 284 -> 81 aF (4.11 -> 1.17), D1 d1 143 -> 19, d2 96 -> 4, S1 42 -> 1, F2 67 -> 55. No victim / aggressor pair got
+worse (largest change +0.0 aF). LVS matches.

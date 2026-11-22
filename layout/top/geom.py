@@ -68,13 +68,22 @@ TRKP = 0.56                                    # row band: track k centre at fp.
 SHARED = {0: "rt_out[0]", 1: "rt_out[1]", 2: "rt_out[2]", 3: "rt_out[3]", 5: "probe_sub", 6: "probe_sub_b"}
 SHARED_EAST_ROW = 2                            # row whose shared tracks continue east to the macro (rt_out y)
 PINTRK = {"sta": 0, "stb": 1, "hold": 2, "mreset": 3, "rsel": 4, "sub": 5, "sub_b": 6}
+# shared nets whose west join line sits outside all the others (x 3.11, 4.9 um off the array; the inner column at
+# x 7.31 holds a VGND shield). Stim A: M2 PEX, its join line 0.4 um off column 0 added 153 aF on P2 vm.
+# The line continues down to the array bottom, where its end is a router terminal for D1's sta branch.
+JOIN_OUTER = ("rt_out[0]",)
+
+
+def join_x(ax0):
+    ks = sorted(SHARED)
+    return {k: gx(ax0 - 0.69 - 0.7 * (len(ks) if SHARED[k] in JOIN_OUTER else j)) for j, k in enumerate(ks)}
 
 
 def array(F):
     grid = fp.slot_map()
     tn = fp.TRIM_NIBBLES
     ax0, ay0, ax1, ay1 = fp.BLOCKS["NA neuron array 4x4"]
-    jumps = {}
+    jumps, fan = {}, {}
     xoff = 0                                # fan-out columns used by lower rows below AdEx's top (CH_NAE)
     for r in range(4):
         y0, TRK0 = fp.row_y0(r), fp.row_trk0(r)
@@ -119,7 +128,7 @@ def array(F):
                 if lim < y < fp.row_y0(r + 2) + 0.7:
                     y = gy(fp.row_y0(r + 2) + 0.7)
                 ylev.append(y); y = round(y + 0.56, 3)
-        xw = {k: gx(ax0 - 0.69 - 0.7 * j) for j, k in enumerate(sorted(SHARED))}
+        xw = join_x(ax0)
         for k, net in net_of.items():
             ty = y0 + TRK0 + TRKP * k
             xa = xw[k] - 0.2 if k in SHARED else ax0 + 0.3
@@ -141,6 +150,8 @@ def array(F):
                     yt = gy(y0 + TRK0 - 1.38)
                     F.p("metal2", (xe[k] - 0.14, yt - 0.14, xe[k] + 0.14, ty + 0.2), net)
                     F.term(net, [("metal2", (xe[k] - 0.14, yt - 0.14, xe[k] + 0.14, yt + 0.42))])
+                    if net in JOIN_OUTER:            # same group: the west join end (drawn below) is this terminal too
+                        fan[net] = F.terms[net][-1]
             if k in SHARED:
                 F.p("via2", (xw[k] - 0.14, ty - 0.14, xw[k] + 0.14, ty + 0.14), net)
         for k, x in vias:
@@ -190,14 +201,25 @@ def array(F):
                 F.p("metal3", (cx - 0.3, jy - 0.14, cx + 0.3, jy + 0.14), net)
                 F.p("via3", q, net)
     # west join lines (Metal2) of the shared nets, row 0 track -> row 3 track
-    xw = {k: gx(ax0 - 0.69 - 0.7 * j) for j, k in enumerate(sorted(SHARED))}
+    xw = join_x(ax0)
     d1y = C.instances()["d1"][2]
     for k, net in SHARED.items():
         ya = ay0 + fp.row_trk0(0) + TRKP * k
         if k <= 3 and C.PH_MOVE.get("dend_d1"):     # rt_out joins continue down to west-edge D1 inputs
             ya = d1y + 99.5
+        if net in JOIN_OUTER:                       # down to the array bottom (above the bias channel)
+            ya = gy(ay0 + 0.6)
+            fan[net].append(("metal2", R(xw[k] - 0.14, ya - 0.14, xw[k] + 0.14, ya + 0.42)))
         yb = fp.row_y0(3) + fp.row_trk0(3) + TRKP * k
         F.p("metal2", (xw[k] - 0.14, ya - 0.2, xw[k] + 0.14, yb + 0.2), net)
+    # VGND shield in the vacated inner join column, along the array's west edge (whatever join line is innermost
+    # couples to column 0: local PEX with rt_out[1] innermost, P2 vm +102 aF); via1 onto the row-3 VSS strip
+    xs = gx(ax0 - 0.69)
+    assert xs not in xw.values()
+    F.p("metal2", (xs - 0.14, ay0 + 1.8, xs + 0.14, ay1 + 0.45), "VGND")   # above rt_out[1]'s via (y 141.3)
+    F.p("metal1", (xs - 0.2, ay1 - 0.1, ax0 + 0.3, ay1 + 0.6), "VGND")
+    F.via("via1", xs, ay1 + 0.25, "VGND", pads=("lo",))      # Metal2 pad east only (rt_out[1] runs at x 6.89)
+    F.p("metal2", (xs - 0.14, ay1 + 0.05, xs + 0.26, ay1 + 0.45), "VGND")
     # column-bottom terminals (row 0 cells): column lines enter from below on Metal2
     for c in range(4):
         cell = fp.slot_cell(fp.cell_at(0, c)[1])
@@ -378,6 +400,13 @@ def blocks_power(F):
         if p["layer"] == "metal1":
             m1stub("d1", p["pt"][1], "VDPWR")
     m1stub("d1", 0.3, "VGND")
+    # VGND shield (Metal2) along D1's west edge, where stim A ran until run 4 (M2 PEX: 206 aF on vs from that line;
+    # the router now keeps rt_out[0] 3 um off D1, route.NET_KO): rt_out[1] behind it keeps its shielded environment.
+    # Joined to the VGND stack of the m1stub above (x 5.0), up to the bias channel.
+    cell, x0, y0 = I["d1"]
+    xd, ys = round(x0 - 1.22, 3), y0 + 0.3
+    F.p("metal2", (stripe_at("VGND", 5.0) - 0.2, ys - 0.2, xd + 0.14, ys + 0.2), "VGND")
+    F.p("metal2", (xd - 0.14, ys - 0.2, xd + 0.14, fp.B1_BOX[3] - 1.0), "VGND")
     cell, x0, y0 = I["tau0"]                                   # tau0: off its EAST edge to the x 53.4 stack
     F.p("metal1", (x0 + 36.7, y0 + 0.0, stripe_at("VGND", 53.4) + 0.3, y0 + 0.6), "VGND")
     m1stub("tau2", 0.3, "VGND")

@@ -225,6 +225,15 @@ def build():
     ax0, ay0, ax1, ay1 = fp.BLOCKS["NA neuron array 4x4"]
     i0, i1 = ispan(ax0, ax1, OX, NX); j0, j1 = ispan(ay0, ay1, OY, NY)
     g.m4pen[j0:j1 + 1, i0:i1 + 1] = True
+    # per-net keep-outs (the net may still use its own terminals there)
+    g.netko = {}
+    for net, lst in NET_KO.items():
+        m = g.netko[net] = np.zeros((3, NY, NX), np.bool_)
+        for blk, layers, d in lst:
+            x0, y0, x1, y1 = fp.BLOCKS[blk]
+            i0, i1 = ispan(x0 - d, x1 + d, OX, NX); j0, j1 = ispan(y0 - d, y1 + d, OY, NY)
+            for l in layers:
+                m[l, j0:j1 + 1, i0:i1 + 1] = True
     # tile edge
     for arr in (g.rw, g.rv):
         b = int(0.35 / G)
@@ -277,10 +286,19 @@ def build():
 
 # ======================================================================== A*
 BIAS_OK = set(C.COLUMN_NETS) | {"aux0", "aux1", "aux2", "aux3", "vbn_ax", "vbp_w", "VDPWR", "VGND"}
+# per-net keep-outs: net -> [(block, layers, margin um)].  Stim A: M2 PEX, its Metal2 run 1.1 um off D1's west edge
+# added ~206 aF on D1 vs (+ d1 128, d2 94); Metal2/3 stay 3 um off D1 (its descent over D1 is Metal4) and off the
+# array (its west join line is fixed geometry, geom.JOIN_OUTER).
+NET_KO = {"rt_out[0]": [("D1 dendrite", (0, 1), 3.0), ("NA neuron array 4x4", (0, 1), 3.0)]}
+# reroute only: keep the net's old wires inside this box (x0, y0, x1, y1).  Stim A: its run-4 branch east of the
+# array (row-2 fan-out -> macro pin -> AdEx) stays as it was (rerouted, it moved off en_c3 over AdEx: AdEx vm
+# <- probe_en_c[3] 8 -> 104 aF); y 265.62 = its macro-pin row (the old wire above it only led to the west).
+KEEP = {"rt_out[0]": (120.5, 0.0, fp.TILE_W, 265.62)}
 
 
-def route_net(g, k, groups, margin=25.0, max_exp=3_000_000, full=False, net=None):
-    """Connect all groups of net k. Returns (paths, ok)."""
+def route_net(g, k, groups, margin=25.0, max_exp=3_000_000, full=False, net=None, seed=()):
+    """Connect all groups of net k. Returns (paths, ok). seed: kept wires [(layer index, rect)] of the net, already
+    connected to each other; the groups they touch start in the tree."""
     xs = [r[0] for grp in groups for l, r in grp] + [r[2] for grp in groups for l, r in grp]
     ys = [r[1] for grp in groups for l, r in grp] + [r[3] for grp in groups for l, r in grp]
     # stripe groups are huge: clip the window to the other groups
@@ -303,6 +321,9 @@ def route_net(g, k, groups, margin=25.0, max_exp=3_000_000, full=False, net=None
     if net is not None and net not in BIAS_OK:
         bz = g.bz[:, j0:j1 + 1, i0:i1 + 1] & ~own
         lw &= ~bz; lv1 &= ~bz
+    if net in getattr(g, "netko", {}):
+        nk = g.netko[net][:, j0:j1 + 1, i0:i1 + 1] & ~own
+        lw &= ~nk; lv1 &= ~nk
     lv = np.zeros((2, H, W), np.bool_)
     lv[0] = lv1[0] & lv1[1]; lv[1] = lv1[1] & lv1[2]
     LW = lw.astype(np.uint8).tobytes()
@@ -336,6 +357,11 @@ def route_net(g, k, groups, margin=25.0, max_exp=3_000_000, full=False, net=None
     order = sorted(range(len(groups)), key=lambda n: (len(gnodes[n]) > 5000, len(gnodes[n])))
     tree = set(gnodes[order[0]])
     todo = set(order[1:])
+    sn = set(nodes_of(seed)) if seed else set()
+    hit = {n for n, gn in enumerate(gnodes) if sn.intersection(gn)}
+    if hit:
+        tree = sn.union(*(gnodes[n] for n in hit))
+        todo = set(range(len(groups))) - hit
     paths = []
     cdx = [COST[l][0] for l in range(3)]; cdy = [COST[l][1] for l in range(3)]
     while todo:
@@ -554,21 +580,36 @@ def restub():
 
 
 def reroute(nets):
-    """Rip up the given nets in work/routes.json and route them again on top of the others (fixed)."""
+    """Rip up the given nets in work/routes.json and route them again on top of the others (fixed).
+    A net in KEEP keeps its old wires / vias clipped to the KEEP box (they must be one connected piece there)."""
     g, ids, tasks, stubs, F = build()
     R = json.loads((C.WORK / "routes.json").read_text())
     for net, rec in R.items():
         if net.startswith("_") or net in nets:
             continue
         commit(g, ids[net], [(l, tuple(r)) for l, r in rec["wires"]], [tuple(v) for v in rec["vias"]])
+    kept = {}
     for net in nets:
-        R[net] = {"wires": [], "vias": []}
+        kw, kv = [], []
+        if net in KEEP and net in R:
+            b = KEEP[net]
+            for l, r in R[net]["wires"]:
+                q = (max(r[0], b[0]), max(r[1], b[1]), min(r[2], b[2]), min(r[3], b[3]))
+                if q[2] - q[0] >= 0.28 - 1e-6 and q[3] - q[1] >= 0.28 - 1e-6:
+                    kw.append((l, tuple(round(v, 3) for v in q)))
+            kv = [tuple(v) for v in R[net]["vias"] if b[0] <= v[1] <= b[2] and b[1] <= v[2] <= b[3]]
+            commit(g, ids[net], kw, kv)
+            print("reroute", net, "keeps", len(kw), "wires,", len(kv), "vias in", b, flush=True)
+        kept[net] = (kw, kv)
+        R[net] = {"wires": [[l, list(r)] for l, r in kw], "vias": [list(v) for v in kv]}
     for net, grps in tasks + tie_tasks():
         if net not in nets:
             continue
-        paths, ok, msg = route_net(g, ids[net], grps, net=net)
+        seed = [(LI[l], r) for l, r in kept[net][0]]
+        paths, ok, msg = route_net(g, ids[net], grps, net=net, seed=seed)
         if not ok:
-            paths, ok, msg = route_net(g, ids[net], grps, margin=60.0, max_exp=8_000_000, full=True, net=net)
+            paths, ok, msg = route_net(g, ids[net], grps, margin=60.0, max_exp=8_000_000, full=True, net=net,
+                                       seed=seed)
         wires, vias = path_shapes(paths) if paths else ([], [])
         commit(g, ids[net], wires, vias)
         R[net]["wires"] += [[l, r] for l, r in wires]; R[net]["vias"] += [[k, x, y] for k, x, y in vias]
