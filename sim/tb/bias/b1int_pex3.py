@@ -12,7 +12,7 @@ usage (in the EDA container, from sim/tb/bias): python3 b1int_pex3.py  -> out/b1
 import re
 from pathlib import Path
 
-D = Path("out/b1int")
+D = Path(__import__("os").environ.get("PEX3_D", "out/b1int"))   # vdac (MIL-133): PEX3_D=out/vdac
 OUTS = ["vbn_leak", "vbn_ref", "vbp_syn", "vbn_ax", "vbp_w", "vbp_st", "vbn_prb", "vth_ref", "el",
         "vreset_src", "vth_cmp"]
 new = (D / "new/top.cir").read_text().splitlines()

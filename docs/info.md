@@ -127,8 +127,8 @@ oscilloscope or ADC reads `ua[1]`.
   - From S = 1000 up to about 2000: stimulate at most ~4 array neurons at once, set IB_X2 and use the ÷1 `ua[0]` mode.
   - S = 10000 (M2 cells, level 3 + 4): use EL / Vreset 1.50 V and the high-speed leak-code rule (step 5.5). Every slot
     type passes the post-layout f–I gate (0.7–1.4 × ideal scaling) at tt / ss / ff, including ss / 0 °C. Limits: the
-    CMP slot needs Vth ≈ 1.58 V but the VDAC tops out at 1.511 V, so CMP stays tripped at EL 1.5 on this revision
-    (a B1 DAC shift is planned); AH50 is marginal at ss / 0 °C (1.38 of 1.4). The full chip has not been simulated
+    CMP slot needs vth_cmp ≈ 1.58 V (r2 code ≈ 26; M3 vth_cmp DAC range 1.23–1.64 V, R_base 60 sq); AH50 is
+    marginal at ss / 0 °C (1.38 of 1.4). The full chip has not been simulated
     at S = 10000.
 
 ## External hardware

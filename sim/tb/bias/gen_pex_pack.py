@@ -50,7 +50,9 @@ def main():
     for b in range(6):
         L.append(f"Vc{b} c{b} 0 0")
     sig = []
-    for tag in ("s", "old", "new"):
+    import os
+    told, tnew = os.environ.get("PACK_OLD", "old"), os.environ.get("PACK_NEW", "new")   # vdac (MIL-133): new / vdac
+    for tag in ("s", told, tnew):
         L.append(f"Xr{tag} vsn{tag} vsp{tag} vgln{tag} vglp{tag} en_b vdd 0 bias_rails")
         L.append(f"Xvi{tag} vgln{tag} vglp{tag} en ib_x2 el{tag} vr{tag} vc{tag} vt{tag} prb{tag} ibr{tag} "
                  f"iint{tag} vdd 0 bias_vi")
@@ -64,7 +66,7 @@ def main():
                 L.append(f".include {inc}")
             L.append(f"X{k}{tag} " + " ".join(conn[p] for p in ports) + f" {cell}")
     for k in DACS:
-        sig += [f"$&v({k}{t})" for t in ("s", "old", "new")]
+        sig += [f"$&v({k}{t})" for t in ("s", told, tnew)]
     L += [".control", "set noaskquit"]
     prev = None
     for code in range(64):

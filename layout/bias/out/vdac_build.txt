@@ -1,0 +1,6 @@
+=================== bias_b1
+AREA bias_b1 242.00 x 115.00 = 27830 um^2 (notches N1 + NB)
+FAILED: none
+MAGIC_DRC_COUNT 0
+Final result: Circuits match uniquely.
+KLAYOUT_DRC_COUNT 0

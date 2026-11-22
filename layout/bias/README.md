@@ -7,6 +7,11 @@
 >   B1 is extra gate load on `vbn_leak` (2 × 92 µm² of L = 4 gates, about doubling the line's gate area; settling in
 >   `sim/results/trim/trim_tau_summary.txt`). Details: `layout/slot/README.md`.
 
+> **Branch m3-vdac (MIL-133, 2026-11-22):** `vdacr_vc` R_base 53 -> 60 sq (4 x 15 sq, same 5 bits / LSB 2/3 sq): vth_cmp
+> 1.234-1.644 V (tt/27 PEX, was 1.094-1.504), +140 mV. Leaf 19.80 x 39.23 (was 37.53 tall); in `bias_b1` Xd2's west edge stays
+> at x 1.0 and C1 grows east to 40.23 (C2 at 43). bias_b1 re-routed (PYTHONHASHSEED=0), frame/pins unchanged. Report:
+> `/home/basil/tt-m3/reports/vdac.md`.
+
 > **Branch m3-b1c (MIL-133, 2026-11-21):** the `idac_p` / `idac_n` leaves were re-packed (same netlist): no bottom well-tie row,
 > `idac_p` gets one n-tap row between its unit row pairs instead of two, tighter row gaps. `idac_p` 25.4 x 32.26 = 819 um^2,
 > `idac_n` 25.4 x 32.00 = 813 um^2. The router depends on PYTHONHASHSEED; the clean route is in `out/route_cache_idac_*.json`.
