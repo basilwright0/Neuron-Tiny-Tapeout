@@ -1,0 +1,37 @@
+Level-4 cell rebuild (leak OTA L 1 -> 0.5 um), VM run of layout/vm_l4_cells.sh @ 29caaef, 2026-11-22 15:28-15:41 UTC
+Source: /tmp/l4res (l4_out.tgz, summary.txt), /tmp/top4l (full-chip noroute). Installed into m2-compact working tree (d43ce32), not committed.
+
+Per cell: magic DRC (drc(full)) | KLayout DRC incl. antenna | netgen LVS | PEX | f-I pex/sch S=100 | S=10000 (Iin = 1.5,2,3,5,8 x rheobase)
+cslot_ah      0 | 0 | match | ok | 0.882-0.892 | 0.878-0.890   (seed 3, wl 2372.6 = level 3)
+cslot_ah_f    0 | 0 | match | ok | 0.855-0.863 | 0.852-0.871   (seed 4, wl 2392.2 = level 3)
+czslot_ah_f   0 | 0 | match | ok | 0.843-0.851 | 0.855-0.864   (seed 1, wl 2471.1 = level 3; old S100 0.852-0.858)
+czslot_ah_50  0 | 0 | match | ok | 0.795-0.874 | 0.784-0.873   (seed 0, wl 2459.1 = level 3; old S100 0.806-0.879)
+czslot_ah_400 0 | 0 | match | ok | 0.895-0.908 | 0.884-0.905   (seed 5, wl 2592.9 = level 3; old S100 0.898-0.911)
+slot_ah_h     0 | 0 | match | ok | 0.828-0.839 | 0.826-0.833   (route cache replay; Cfb 7.89 fF)
+slot_ah_p     0 | 0 | match | ok | 0.831-0.842 | 0.827-0.838   (route from slot_ah_h cache; Cfb 7.89 fF)
+slot_cmp_h    0 | 0 | match | ok | 0.835-0.845 | 0.749-0.786   (pre-L4: 0.84 / 0.77-0.79)
+dend_d1       0 | 0 | match | ok | -           | -             (35 L=0.5 devices in LVS ref; Cfb spk-vs 8.08 fF)
+Compact pre-L4 reference 0.85-0.91 @S100: cslot_ah/_f, czslot_ah_400 in band; czslot_ah_f 0.843-0.851 (~0.01 low edge);
+czslot_ah_50 low-current points 0.795-0.805 (were 0.806-0.817 before: pre-existing, -0.01).
+
+S=10000 vs S=100 rate ratio (rate scaled by tau ratio 100, same Iin/rheo), target 0.7-1.4:
+  cell           sch          pex
+  cslot_ah       1.06-1.11    1.06-1.11
+  cslot_ah_f     1.06-1.11    1.05-1.12
+  czslot_ah_f    1.06-1.11    1.07-1.14
+  czslot_ah_50   1.09-1.17    1.09-1.16
+  czslot_ah_400  1.04-1.07    1.03-1.07
+  slot_ah_h/_p   1.06-1.10    1.06-1.09
+  slot_cmp_h     0.84-0.90    0.74-0.84   (lowest at 8x rheo; inside band)
+Bench: sim/tb/tb_slot_fi.py, corner typical 27 C, EL = Vreset = 1.30 V, VTH 1.38 V (slotbench.py), vsrc calibrated
+per S (0.583 V @S100, 0.362 V @S10000). NB: the aabada4 schematic sign-off used EL 1.5 at S=10000; not rerun here.
+
+D1 synapse plateau (typical 27): PEX clustered plateau d1 from N=2 (702 mV, 18 soma spikes); distributed: N=2 none,
+N=3 d2 only, N=4 both. Schematic: clustered from N=2 (699 mV, 20 spikes); distributed plateaus both at N=2.
+Previous layout: PEX clustered from N=3 -> now N=2, matches schematic. PEX distributed still needs N>=3-4 vs sch N=2.
+
+Full chip (/tmp/top4l, noroute): LVS match, magic DRC 0, KLayout main 0 / antenna 0, TT precheck passed.
+Installed: layout/compact/final (5 cells + fi logs), layout/slot (h/p/cmp_h mag/paint/lvs/previews, out/*),
+layout/slot/devices + layout/dendrite/devices n_w4_l0p5_k1.mag (new), layout/dendrite (dend_d1 + out/*),
+gds/ and mag/ top (lef identical, unchanged). Stale cxslot_* logs (2026-11-21) in the archive were not copied.
+No failures: summary "FAILED: none" for all 9 cells.

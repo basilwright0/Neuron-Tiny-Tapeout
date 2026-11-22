@@ -10,27 +10,27 @@ use n_w2_l4  XL_XMT
 timestamp 1795051080
 transform 1 0 3376 0 1 2540
 box -512 -268 512 268
-use n_w4_l1  XL_XM1
+use n_w4_l0p5_k1  XL_XM1
 timestamp 1795063674
 transform 1 0 1284 0 1 2540
 box -212 -468 212 468
-use n_w4_l1  XL_XD1a
+use n_w4_l0p5_k1  XL_XD1a
 timestamp 1795063674
 transform 1 0 388 0 1 2540
 box -212 -468 212 468
-use n_w4_l1  XL_XD1b
+use n_w4_l0p5_k1  XL_XD1b
 timestamp 1795063674
 transform 1 0 836 0 1 2540
 box -212 -468 212 468
-use n_w4_l1  XL_XM2
+use n_w4_l0p5_k1  XL_XM2
 timestamp 1795063674
 transform 1 0 1732 0 1 2540
 box -212 -468 212 468
-use n_w4_l1  XL_XD2a
+use n_w4_l0p5_k1  XL_XD2a
 timestamp 1795063674
 transform 1 0 2180 0 1 2540
 box -212 -468 212 468
-use n_w4_l1  XL_XD2b
+use n_w4_l0p5_k1  XL_XD2b
 timestamp 1795063674
 transform 1 0 2628 0 1 2540
 box -212 -468 212 468

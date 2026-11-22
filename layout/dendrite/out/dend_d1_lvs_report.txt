@@ -28,7 +28,7 @@ Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3
 ---------------------------------------------------------------------------------------
 Cell pin lists are equivalent.
 Device classes pfet_03v3 and pfet_03v3 are equivalent.
-Flattening unmatched subcell n_w4_l1 in circuit dend_d1 (0)(43 instances)
+Flattening unmatched subcell n_w4_l0p5_k1 in circuit dend_d1 (0)(42 instances)
 Flattening unmatched subcell n_w2_l4 in circuit dend_d1 (0)(9 instances)
 Flattening unmatched subcell n_w1_l0p28 in circuit dend_d1 (0)(12 instances)
 Flattening unmatched subcell p_w1_l0p28 in circuit dend_d1 (0)(36 instances)
@@ -50,6 +50,7 @@ Flattening unmatched subcell n_w1_l4 in circuit dend_d1 (0)(2 instances)
 Flattening unmatched subcell n_w2_l2 in circuit dend_d1 (0)(7 instances)
 Flattening unmatched subcell n_w0p22_l2 in circuit dend_d1 (0)(3 instances)
 Flattening unmatched subcell n_w7p07_l7p07 in circuit dend_d1 (0)(3 instances)
+Flattening unmatched subcell n_w4_l1 in circuit dend_d1 (0)(1 instance)
 
 Class dend_d1 (0):  Merged 17 parallel devices.
 Class dend_d1 (1):  Merged 3 parallel devices.

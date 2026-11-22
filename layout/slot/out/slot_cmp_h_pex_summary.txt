@@ -2,20 +2,20 @@
 Cfb  (spk-vm coupling, MOM + routing) = 0.12 fF   (target 8 fF +-25 %: 6.0 .. 10.0)
 vm   total wiring capacitance          = 10.37 fF
 vm   breakdown (to other nodes):
-       vss               2.356 fF
+       vss               2.380 fF
        vdd               2.284 fF
-       el                0.649 fF
+       el                0.630 fF
        a_368_4070#       0.615 fF
-       a_1632_2940#      0.553 fF
-       a_480_5620#       0.448 fF
+       a_1682_2940#      0.548 fF
+       a_480_5620#       0.454 fF
        en                0.406 fF
        vbp_syn           0.246 fF
        m1_3360_172#      0.239 fF
-       a_288_2940#       0.226 fF
+       a_338_2940#       0.216 fF
        m1_2280_960#      0.207 fF
+       m1_644_2570#      0.186 fF
        sub               0.180 fF
        a_2510_1740#      0.179 fF
-       m1_644_2570#      0.174 fF
        sub_b             0.169 fF
        vreset            0.154 fF
        m1_3052_4742#     0.153 fF
@@ -33,7 +33,7 @@ vm   breakdown (to other nodes):
        stb               0.044 fF
        m1_3188_6220#     0.042 fF
        m1_841_6220#      0.035 fF
-       a_2080_2940#      0.034 fF
+       a_2130_2940#      0.034 fF
        m1_2436_8920#     0.033 fF
        m1_3600_6548#     0.024 fF
        a_1684_3624#      0.023 fF
@@ -48,10 +48,10 @@ vm   breakdown (to other nodes):
        m1_3704_1572#     0.002 fF
        m1_1244_4440#     0.001 fF
        m1_4822_412#      0.000 fF
+       vsrc              0.000 fF
+       vbn_prb           0.000 fF
        vbp_st            0.000 fF
        m1_4052_1572#     0.000 fF
-       vsrc              0.000 fF
        vbn_ref           0.000 fF
-       vbn_prb           0.000 fF
 vr   total wiring capacitance          = 0.00 fF
 spk  total wiring capacitance          = 3.32 fF

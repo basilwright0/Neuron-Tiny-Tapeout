@@ -4,10 +4,10 @@
 XXC_XC vss vm vss vss nfet_03v3 W=7.07u L=7.07u
 XXC2_XC vss vm vss vss nfet_03v3 W=7.07u L=9.6u
 XXL_XMT XL.t vbn_leak vss vss nfet_03v3 W=2u L=4u
-XXL_XM1 la el XL.s1 vss nfet_03v3 W=4u L=1u
-XXL_XD1 XL.s1 XL.s1 XL.t vss nfet_03v3 W=8u L=1u
-XXL_XM2 vl vl XL.s2 vss nfet_03v3 W=4u L=1u
-XXL_XD2 XL.s2 XL.s2 XL.t vss nfet_03v3 W=8u L=1u
+XXL_XM1 la el XL.s1 vss nfet_03v3 W=4u L=0.5u
+XXL_XD1 XL.s1 XL.s1 XL.t vss nfet_03v3 W=8u L=0.5u
+XXL_XM2 vl vl XL.s2 vss nfet_03v3 W=4u L=0.5u
+XXL_XD2 XL.s2 XL.s2 XL.t vss nfet_03v3 W=8u L=0.5u
 XXL_XP1 la la vdd vdd pfet_03v3 W=2u L=4u
 XXL_XP2 vl la vdd vdd pfet_03v3 W=2u L=4u
 XXD_XPS XD.s vbp_st vdd vdd pfet_03v3 W=1u L=2u

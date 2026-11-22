@@ -53,6 +53,7 @@ Netlists match uniquely.
 Subcircuit pins:
 Circuit 1: cslot_ah_f                      |Circuit 2: cslot_ah_f                      
 -------------------------------------------|-------------------------------------------
+vm                                         |vm                                         
 vbn_leak                                   |vbn_leak                                   
 el                                         |el                                         
 vbn_ref                                    |vbn_ref                                    
@@ -62,7 +63,6 @@ rsel                                       |rsel
 sub_b                                      |sub_b                                      
 abus                                       |abus                                       
 mreset                                     |mreset                                     
-vm                                         |vm                                         
 vdd                                        |vdd                                        
 en                                         |en                                         
 hold                                       |hold                                       

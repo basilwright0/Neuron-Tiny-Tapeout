@@ -54,6 +54,7 @@ Subcircuit pins:
 Circuit 1: cslot_ah                        |Circuit 2: cslot_ah                        
 -------------------------------------------|-------------------------------------------
 spk                                        |spk                                        
+vss                                        |vss                                        
 vbn_leak                                   |vbn_leak                                   
 el                                         |el                                         
 vbn_ref                                    |vbn_ref                                    
@@ -63,7 +64,6 @@ rsel                                       |rsel
 sub_b                                      |sub_b                                      
 abus                                       |abus                                       
 mreset                                     |mreset                                     
-vss                                        |vss                                        
 vbp_st                                     |vbp_st                                     
 vsrc                                       |vsrc                                       
 vdd                                        |vdd                                        

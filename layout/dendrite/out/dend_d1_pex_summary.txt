@@ -1,8 +1,8 @@
-2776 parasitic capacitors in dend_d1_pex.spice
-Cfb  (spk-vs coupling, MOM + routing) = 8.10 fF   (target 8 fF +-25 %: 6.0 .. 10.0)
-vs   total wiring capacitance =  23.92 fF; largest couplings: spk 8.10, vss 4.74, vdd 1.57, vsrc 0.99, a_6594_420# 0.71, a_4096_6334# 0.67, a_488_5520# 0.55, en 0.54, a_4660_4480# 0.52, vbn_ref 0.47, el 0.43, sel0 0.39, vreset 0.39, a_3272_6334# 0.34, a_7540_312
-d1   total wiring capacitance =  24.98 fF; largest couplings: vss 4.56, vdd 2.51, a_268_18520# 1.86, el 1.62, vbn_leak 0.99, a_3136_4480# 0.87, a_2592_8154# 0.74, vbp_syn 0.72, a_5268_9138# 0.68, a_3048_11000# 0.67, a_8248_5320# 0.56, a_6328_4480# 0.53, vbp_st 0
-d2   total wiring capacitance =  12.99 fF; largest couplings: vss 3.43, vdd 1.57, a_268_18520# 0.58, el 0.56, vbp_syn 0.50, hold 0.48, vbn_ax 0.42, a_5268_14218# 0.38, m1_7702_15650# 0.37, vbn_leak 0.34, a_2180_13234# 0.28, m1_1046_17880# 0.26, en 0.26, a_5516_1
+2775 parasitic capacitors in dend_d1_pex.spice
+Cfb  (spk-vs coupling, MOM + routing) = 8.08 fF   (target 8 fF +-25 %: 6.0 .. 10.0)
+vs   total wiring capacitance =  23.81 fF; largest couplings: spk 8.08, vss 4.77, vdd 1.56, vsrc 0.99, a_6594_420# 0.71, a_4096_6334# 0.67, a_488_5520# 0.56, en 0.54, a_4710_4480# 0.47, vbn_ref 0.47, el 0.39, sel0 0.39, vreset 0.39, a_3272_6334# 0.34, a_7590_312
+d1   total wiring capacitance =  24.89 fF; largest couplings: vss 4.57, vdd 2.51, a_318_18520# 1.86, el 1.62, vbn_leak 0.99, a_3136_4480# 0.86, a_2592_8154# 0.74, vbp_syn 0.72, a_5268_9138# 0.68, a_3098_11000# 0.67, a_8248_5320# 0.56, a_6378_4480# 0.47, vbp_st 0
+d2   total wiring capacitance =  12.93 fF; largest couplings: vss 3.45, vdd 1.54, a_318_18520# 0.58, el 0.56, vbp_syn 0.49, hold 0.46, vbn_ax 0.42, a_5268_14218# 0.38, m1_7702_15650# 0.37, vbn_leak 0.34, a_2180_13234# 0.27, m1_1046_17880# 0.27, en 0.26, a_5516_1
 y2   total wiring capacitance =   0.00 fF; largest couplings: 
 vep  total wiring capacitance =   0.00 fF; largest couplings: 
-spk  total wiring capacitance =  30.12 fF; largest couplings: vs 8.10, vss 5.66, vdd 4.84, mreset 4.36, vbn_leak 1.12, sel0 0.78, abus 0.59, a_3136_4480# 0.46, vreset 0.43, a_8248_5320# 0.36, a_2800_5520# 0.35, a_4096_6334# 0.34, d1 0.27, a_5316_3120# 0.27, chai
+spk  total wiring capacitance =  30.10 fF; largest couplings: vs 8.08, vss 5.67, vdd 4.84, mreset 4.36, vbn_leak 1.12, sel0 0.78, abus 0.59, a_3136_4480# 0.46, vreset 0.43, a_8248_5320# 0.36, a_2800_5520# 0.35, a_4096_6334# 0.34, d1 0.27, a_5366_3120# 0.23, chai

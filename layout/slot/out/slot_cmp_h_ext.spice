@@ -16,8 +16,8 @@ X0 a_200_n200# a_n200_n244# a_n288_n200# VSUBS nfet_03v3 ad=0.88p pd=4.88u as=0.
 X0 a_400_n200# a_n400_n244# a_n488_n200# VSUBS nfet_03v3 ad=0.88p pd=4.88u as=0.88p ps=4.88u w=2u l=4u
 .ends
 
-.subckt n_w4_l1 a_n188_n400# a_100_n400# a_n100_n444# VSUBS
-X0 a_100_n400# a_n100_n444# a_n188_n400# VSUBS nfet_03v3 ad=1.76p pd=8.88u as=1.76p ps=8.88u w=4u l=1u
+.subckt n_w4_l0p5_k1 a_n188_n400# a_50_n400# a_n50_n444# VSUBS
+X0 a_50_n400# a_n50_n444# a_n188_n400# VSUBS nfet_03v3 ad=2.76p pd=9.38u as=2.76p ps=9.38u w=4u l=0.5u
 .ends
 
 .subckt n_w0p5_l0p28 a_n28_n94# a_n116_n50# a_28_n50# VSUBS
@@ -76,13 +76,13 @@ X0 a_400_n50# a_n400_n94# a_n488_n50# VSUBS nfet_03v3 ad=0.22p pd=1.88u as=0.22p
 + vreset abus spk t3 t2 t1 t0 sta stb hold mreset rsel sub sub_b vm
 XXL_XP1 a_480_5620# a_480_5620# vdd vdd p_w2_l4
 XXPM_XSW m1_4052_1572# rsel m1_3704_1572# vss n_w1_l0p28
-XXL_XP2 a_1632_2940# a_480_5620# vdd vdd p_w2_l4
+XXL_XP2 a_1682_2940# a_480_5620# vdd vdd p_w2_l4
 XXPR_XMB vss m1_4802_1762# vbn_prb vss n_w2_l2
 XXL_XMT m1_644_2570# vbn_leak vss vss n_w2_l4
-XXL_XM1 a_288_2940# a_480_5620# el vss n_w4_l1
+XXL_XM1 a_338_2940# a_480_5620# el vss n_w4_l0p5_k1
 XXS_XWA m1_4902_6422# vbp_syn vdd m1_3600_6548# p_w2_l4
 XXR_Xi_XN spk vss a_2784_4734# vss n_w0p5_l0p28
-XXL_XM2 a_2080_2940# a_1632_2940# a_1632_2940# vss n_w4_l1
+XXL_XM2 a_2130_2940# a_1682_2940# a_1682_2940# vss n_w4_l0p5_k1
 XXS_XWB m1_4902_6422# vbp_syn vdd m1_3188_6220# p_w2_l4
 XXR_XNR vss vbn_ref a_2510_1740# vss n_w2_l4
 XXPR_XME m1_2448_868# en m1_4802_1762# vss n_w1_l0p28
@@ -94,16 +94,16 @@ XXS_XQB vdd m1_3188_6220# stb vss p_w1_l0p28
 XXS_XNA sta vm m1_3600_6548# vss n_w0p5_l0p28
 XXS_XNB stb vm m1_3188_6220# vss n_w0p5_l0p28
 XXD_XPT vdd vdd m1_3052_4742# a_368_4070# p_w1_l2
-XXL_XD2a m1_644_2570# a_2080_2940# a_2080_2940# vss n_w4_l1
+XXL_XD2a m1_644_2570# a_2130_2940# a_2130_2940# vss n_w4_l0p5_k1
 XXPM_XSB abus sub_b m1_4052_1572# vss n_w1_l0p28
-XXL_XD2b m1_644_2570# a_2080_2940# a_2080_2940# vss n_w4_l1
-XXL_XD1a m1_644_2570# a_288_2940# a_288_2940# vss n_w4_l1
+XXL_XD2b m1_644_2570# a_2130_2940# a_2130_2940# vss n_w4_l0p5_k1
+XXL_XD1a m1_644_2570# a_338_2940# a_338_2940# vss n_w4_l0p5_k1
 XXPM_XSC m1_3704_1572# en m1_3360_172# vss n_w1_l0p28
 XXC_XC vss vss vm vss n_w7p07_l7p07
 XXT_XR1 m1_2020_9600# m1_1540_9160# vbn_leak vss n_w0p5_l1p5
 XXS_XPH vdd m1_4902_6422# vdd hold p_w1_l2
 XXD_Xi1_XN a_1684_3624# vss a_1424_4734# vss n_w0p5_l0p28
-XXL_XD1b m1_644_2570# a_288_2940# a_288_2940# vss n_w4_l1
+XXL_XD1b m1_644_2570# a_338_2940# a_338_2940# vss n_w4_l0p5_k1
 XXPR_XSW m1_2972_1572# rsel m1_2280_960# vss n_w1_l0p28
 XXT_XR2 m1_208_9160# m1_2020_9600# vbn_leak vss n_w0p5_l1p5
 XXT_XP0 vdd m1_2436_8920# t0 vm p_w1_l0p28
@@ -135,7 +135,7 @@ XXD_XH2 vdd vdd m1_1244_4440# a_368_4070# p_w1_l6
 XXPM_XMF m1_3360_172# vdd vm vss n_w4_l2
 XXPC vdd vdd a_368_4070# a_368_4070# p_w1_l2
 XXNC a_368_4070# vss vbn_prb vss n_w1_l2
-XXS_XHL vdd vm hold a_1632_2940# p_w1_l0p28
+XXS_XHL vdd vm hold a_1682_2940# p_w1_l0p28
 XXD_Xi2_XN a_1424_4734# vss spk vss n_w0p5_l0p28
 XXS_XMR mreset a_2510_1740# vdd vss n_w0p5_l0p28
 XXD_Xi2_XP vdd spk a_1424_4734# vdd p_w1_l0p28

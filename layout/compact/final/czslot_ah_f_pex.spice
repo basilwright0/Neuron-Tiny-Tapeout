@@ -2,515 +2,516 @@
 
 .subckt czslot_ah_f vss vbp_syn vdd el aux vbn_leak vsrc vbp_st vbn_prb vbn_ref en
 + vreset abus sta stb hold mreset rsel sub sub_b spk vm
-X0 a_936_6274# a_2240_6148# a_2240_6148# vss nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=1u
-X1 a_2240_6148# el a_2762_1923# vss nfet_03v3 ad=0.88p pd=4.88u as=0.52p ps=2.52u w=2u l=1u
-X2 vdd a_1962_2697# spk vdd pfet_03v3 ad=0.26p pd=1.52u as=0.44p ps=2.88u w=1u l=0.28u
-X3 a_936_6274# a_2240_6148# a_2240_6148# vss nfet_03v3 ad=0.88p pd=4.88u as=0.52p ps=2.52u w=2u l=1u
-X4 spk a_1962_2697# vss vss nfet_03v3 ad=0.22p pd=1.88u as=0.13p ps=1.02u w=0.5u l=0.28u
-X5 vm hold a_266_2697# vdd pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=0.28u
-X6 a_1054_2697# vbp_syn a_492_184# vdd pfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=4u
-X7 vm sta a_188_184# vss nfet_03v3 ad=0.13p pd=1.02u as=0.22p ps=1.88u w=0.5u l=0.28u
-X8 vss vm vss vss nfet_03v3 ad=0.9191p pd=4.055u as=9.167p ps=47.39u w=3.535u l=7.07u
-X9 a_936_6274# a_188_6274# a_188_6274# vss nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=1u
-X10 a_2762_1923# el a_2240_6148# vss nfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=1u
-X11 a_2452_4810# rsel a_2340_4810# vss nfet_03v3 ad=0.14p pd=1.28u as=0.14p ps=1.28u w=1u l=0.28u
-X12 a_2240_6148# a_2240_6148# a_936_6274# vss nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=1u
-X13 a_2340_4810# en a_1136_184# vss nfet_03v3 ad=0.14p pd=1.28u as=0.26p ps=1.52u w=1u l=0.28u
-X14 vdd vbp_st a_3182_2697# vdd pfet_03v3 ad=0.26p pd=1.52u as=0.14p ps=1.28u w=1u l=2u
-X15 a_492_184# stb vss vdd pfet_03v3 ad=0.44p pd=2.88u as=0.26p ps=1.52u w=1u l=0.28u
-X16 vss vbn_leak a_936_6274# vss nfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=4u
-X17 a_1136_184# en a_1880_4810# vss nfet_03v3 ad=0.26p pd=1.52u as=0.44p ps=2.88u w=1u l=0.28u
-X18 a_3118_3073# vm vsrc vss nfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=0.5u
-X19 a_4142_2697# vbp_st vdd vdd pfet_03v3 ad=0.14p pd=1.28u as=0.26p ps=1.52u w=1u l=2u
-X20 a_3182_2697# a_3118_3073# a_2818_3073# vdd pfet_03v3 ad=0.14p pd=1.28u as=0.44p ps=2.88u w=1u l=0.28u
-X21 vsrc a_2818_3073# a_1962_2697# vss nfet_03v3 ad=0.22p pd=1.88u as=0.22p ps=1.88u w=0.5u l=0.28u
-X22 a_1054_2697# hold vdd vdd pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=2u
-X23 a_1290_2951# spk vdd vdd pfet_03v3 ad=0.44p pd=2.88u as=0.26p ps=1.52u w=1u l=0.28u
-X24 a_188_6274# a_266_2697# a_266_2697# vss nfet_03v3 ad=0.88p pd=4.88u as=0.52p ps=2.52u w=2u l=1u
-X25 vss spk a_1290_2951# vss nfet_03v3 ad=0.13p pd=1.02u as=0.22p ps=1.88u w=0.5u l=0.28u
-X26 vss a_276_4082# vss vss nfet_03v3 ad=0.7788p pd=4.42u as=0 ps=0 w=1.77u l=3.54u
-X27 vss vm vss vss nfet_03v3 ad=1.5554p pd=7.95u as=0 ps=0 w=3.535u l=7.07u
-X28 vsrc a_3118_3073# a_2818_3073# vss nfet_03v3 ad=0.1516p pd=1.64u as=0.1516p ps=1.64u w=0.22u l=2u
-X29 vss sta a_188_184# vdd pfet_03v3 ad=0.26p pd=1.52u as=0.44p ps=2.88u w=1u l=0.28u
-X30 a_276_4082# mreset vdd vss nfet_03v3 ad=0.22p pd=1.88u as=0.22p ps=1.88u w=0.5u l=0.28u
-X31 a_492_184# stb vm vss nfet_03v3 ad=0.22p pd=1.88u as=0.13p ps=1.02u w=0.5u l=0.28u
-X32 vreset a_276_4082# vm vss nfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=0.5u
-X33 a_3118_3073# vm a_4142_2697# vdd pfet_03v3 ad=0.44p pd=2.88u as=0.14p ps=1.28u w=1u l=0.5u
-X34 a_188_6274# a_188_6274# a_936_6274# vss nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=1u
-X35 vss a_276_4082# vss vss nfet_03v3 ad=0.4602p pd=2.29u as=0 ps=0 w=1.77u l=3.54u
-X36 vdd a_1290_2951# a_276_4082# vdd pfet_03v3 ad=0.26p pd=1.52u as=0.44p ps=2.88u w=1u l=0.28u
-X37 a_1136_184# vm vdd vss nfet_03v3 ad=1.76p pd=8.88u as=1.76p ps=8.88u w=4u l=2u
-X38 a_1962_2697# a_2818_3073# a_2770_2697# vdd pfet_03v3 ad=0.44p pd=2.88u as=0.14p ps=1.28u w=1u l=0.28u
-X39 a_2240_6148# a_2240_6148# a_936_6274# vss nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=1u
-X40 vss vbn_ref a_276_4082# vss nfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=4u
-X41 vdd a_2762_1923# a_266_2697# vdd pfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=4u
-X42 a_266_2697# a_266_2697# a_188_6274# vss nfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=1u
-X43 a_1880_4810# vbn_prb vss vss nfet_03v3 ad=0.88p pd=4.88u as=0.52p ps=2.52u w=2u l=2u
-X44 abus sub_b a_2452_4810# vss nfet_03v3 ad=0.44p pd=2.88u as=0.14p ps=1.28u w=1u l=0.28u
-X45 a_1962_2697# spk vdd vdd pfet_03v3 ad=0.1516p pd=1.64u as=0.1516p ps=1.64u w=0.22u l=1u
-X46 a_188_184# vbp_syn a_1054_2697# vdd pfet_03v3 ad=0.88p pd=4.88u as=0.52p ps=2.52u w=2u l=4u
-X47 a_188_6274# a_188_6274# a_936_6274# vss nfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=1u
-X48 a_936_6274# a_188_6274# a_188_6274# vss nfet_03v3 ad=0.52p pd=2.52u as=0.52p ps=2.52u w=2u l=1u
+X0 vdd a_1962_2697# spk vdd pfet_03v3 ad=0.26p pd=1.52u as=0.44p ps=2.88u w=1u l=0.28u
+X1 spk a_1962_2697# vss vss nfet_03v3 ad=0.22p pd=1.88u as=0.13p ps=1.02u w=0.5u l=0.28u
+X2 vm hold a_266_2697# vdd pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=0.28u
+X3 a_266_2697# a_266_2697# a_188_6274# vss nfet_03v3 ad=1.02p pd=3.02u as=1.38p ps=5.38u w=2u l=0.5u
+X4 a_1054_2697# vbp_syn a_492_184# vdd pfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=4u
+X5 vm sta a_188_184# vss nfet_03v3 ad=0.13p pd=1.02u as=0.22p ps=1.88u w=0.5u l=0.28u
+X6 vss vm vss vss nfet_03v3 ad=0.9191p pd=4.055u as=9.167p ps=47.39u w=3.535u l=7.07u
+X7 a_188_6274# a_188_6274# a_936_6274# vss nfet_03v3 ad=1.02p pd=3.02u as=1.02p ps=3.02u w=2u l=0.5u
+X8 a_2452_4810# rsel a_2340_4810# vss nfet_03v3 ad=0.14p pd=1.28u as=0.14p ps=1.28u w=1u l=0.28u
+X9 a_2240_6148# a_2240_6148# a_936_6274# vss nfet_03v3 ad=1.02p pd=3.02u as=1.02p ps=3.02u w=2u l=0.5u
+X10 a_2340_4810# en a_1136_184# vss nfet_03v3 ad=0.14p pd=1.28u as=0.26p ps=1.52u w=1u l=0.28u
+X11 vdd vbp_st a_3182_2697# vdd pfet_03v3 ad=0.26p pd=1.52u as=0.14p ps=1.28u w=1u l=2u
+X12 a_492_184# stb vss vdd pfet_03v3 ad=0.44p pd=2.88u as=0.26p ps=1.52u w=1u l=0.28u
+X13 vss vbn_leak a_936_6274# vss nfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=4u
+X14 a_1136_184# en a_1880_4810# vss nfet_03v3 ad=0.26p pd=1.52u as=0.44p ps=2.88u w=1u l=0.28u
+X15 a_3118_3073# vm vsrc vss nfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=0.5u
+X16 a_4142_2697# vbp_st vdd vdd pfet_03v3 ad=0.14p pd=1.28u as=0.26p ps=1.52u w=1u l=2u
+X17 a_3182_2697# a_3118_3073# a_2818_3073# vdd pfet_03v3 ad=0.14p pd=1.28u as=0.44p ps=2.88u w=1u l=0.28u
+X18 a_936_6274# a_2240_6148# a_2240_6148# vss nfet_03v3 ad=1.38p pd=5.38u as=1.02p ps=3.02u w=2u l=0.5u
+X19 vsrc a_2818_3073# a_1962_2697# vss nfet_03v3 ad=0.22p pd=1.88u as=0.22p ps=1.88u w=0.5u l=0.28u
+X20 a_1054_2697# hold vdd vdd pfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=2u
+X21 a_1290_2951# spk vdd vdd pfet_03v3 ad=0.44p pd=2.88u as=0.26p ps=1.52u w=1u l=0.28u
+X22 vss spk a_1290_2951# vss nfet_03v3 ad=0.13p pd=1.02u as=0.22p ps=1.88u w=0.5u l=0.28u
+X23 a_188_6274# a_188_6274# a_936_6274# vss nfet_03v3 ad=1.02p pd=3.02u as=1.38p ps=5.38u w=2u l=0.5u
+X24 a_936_6274# a_188_6274# a_188_6274# vss nfet_03v3 ad=1.02p pd=3.02u as=1.02p ps=3.02u w=2u l=0.5u
+X25 vss a_276_4082# vss vss nfet_03v3 ad=0.7788p pd=4.42u as=0 ps=0 w=1.77u l=3.54u
+X26 vss vm vss vss nfet_03v3 ad=1.5554p pd=7.95u as=0 ps=0 w=3.535u l=7.07u
+X27 a_936_6274# a_2240_6148# a_2240_6148# vss nfet_03v3 ad=1.02p pd=3.02u as=1.02p ps=3.02u w=2u l=0.5u
+X28 a_2240_6148# el a_2762_1923# vss nfet_03v3 ad=1.38p pd=5.38u as=1.02p ps=3.02u w=2u l=0.5u
+X29 vsrc a_3118_3073# a_2818_3073# vss nfet_03v3 ad=0.1516p pd=1.64u as=0.1516p ps=1.64u w=0.22u l=2u
+X30 vss sta a_188_184# vdd pfet_03v3 ad=0.26p pd=1.52u as=0.44p ps=2.88u w=1u l=0.28u
+X31 a_276_4082# mreset vdd vss nfet_03v3 ad=0.22p pd=1.88u as=0.22p ps=1.88u w=0.5u l=0.28u
+X32 a_492_184# stb vm vss nfet_03v3 ad=0.22p pd=1.88u as=0.13p ps=1.02u w=0.5u l=0.28u
+X33 a_188_6274# a_266_2697# a_266_2697# vss nfet_03v3 ad=1.38p pd=5.38u as=1.02p ps=3.02u w=2u l=0.5u
+X34 vreset a_276_4082# vm vss nfet_03v3 ad=0.44p pd=2.88u as=0.44p ps=2.88u w=1u l=0.5u
+X35 a_3118_3073# vm a_4142_2697# vdd pfet_03v3 ad=0.44p pd=2.88u as=0.14p ps=1.28u w=1u l=0.5u
+X36 a_936_6274# a_188_6274# a_188_6274# vss nfet_03v3 ad=1.02p pd=3.02u as=1.02p ps=3.02u w=2u l=0.5u
+X37 a_2762_1923# el a_2240_6148# vss nfet_03v3 ad=1.02p pd=3.02u as=1.38p ps=5.38u w=2u l=0.5u
+X38 vss a_276_4082# vss vss nfet_03v3 ad=0.4602p pd=2.29u as=0 ps=0 w=1.77u l=3.54u
+X39 vdd a_1290_2951# a_276_4082# vdd pfet_03v3 ad=0.26p pd=1.52u as=0.44p ps=2.88u w=1u l=0.28u
+X40 a_1136_184# vm vdd vss nfet_03v3 ad=1.76p pd=8.88u as=1.76p ps=8.88u w=4u l=2u
+X41 a_1962_2697# a_2818_3073# a_2770_2697# vdd pfet_03v3 ad=0.44p pd=2.88u as=0.14p ps=1.28u w=1u l=0.28u
+X42 a_2240_6148# a_2240_6148# a_936_6274# vss nfet_03v3 ad=1.02p pd=3.02u as=1.02p ps=3.02u w=2u l=0.5u
+X43 vss vbn_ref a_276_4082# vss nfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=4u
+X44 vdd a_2762_1923# a_266_2697# vdd pfet_03v3 ad=0.52p pd=2.52u as=0.88p ps=4.88u w=2u l=4u
+X45 a_1880_4810# vbn_prb vss vss nfet_03v3 ad=0.88p pd=4.88u as=0.52p ps=2.52u w=2u l=2u
+X46 abus sub_b a_2452_4810# vss nfet_03v3 ad=0.44p pd=2.88u as=0.14p ps=1.28u w=1u l=0.28u
+X47 a_1962_2697# spk vdd vdd pfet_03v3 ad=0.1516p pd=1.64u as=0.1516p ps=1.64u w=0.22u l=1u
+X48 a_188_184# vbp_syn a_1054_2697# vdd pfet_03v3 ad=0.88p pd=4.88u as=0.52p ps=2.52u w=2u l=4u
 X49 a_2770_2697# vbp_st vdd vdd pfet_03v3 ad=0.14p pd=1.28u as=0.26p ps=1.52u w=1u l=2u
 X50 a_2762_1923# a_2762_1923# vdd vdd pfet_03v3 ad=0.88p pd=4.88u as=0.52p ps=2.52u w=2u l=4u
-C0 a_188_6274# vdd 0.00262f
-C1 a_1054_2697# stb 0.00388f
-C2 el vsrc 0.07282f
-C3 sub_b a_1880_4810# 0
-C4 a_266_2697# aux 0
-C5 a_2240_6148# vbn_prb 0.16255f
-C6 a_266_2697# a_1290_2951# 0.22583f
-C7 vbn_prb a_1962_2697# 0
-C8 a_1136_184# vdd 0.15264f
-C9 hold sta 0.02518f
-C10 sta vm 0.06662f
-C11 vbn_leak a_936_6274# 0.04394f
-C12 a_1136_184# a_1054_2697# 0.10591f
-C13 el a_2240_6148# 0.1709f
-C14 a_276_4082# a_2818_3073# 0
-C15 el a_1962_2697# 0.0055f
-C16 a_3118_3073# vreset 0.07183f
-C17 a_1136_184# a_2340_4810# 0.00506f
-C18 a_936_6274# vsrc 0
-C19 a_2452_4810# en 0
-C20 sta vbp_syn 0.00123f
-C21 vbn_ref a_3118_3073# 0.05783f
-C22 a_188_6274# a_1880_4810# 0.00233f
-C23 abus vm 0.00365f
-C24 a_2818_3073# a_2762_1923# 0.16935f
-C25 a_1880_4810# a_1136_184# 0.07511f
-C26 a_2240_6148# a_936_6274# 0.59525f
-C27 vdd sta 0.3922f
-C28 vbn_prb rsel 0.05656f
-C29 a_266_2697# a_2240_6148# 0.0013f
-C30 spk a_2818_3073# 0.05229f
-C31 el a_188_184# 0
-C32 a_266_2697# a_1962_2697# 0.0539f
-C33 a_1054_2697# sta 0
-C34 abus vbp_st 0.0233f
-C35 el rsel 0.10296f
-C36 abus vbp_syn 0.02148f
-C37 vbn_ref vreset 0.14734f
-C38 abus en 0.03771f
-C39 sub_b a_2762_1923# 0
-C40 a_276_4082# stb 0.09279f
-C41 spk a_492_184# 0
-C42 vbn_prb mreset 0.0058f
-C43 abus vdd 0.10329f
-C44 el vbn_prb 0.39377f
-C45 spk sub_b 0.00717f
-C46 a_2452_4810# a_1880_4810# 0
-C47 a_276_4082# a_188_6274# 0.00229f
-C48 a_2770_2697# a_1962_2697# 0.00439f
-C49 a_188_184# a_266_2697# 0.18261f
-C50 a_276_4082# a_1136_184# 0.04047f
-C51 a_936_6274# rsel 0
-C52 abus a_2340_4810# 0.00453f
-C53 a_266_2697# rsel 0.00303f
-C54 a_2818_3073# aux 0
-C55 a_3118_3073# vm 0.84042f
-C56 a_2818_3073# a_1290_2951# 0.00198f
-C57 vbn_prb a_936_6274# 0.02379f
-C58 spk stb 0
-C59 a_266_2697# vbn_prb 0.27417f
-C60 a_2762_1923# a_1136_184# 0.00702f
-C61 abus a_1880_4810# 0
-C62 a_936_6274# mreset 0
-C63 a_3118_3073# vbp_st 0.09116f
-C64 vbn_leak a_2818_3073# 0
-C65 el a_936_6274# 0
-C66 spk a_1136_184# 0.28896f
-C67 a_266_2697# mreset 0.01704f
-C68 a_3118_3073# vbp_syn 0.04993f
-C69 el a_266_2697# 0.00139f
-C70 a_3118_3073# en 0.0046f
-C71 a_276_4082# sta 0.08076f
-C72 a_2818_3073# vsrc 0.07457f
-C73 vm vreset 0.19372f
-C74 a_3118_3073# vdd 0.45085f
-C75 vbn_ref hold 0.02058f
-C76 a_3182_2697# a_3118_3073# 0
-C77 vbn_ref sub 0.02872f
-C78 vbn_ref vm 0.22177f
-C79 vbp_st vreset 0.14848f
-C80 a_2452_4810# a_2762_1923# 0
-C81 a_2818_3073# a_2240_6148# 0
-C82 a_266_2697# a_936_6274# 0.01275f
-C83 a_2818_3073# a_1962_2697# 0.29338f
-C84 a_1290_2951# stb 0
-C85 vbp_syn vreset 0.04841f
-C86 vbn_ref vbp_st 0.32678f
-C87 en vreset 1.2771f
-C88 spk a_2452_4810# 0.00117f
-C89 spk sta 0.00123f
-C90 vbn_ref vbp_syn 0.04934f
-C91 vbn_ref en 1.27047f
-C92 vdd vreset 0.24359f
-C93 a_3182_2697# vreset 0
-C94 a_1290_2951# a_1136_184# 0.39612f
-C95 sub_b a_2240_6148# 0.07403f
-C96 vbn_ref vdd 0.3702f
-C97 sub_b a_1962_2697# 0.00137f
-C98 vbn_ref a_3182_2697# 0.00319f
-C99 a_2762_1923# abus 0.10207f
-C100 vbn_ref a_1054_2697# 0
-C101 a_4142_2697# a_3118_3073# 0.0038f
-C102 spk abus 0.06686f
-C103 vsrc a_1136_184# 0
-C104 a_1962_2697# stb 0
-C105 a_188_184# a_492_184# 0.10647f
-C106 hold vm 0.36346f
-C107 sub vm 0
-C108 a_188_6274# a_2240_6148# 0.04372f
-C109 a_1290_2951# sta 0.00809f
-C110 vbn_ref a_1880_4810# 0
-C111 a_4142_2697# vreset 0
-C112 sub_b rsel 0.10844f
-C113 a_2240_6148# a_1136_184# 0
-C114 a_276_4082# a_3118_3073# 0
-C115 a_1962_2697# a_1136_184# 0.06237f
-C116 el a_2818_3073# 0.00383f
-C117 vbp_st vm 0.26597f
-C118 hold vbp_syn 0.00888f
-C119 sub_b vbn_prb 0.00104f
-C120 vbp_syn vm 0.61391f
-C121 en vm 0.01239f
-C122 en sub 0
-C123 a_188_184# stb 0.10274f
-C124 abus aux 0.02302f
-C125 hold vdd 0.81867f
-C126 a_2762_1923# a_3118_3073# 0.14116f
-C127 vdd vm 1.19198f
-C128 vbp_syn vbp_st 0.20112f
-C129 a_3182_2697# vm 0
-C130 el sub_b 0.00115f
-C131 en vbp_st 0.03564f
-C132 a_276_4082# vreset 0.06091f
-C133 hold a_1054_2697# 0.03711f
-C134 spk a_3118_3073# 0.07561f
-C135 a_188_184# a_1136_184# 0.05152f
-C136 a_1054_2697# vm 0.09584f
-C137 a_2452_4810# a_2240_6148# 0
-C138 en vbp_syn 0.08064f
-C139 a_2452_4810# a_1962_2697# 0
-C140 a_2818_3073# a_266_2697# 0.00327f
-C141 vbn_leak abus 0.02345f
-C142 vdd vbp_st 2.12826f
-C143 a_276_4082# vbn_ref 0.67364f
-C144 a_3182_2697# vbp_st 0.00343f
-C145 rsel a_1136_184# 0.00625f
-C146 vdd vbp_syn 2.78458f
-C147 en vdd 0.15391f
-C148 a_1054_2697# vbp_st 0
-C149 abus vsrc 0.0446f
-C150 a_188_6274# vbn_prb 0.02376f
-C151 mreset stb 0.01027f
-C152 sub_b a_936_6274# 0
-C153 a_2762_1923# vreset 0.06094f
-C154 a_1054_2697# vbp_syn 0.25043f
-C155 a_266_2697# a_492_184# 0
-C156 sub_b a_266_2697# 0.01115f
-C157 a_3182_2697# vdd 0.00376f
-C158 a_188_6274# mreset 0.00736f
-C159 vbn_ref a_2762_1923# 0.18897f
-C160 a_1880_4810# vm 0.00242f
-C161 a_1880_4810# sub 0
-C162 spk vreset 0.1659f
-C163 vdd a_1054_2697# 0.36484f
-C164 en a_2340_4810# 0.00128f
-C165 a_2240_6148# abus 0.225f
-C166 a_2770_2697# a_2818_3073# 0.00223f
-C167 spk vbn_ref 0.1036f
-C168 a_1962_2697# abus 0.01458f
-C169 el a_1136_184# 0
-C170 a_4142_2697# vm 0
-C171 a_188_184# sta 0.27693f
-C172 a_2452_4810# rsel 0.00226f
-C173 a_3118_3073# aux 0.04486f
-C174 a_3118_3073# a_1290_2951# 0
-C175 a_4142_2697# vbp_st 0
-C176 a_1880_4810# en 0.03936f
-C177 a_266_2697# stb 0.1028f
-C178 a_188_6274# a_936_6274# 0.7349f
-C179 a_188_6274# a_266_2697# 0.39433f
-C180 vbn_leak a_3118_3073# 0.09893f
-C181 a_276_4082# hold 0.18503f
-C182 a_266_2697# a_1136_184# 0.27387f
-C183 a_276_4082# vm 0.42729f
-C184 a_4142_2697# vdd 0.00534f
-C185 a_276_4082# sub 0
-C186 mreset sta 0.01136f
-C187 vsrc a_3118_3073# 0.32801f
-C188 aux vreset 0.03715f
-C189 a_1290_2951# vreset 0.05844f
-C190 abus rsel 0.04033f
-C191 a_1880_4810# a_2340_4810# 0
-C192 vbn_ref aux 0.03187f
-C193 vbn_ref a_1290_2951# 0.06139f
-C194 vbn_prb abus 0.05557f
-C195 a_276_4082# vbp_syn 0.0037f
-C196 vbn_leak vreset 0.03688f
-C197 a_2240_6148# a_3118_3073# 0
-C198 a_276_4082# en 0.00195f
-C199 a_2762_1923# vm 0.26498f
-C200 a_1962_2697# a_3118_3073# 0.0078f
-C201 vbn_leak vbn_ref 0.03243f
-C202 spk hold 0.00321f
-C203 spk vm 6.98776f
-C204 vsrc vreset 0.0664f
-C205 a_276_4082# vdd 0.36601f
-C206 a_2452_4810# a_266_2697# 0
-C207 el abus 0.14934f
-C208 a_2762_1923# vbp_st 0.38837f
-C209 a_266_2697# sta 0.12746f
-C210 vbn_ref vsrc 0.03362f
-C211 a_276_4082# a_1054_2697# 0.11466f
-C212 a_2762_1923# vbp_syn 0.12216f
-C213 spk vbp_st 0.25453f
-C214 a_2762_1923# en 0.00193f
-C215 a_2240_6148# vreset 0
-C216 spk vbp_syn 1.46476f
-C217 a_1962_2697# vreset 0.16563f
-C218 spk en 0.00387f
-C219 a_2762_1923# vdd 1.94769f
-C220 a_3182_2697# a_2762_1923# 0.002f
-C221 vbn_ref a_2240_6148# 0
-C222 a_936_6274# abus 0
-C223 vbn_ref a_1962_2697# 0.19627f
-C224 spk vdd 1.1186f
-C225 a_266_2697# abus 0.00373f
-C226 spk a_3182_2697# 0
-C227 a_276_4082# a_1880_4810# 0
-C228 spk a_1054_2697# 0.0177f
-C229 a_2762_1923# a_2340_4810# 0
-C230 hold a_1290_2951# 0.0206f
-C231 vbn_prb a_3118_3073# 0.01429f
-C232 aux vm 0.13035f
-C233 a_1290_2951# vm 0.04213f
-C234 spk a_2340_4810# 0
-C235 aux vbp_st 0.03088f
-C236 el a_3118_3073# 0.03224f
-C237 a_2818_3073# a_1136_184# 0.00471f
-C238 a_188_184# vbn_ref 0
-C239 rsel vreset 0
-C240 vbn_leak vm 0.14261f
-C241 a_492_184# stb 0.33199f
-C242 aux vbp_syn 0
-C243 en aux 0.02748f
-C244 a_1290_2951# vbp_syn 0.02098f
-C245 vbn_ref rsel 0
-C246 a_1290_2951# en 0.01136f
-C247 vsrc vm 0.12136f
-C248 vbn_prb vreset 0.03781f
-C249 vbn_leak vbp_st 0.03137f
-C250 vdd aux 0.05063f
-C251 a_492_184# a_1136_184# 0.0032f
-C252 a_1290_2951# vdd 0.51852f
-C253 vbn_ref vbn_prb 1.31884f
-C254 sub_b a_1136_184# 0.00394f
-C255 vbn_leak vbp_syn 0.0282f
-C256 vbn_leak en 0.17691f
-C257 vsrc vbp_st 1.27307f
-C258 el vreset 0.0386f
-C259 a_1290_2951# a_1054_2697# 0.02976f
-C260 a_1962_2697# hold 0
-C261 vbn_ref mreset 0.08643f
-C262 vsrc vbp_syn 0.0427f
-C263 vbn_leak vdd 0.11443f
-C264 a_1962_2697# vm 0.13448f
-C265 vsrc en 0.03238f
-C266 el vbn_ref 0.03166f
-C267 a_1290_2951# a_2340_4810# 0
-C268 vsrc vdd 0.19329f
-C269 a_2240_6148# vbp_st 0
-C270 a_1962_2697# vbp_st 0.20017f
-C271 a_1136_184# stb 0.00546f
-C272 spk a_276_4082# 0.00596f
-C273 a_2240_6148# vbp_syn 0.03079f
-C274 a_2240_6148# en 0.41656f
-C275 a_1962_2697# vbp_syn 0.00924f
-C276 a_2452_4810# sub_b 0
-C277 a_1880_4810# a_1290_2951# 0.00131f
-C278 a_492_184# sta 0.13386f
-C279 a_1962_2697# en 0
-C280 a_188_6274# a_1136_184# 0
-C281 a_266_2697# vreset 0.00103f
-C282 a_188_184# hold 0
-C283 vbn_ref a_936_6274# 0.0022f
-C284 a_4142_2697# aux 0.00146f
-C285 a_2240_6148# vdd 0.00358f
-C286 a_188_184# vm 0.2578f
-C287 a_1962_2697# vdd 0.43198f
-C288 a_266_2697# vbn_ref 0.22125f
-C289 a_2818_3073# abus 0.01078f
-C290 a_3182_2697# a_1962_2697# 0.00112f
-C291 rsel sub 0
-C292 spk a_2762_1923# 0.25963f
-C293 a_188_184# vbp_st 0.02856f
-C294 a_2240_6148# a_2340_4810# 0
-C295 a_188_184# vbp_syn 0.17103f
-C296 vbn_prb sub 0.00446f
-C297 sta stb 0.44977f
-C298 vbn_prb vm 0.03845f
-C299 sub_b abus 0.02794f
-C300 rsel vbp_syn 0
-C301 hold mreset 0.00987f
-C302 rsel en 0.04779f
-C303 a_188_184# vdd 0.29269f
-C304 a_276_4082# a_1290_2951# 0.13977f
-C305 a_2452_4810# a_1136_184# 0.00397f
-C306 a_2770_2697# vbn_ref 0
-C307 mreset vm 0
-C308 vbn_prb vbp_st 1.26685f
-C309 a_2240_6148# a_1880_4810# 0.00131f
-C310 el vm 0.08767f
-C311 a_1136_184# sta 0.00202f
-C312 rsel vdd 0
-C313 a_188_184# a_1054_2697# 0.00709f
-C314 vbn_prb vbp_syn 0.02181f
-C315 vbn_prb en 0.30216f
-C316 a_1962_2697# a_4142_2697# 0
-C317 el vbp_st 0.0486f
-C318 vbn_prb vdd 0.13473f
-C319 a_2762_1923# aux 0.07162f
-C320 mreset en 0
-C321 el vbp_syn 0.02249f
-C322 el en 0.03604f
-C323 a_2818_3073# a_3118_3073# 0.25795f
-C324 rsel a_2340_4810# 0
-C325 spk aux 0.00649f
-C326 a_266_2697# hold 0.1091f
-C327 spk a_1290_2951# 0.31266f
-C328 mreset vdd 0.00834f
-C329 abus a_1136_184# 0.02092f
-C330 a_266_2697# sub 0.00673f
-C331 a_266_2697# vm 0.19744f
-C332 el vdd 1.42581f
-C333 vbn_leak a_2762_1923# 0.07651f
-C334 vbn_prb a_2340_4810# 0
-C335 a_936_6274# vbp_st 0
-C336 rsel a_1880_4810# 0
-C337 spk vbn_leak 0.00589f
-C338 a_276_4082# a_1962_2697# 0.0026f
-C339 a_266_2697# vbp_st 0.06953f
-C340 a_2762_1923# vsrc 0.16801f
-C341 a_936_6274# vbp_syn 0.01598f
-C342 a_936_6274# en 0.14997f
-C343 a_266_2697# vbp_syn 0.21956f
-C344 a_2818_3073# vreset 0.11232f
-C345 spk vsrc 0.0487f
-C346 a_266_2697# en 0.03863f
-C347 vbn_prb a_1880_4810# 0.06351f
-C348 a_936_6274# vdd 0.00251f
-C349 a_2818_3073# vbn_ref 0.08365f
-C350 a_2770_2697# vm 0.00484f
-C351 a_266_2697# vdd 0.43031f
-C352 a_2762_1923# a_2240_6148# 0.10555f
-C353 a_2452_4810# abus 0.00569f
-C354 a_1880_4810# mreset 0
-C355 a_2762_1923# a_1962_2697# 0.04817f
-C356 spk a_2240_6148# 0.12002f
-C357 a_266_2697# a_1054_2697# 0.01442f
-C358 sub_b vreset 0
-C359 spk a_1962_2697# 0.67005f
-C360 a_2770_2697# vbp_st 0
-C361 el a_4142_2697# 0.00303f
-C362 sub_b vbn_ref 0
-C363 a_266_2697# a_2340_4810# 0
-C364 a_3118_3073# a_1136_184# 0
-C365 vbn_leak aux 1.28117f
-C366 a_2770_2697# vdd 0.00534f
-C367 a_936_6274# a_1880_4810# 0
-C368 a_276_4082# vbn_prb 0.02058f
-C369 a_188_184# a_2762_1923# 0.00218f
-C370 vsrc aux 0.0627f
-C371 a_266_2697# a_1880_4810# 0.05483f
-C372 vsrc a_1290_2951# 0.00246f
-C373 spk a_188_184# 0.16971f
-C374 a_2762_1923# rsel 0.0091f
-C375 vbn_ref stb 0.00723f
-C376 a_276_4082# mreset 0.15423f
-C377 spk rsel 0.00704f
-C378 vbn_leak vsrc 1.30279f
-C379 a_1136_184# vreset 0.07088f
-C380 a_2240_6148# aux 0
-C381 a_188_6274# vbn_ref 0.01248f
-C382 a_2762_1923# vbn_prb 0.00503f
-C383 a_2240_6148# a_1290_2951# 0
-C384 a_1962_2697# aux 0
-C385 a_1962_2697# a_1290_2951# 0.03443f
-C386 vbn_ref a_1136_184# 0.07137f
-C387 a_2818_3073# vm 0.3261f
-C388 spk vbn_prb 0.02304f
-C389 el a_2762_1923# 0.26912f
-C390 vbn_leak a_2240_6148# 0.00215f
-C391 a_276_4082# a_936_6274# 0
-C392 vbn_leak a_1962_2697# 0
-C393 a_2818_3073# vbp_st 0.09639f
-C394 a_492_184# hold 0.00195f
-C395 a_276_4082# a_266_2697# 0.18865f
-C396 spk el 0.03423f
-C397 a_492_184# vm 0.17851f
-C398 a_2240_6148# vsrc 0.0065f
-C399 a_2818_3073# vbp_syn 0.001f
-C400 a_1962_2697# vsrc 0.0635f
-C401 a_2452_4810# vreset 0
-C402 abus a_3118_3073# 0.01208f
-C403 a_2818_3073# vdd 0.33098f
-C404 a_2818_3073# a_3182_2697# 0.00417f
-C405 vbn_ref sta 0.0017f
-C406 a_492_184# vbp_syn 0.09869f
-C407 a_266_2697# a_2762_1923# 0.08636f
-C408 a_2240_6148# a_1962_2697# 0.00351f
-C409 sub_b vbp_syn 0
-C410 sub_b en 0.02085f
-C411 hold stb 0.27748f
-C412 vbn_prb aux 0.02825f
-C413 stb vm 0.179f
-C414 spk a_266_2697# 0.30792f
-C415 vbn_prb a_1290_2951# 0
-C416 a_492_184# vdd 0.46549f
-C417 sub_b vdd 0
-C418 a_188_6274# vm 0
-C419 a_188_6274# sub 0
-C420 abus vreset 1.26682f
-C421 a_492_184# a_1054_2697# 0.01099f
-C422 hold a_1136_184# 0
-C423 el aux 1.23622f
-C424 a_1136_184# vm 0.36627f
-C425 vbn_leak vbn_prb 0.02975f
-C426 vbn_ref abus 0.02496f
-C427 vbp_syn stb 0.00122f
-C428 a_188_184# a_1962_2697# 0.00411f
-C429 vbn_prb vsrc 0.03487f
-C430 a_1136_184# vbp_st 0
-C431 el vbn_leak 0.04817f
-C432 spk a_2770_2697# 0
-C433 vdd stb 0.44712f
-C434 a_188_6274# en 0.00806f
-C435 a_2240_6148# rsel 0.13535f
-C436 a_1962_2697# rsel 0.00113f
-C437 a_1136_184# vbp_syn 0.09895f
-C438 a_1136_184# en 0.07498f
-C439 a_936_6274# aux 0
+C0 a_188_6274# sub 0
+C1 abus vbp_syn 0.02148f
+C2 vm sta 0.06662f
+C3 a_1962_2697# vbn_prb 0
+C4 vm vsrc 0.12136f
+C5 vbn_prb a_276_4082# 0.02058f
+C6 vbn_ref vbp_syn 0.04934f
+C7 a_276_4082# a_1880_4810# 0
+C8 rsel en 0.04779f
+C9 vbn_prb a_3118_3073# 0.01429f
+C10 a_188_184# vbp_syn 0.17103f
+C11 a_1290_2951# vbn_prb 0
+C12 a_1136_184# spk 0.28896f
+C13 a_1290_2951# a_1880_4810# 0.00131f
+C14 vm stb 0.179f
+C15 en sub_b 0.02085f
+C16 a_2818_3073# vdd 0.33098f
+C17 vm aux 0.13035f
+C18 vm abus 0.00367f
+C19 a_2762_1923# vbp_syn 0.12216f
+C20 rsel sub_b 0.10844f
+C21 vm vbn_ref 0.22177f
+C22 a_2240_6148# vbp_syn 0.02746f
+C23 a_188_184# vm 0.2578f
+C24 a_266_2697# sta 0.12744f
+C25 vreset a_2818_3073# 0.11232f
+C26 vm a_3182_2697# 0
+C27 vbn_prb en 0.30216f
+C28 vbn_leak vsrc 1.30279f
+C29 a_1880_4810# en 0.03936f
+C30 a_936_6274# vbp_st 0
+C31 a_492_184# vbp_syn 0.09869f
+C32 vm a_2762_1923# 0.26526f
+C33 a_266_2697# stb 0.1028f
+C34 a_1136_184# vbp_st 0
+C35 spk vdd 1.1186f
+C36 a_1054_2697# sta 0
+C37 vbn_prb rsel 0.05656f
+C38 rsel a_1880_4810# 0
+C39 a_266_2697# aux 0
+C40 a_266_2697# abus 0.00373f
+C41 a_936_6274# a_276_4082# 0
+C42 vbn_leak aux 1.28117f
+C43 vbn_leak abus 0.02345f
+C44 a_1136_184# a_1962_2697# 0.06237f
+C45 spk vreset 0.1659f
+C46 vbn_prb sub_b 0.00104f
+C47 mreset vm 0
+C48 a_266_2697# vbn_ref 0.22125f
+C49 a_1880_4810# sub_b 0
+C50 a_1054_2697# stb 0.00388f
+C51 a_266_2697# a_188_184# 0.18261f
+C52 a_1136_184# a_276_4082# 0.04047f
+C53 a_1136_184# a_3118_3073# 0
+C54 a_1290_2951# a_1136_184# 0.39612f
+C55 vdd a_2770_2697# 0.00534f
+C56 vbn_leak vbn_ref 0.03243f
+C57 a_492_184# vm 0.17851f
+C58 vm a_188_6274# 0
+C59 sta hold 0.02518f
+C60 a_266_2697# a_2762_1923# 0.0866f
+C61 a_1054_2697# vbn_ref 0
+C62 a_188_184# a_1054_2697# 0.00709f
+C63 el vsrc 0.06917f
+C64 vbn_leak a_2762_1923# 0.07651f
+C65 vbn_prb a_1880_4810# 0.06351f
+C66 a_266_2697# a_2240_6148# 0.00172f
+C67 stb hold 0.27748f
+C68 spk a_2452_4810# 0.00117f
+C69 vbp_st vdd 2.12826f
+C70 vbn_leak a_2240_6148# 0.00196f
+C71 a_2818_3073# vbp_syn 0.001f
+C72 a_936_6274# en 0.16135f
+C73 a_266_2697# a_2340_4810# 0
+C74 mreset a_266_2697# 0.01654f
+C75 el aux 1.23622f
+C76 a_1136_184# en 0.07498f
+C77 a_266_2697# a_188_6274# 0.36288f
+C78 a_266_2697# a_492_184# 0
+C79 el abus 0.1183f
+C80 vreset vbp_st 0.14848f
+C81 a_1962_2697# vdd 0.43198f
+C82 vbn_ref hold 0.02058f
+C83 a_188_184# hold 0
+C84 a_276_4082# vdd 0.36601f
+C85 a_936_6274# rsel 0
+C86 a_3118_3073# vdd 0.45085f
+C87 a_1290_2951# vdd 0.51852f
+C88 el vbn_ref 0.03166f
+C89 a_1136_184# rsel 0.00625f
+C90 el a_188_184# 0
+C91 a_1962_2697# vreset 0.16563f
+C92 a_936_6274# sub_b 0
+C93 a_2818_3073# vm 0.3261f
+C94 vreset a_276_4082# 0.06091f
+C95 a_492_184# a_1054_2697# 0.01099f
+C96 vreset a_3118_3073# 0.07183f
+C97 a_1290_2951# vreset 0.05844f
+C98 spk vbp_syn 1.46476f
+C99 a_1136_184# sub_b 0.00394f
+C100 el a_2762_1923# 0.21641f
+C101 a_4142_2697# vbp_st 0
+C102 a_276_4082# sub 0
+C103 el a_2240_6148# 0.13132f
+C104 mreset hold 0.00987f
+C105 a_936_6274# vbn_prb 0.02905f
+C106 a_1962_2697# a_4142_2697# 0
+C107 a_936_6274# a_1880_4810# 0
+C108 en vdd 0.15391f
+C109 a_1962_2697# a_2452_4810# 0
+C110 a_492_184# hold 0.00195f
+C111 a_4142_2697# a_3118_3073# 0.0038f
+C112 spk vm 6.98776f
+C113 a_1136_184# a_1880_4810# 0.07511f
+C114 sta stb 0.44977f
+C115 a_266_2697# a_2818_3073# 0.00327f
+C116 rsel vdd 0
+C117 vreset en 1.2771f
+C118 a_2818_3073# vbn_leak 0
+C119 aux vsrc 0.0627f
+C120 abus vsrc 0.0446f
+C121 vbp_st vbp_syn 0.20112f
+C122 vdd sub_b 0
+C123 sta vbn_ref 0.0017f
+C124 vm a_2770_2697# 0.00484f
+C125 a_188_184# sta 0.27693f
+C126 vreset rsel 0
+C127 vbn_ref vsrc 0.03362f
+C128 en sub 0
+C129 a_1962_2697# vbp_syn 0.00924f
+C130 vreset sub_b 0
+C131 abus aux 0.02302f
+C132 vbn_ref stb 0.00723f
+C133 rsel sub 0
+C134 a_276_4082# vbp_syn 0.0037f
+C135 spk a_266_2697# 0.30792f
+C136 a_188_184# stb 0.10274f
+C137 a_3118_3073# vbp_syn 0.04993f
+C138 en a_2452_4810# 0
+C139 a_1290_2951# vbp_syn 0.02098f
+C140 a_2762_1923# vsrc 0.16868f
+C141 spk vbn_leak 0.00589f
+C142 vbn_ref aux 0.03187f
+C143 abus vbn_ref 0.02496f
+C144 vm vbp_st 0.26597f
+C145 vbn_prb vdd 0.13473f
+C146 a_2240_6148# vsrc 0.00802f
+C147 rsel a_2452_4810# 0.00226f
+C148 spk a_1054_2697# 0.0177f
+C149 a_188_184# vbn_ref 0
+C150 mreset sta 0.01136f
+C151 el a_2818_3073# 0.00254f
+C152 a_1962_2697# vm 0.13448f
+C153 vbn_prb vreset 0.03781f
+C154 a_2762_1923# aux 0.07162f
+C155 vbn_ref a_3182_2697# 0.00319f
+C156 abus a_2762_1923# 0.11287f
+C157 a_492_184# sta 0.13386f
+C158 sub_b a_2452_4810# 0
+C159 a_276_4082# vm 0.42729f
+C160 a_3118_3073# vm 0.84042f
+C161 a_1290_2951# vm 0.04213f
+C162 a_2240_6148# aux 0
+C163 abus a_2240_6148# 0.23865f
+C164 vbn_ref a_2762_1923# 0.18897f
+C165 mreset stb 0.01027f
+C166 a_188_184# a_2762_1923# 0.00218f
+C167 vbn_prb sub 0.00446f
+C168 a_1880_4810# sub 0
+C169 en vbp_syn 0.08064f
+C170 a_2340_4810# abus 0.00453f
+C171 a_492_184# stb 0.33199f
+C172 vbn_ref a_2240_6148# 0
+C173 a_3182_2697# a_2762_1923# 0.002f
+C174 spk hold 0.00321f
+C175 a_266_2697# vbp_st 0.06953f
+C176 vbp_st vbn_leak 0.03137f
+C177 mreset vbn_ref 0.08643f
+C178 rsel vbp_syn 0
+C179 spk el 0.03382f
+C180 a_1880_4810# a_2452_4810# 0
+C181 a_1962_2697# a_266_2697# 0.0539f
+C182 a_188_6274# vbn_ref 0.01214f
+C183 a_2762_1923# a_2240_6148# 0.1299f
+C184 a_266_2697# a_276_4082# 0.18862f
+C185 a_188_184# a_492_184# 0.10647f
+C186 vbp_st a_1054_2697# 0
+C187 sub_b vbp_syn 0
+C188 a_1290_2951# a_266_2697# 0.22583f
+C189 a_1962_2697# vbn_leak 0
+C190 vm en 0.01239f
+C191 a_936_6274# vdd 0.00251f
+C192 a_2340_4810# a_2762_1923# 0
+C193 a_3118_3073# vbn_leak 0.09893f
+C194 a_1136_184# vdd 0.15264f
+C195 a_2340_4810# a_2240_6148# 0
+C196 a_276_4082# a_1054_2697# 0.11466f
+C197 a_2818_3073# vsrc 0.07457f
+C198 a_1290_2951# a_1054_2697# 0.02976f
+C199 a_188_6274# a_2240_6148# 0.0354f
+C200 a_1136_184# vreset 0.07088f
+C201 vbn_prb vbp_syn 0.02181f
+C202 mreset a_188_6274# 0.00776f
+C203 el vbp_st 0.0486f
+C204 a_2818_3073# aux 0
+C205 a_266_2697# en 0.03863f
+C206 a_2818_3073# abus 0.01083f
+C207 a_1962_2697# hold 0
+C208 a_276_4082# hold 0.18503f
+C209 en vbn_leak 0.17691f
+C210 a_1290_2951# hold 0.0206f
+C211 spk sta 0.00123f
+C212 a_1962_2697# el 0.00285f
+C213 a_2818_3073# vbn_ref 0.08365f
+C214 spk vsrc 0.0487f
+C215 a_266_2697# rsel 0.00303f
+C216 vbn_prb vm 0.03845f
+C217 a_1880_4810# vm 0.00242f
+C218 el a_3118_3073# 0.03065f
+C219 a_1136_184# a_2452_4810# 0.00397f
+C220 a_2818_3073# a_3182_2697# 0.00417f
+C221 a_266_2697# sub_b 0.01115f
+C222 spk stb 0
+C223 a_2818_3073# a_2762_1923# 0.1697f
+C224 spk aux 0.00649f
+C225 vreset vdd 0.24359f
+C226 spk abus 0.06686f
+C227 a_2818_3073# a_2240_6148# 0
+C228 spk vbn_ref 0.1036f
+C229 spk a_188_184# 0.16971f
+C230 a_936_6274# vbp_syn 0.0179f
+C231 vbn_prb a_266_2697# 0.27417f
+C232 a_266_2697# a_1880_4810# 0.05483f
+C233 spk a_3182_2697# 0
+C234 el en 0.0358f
+C235 a_1136_184# vbp_syn 0.09895f
+C236 vbn_prb vbn_leak 0.02975f
+C237 vbp_st vsrc 1.27307f
+C238 a_4142_2697# vdd 0.00534f
+C239 spk a_2762_1923# 0.25963f
+C240 a_2770_2697# vbn_ref 0
+C241 el rsel 0.08556f
+C242 spk a_2240_6148# 0.12009f
+C243 a_1962_2697# vsrc 0.0635f
+C244 a_276_4082# sta 0.08076f
+C245 a_4142_2697# vreset 0
+C246 a_1290_2951# sta 0.00809f
+C247 el sub_b 0
+C248 vreset a_2452_4810# 0
+C249 a_3118_3073# vsrc 0.32801f
+C250 spk a_2340_4810# 0
+C251 vbp_st aux 0.03088f
+C252 a_1290_2951# vsrc 0.00246f
+C253 vbp_st abus 0.0233f
+C254 a_1136_184# vm 0.36627f
+C255 a_1962_2697# stb 0
+C256 spk a_492_184# 0
+C257 a_276_4082# stb 0.09279f
+C258 vbp_st vbn_ref 0.32678f
+C259 a_188_184# vbp_st 0.02856f
+C260 a_1290_2951# stb 0
+C261 a_1962_2697# aux 0
+C262 a_1962_2697# abus 0.01458f
+C263 vbp_st a_3182_2697# 0.00343f
+C264 a_3118_3073# aux 0.04486f
+C265 vdd vbp_syn 2.78458f
+C266 a_3118_3073# abus 0.01208f
+C267 a_1962_2697# vbn_ref 0.19627f
+C268 vbn_prb el 0.39244f
+C269 a_1962_2697# a_188_184# 0.00411f
+C270 a_276_4082# vbn_ref 0.67364f
+C271 vbp_st a_2762_1923# 0.38837f
+C272 a_3118_3073# vbn_ref 0.05783f
+C273 a_1290_2951# vbn_ref 0.06139f
+C274 a_936_6274# a_266_2697# 0.01302f
+C275 a_1962_2697# a_3182_2697# 0.00112f
+C276 vreset vbp_syn 0.04841f
+C277 en vsrc 0.03238f
+C278 vbp_st a_2240_6148# 0
+C279 a_936_6274# vbn_leak 0.04394f
+C280 a_1136_184# a_266_2697# 0.27387f
+C281 a_3118_3073# a_3182_2697# 0
+C282 a_1962_2697# a_2762_1923# 0.04817f
+C283 a_3118_3073# a_2762_1923# 0.14125f
+C284 vm vdd 1.19198f
+C285 a_1962_2697# a_2240_6148# 0.005f
+C286 en aux 0.02748f
+C287 a_1136_184# a_1054_2697# 0.10591f
+C288 a_3118_3073# a_2240_6148# 0.00125f
+C289 a_1290_2951# a_2240_6148# 0
+C290 en abus 0.03771f
+C291 spk a_2818_3073# 0.05229f
+C292 vreset vm 0.19372f
+C293 mreset a_276_4082# 0.15423f
+C294 a_1290_2951# a_2340_4810# 0
+C295 en vbn_ref 1.27047f
+C296 a_276_4082# a_188_6274# 0.00229f
+C297 rsel abus 0.04033f
+C298 vm sub 0
+C299 rsel vbn_ref 0
+C300 sub_b abus 0.02794f
+C301 a_2818_3073# a_2770_2697# 0.00223f
+C302 a_266_2697# vdd 0.43031f
+C303 a_1136_184# hold 0
+C304 a_936_6274# el 0
+C305 en a_2762_1923# 0.00193f
+C306 vbn_prb vsrc 0.03487f
+C307 a_4142_2697# vm 0
+C308 vdd vbn_leak 0.11443f
+C309 sub_b vbn_ref 0
+C310 a_1136_184# el 0
+C311 en a_2240_6148# 0.39868f
+C312 rsel a_2762_1923# 0.01171f
+C313 vreset a_266_2697# 0.00103f
+C314 en a_2340_4810# 0.00128f
+C315 vdd a_1054_2697# 0.36484f
+C316 mreset en 0
+C317 vreset vbn_leak 0.03688f
+C318 a_2818_3073# vbp_st 0.09639f
+C319 rsel a_2240_6148# 0.14361f
+C320 vbn_prb aux 0.02825f
+C321 vbn_prb abus 0.05557f
+C322 a_1880_4810# abus 0
+C323 sub_b a_2762_1923# 0
+C324 en a_188_6274# 0.00633f
+C325 a_266_2697# sub 0.00673f
+C326 spk a_2770_2697# 0
+C327 rsel a_2340_4810# 0
+C328 vbn_prb vbn_ref 1.31884f
+C329 sub_b a_2240_6148# 0.07399f
+C330 a_1880_4810# vbn_ref 0
+C331 a_1962_2697# a_2818_3073# 0.29338f
+C332 a_2818_3073# a_276_4082# 0
+C333 a_2818_3073# a_3118_3073# 0.25795f
+C334 a_1290_2951# a_2818_3073# 0.00198f
+C335 a_266_2697# a_2452_4810# 0
+C336 vm vbp_syn 0.61391f
+C337 vdd hold 0.81867f
+C338 vbn_prb a_2762_1923# 0.00607f
+C339 el vdd 1.42577f
+C340 spk vbp_st 0.25453f
+C341 vbn_prb a_2240_6148# 0.15891f
+C342 a_1880_4810# a_2240_6148# 0.00131f
+C343 a_936_6274# vsrc 0
+C344 a_1136_184# sta 0.00202f
+C345 vreset el 0.03824f
+C346 a_1962_2697# spk 0.67005f
+C347 vbn_prb a_2340_4810# 0
+C348 a_1880_4810# a_2340_4810# 0
+C349 vbn_prb mreset 0.0058f
+C350 a_1136_184# vsrc 0
+C351 mreset a_1880_4810# 0
+C352 spk a_276_4082# 0.00596f
+C353 spk a_3118_3073# 0.07561f
+C354 a_1290_2951# spk 0.31266f
+C355 vbp_st a_2770_2697# 0
+C356 vbn_prb a_188_6274# 0.02104f
+C357 a_1880_4810# a_188_6274# 0.00233f
+C358 a_266_2697# vbp_syn 0.21956f
+C359 a_1136_184# stb 0.00546f
+C360 a_936_6274# aux 0
+C361 a_936_6274# abus 0
+C362 vbn_leak vbp_syn 0.0282f
+C363 a_1962_2697# a_2770_2697# 0.00439f
+C364 a_1136_184# abus 0.02092f
+C365 a_936_6274# vbn_ref 0.0026f
+C366 a_4142_2697# el 0.00303f
+C367 a_1054_2697# vbp_syn 0.25043f
+C368 a_1136_184# vbn_ref 0.07137f
+C369 a_1136_184# a_188_184# 0.05152f
+C370 a_266_2697# vm 0.19744f
+C371 vdd sta 0.3922f
+C372 spk en 0.00387f
+C373 vm vbn_leak 0.14261f
+C374 a_1962_2697# vbp_st 0.20017f
+C375 vdd vsrc 0.19329f
+C376 a_1136_184# a_2762_1923# 0.00708f
+C377 a_3118_3073# vbp_st 0.09116f
+C378 a_936_6274# a_2240_6148# 0.55133f
+C379 spk rsel 0.00704f
+C380 vm a_1054_2697# 0.09584f
+C381 vbp_syn hold 0.00888f
+C382 a_1136_184# a_2240_6148# 0
+C383 vdd stb 0.44712f
+C384 vreset vsrc 0.0664f
+C385 a_936_6274# mreset 0
+C386 a_1962_2697# a_276_4082# 0.0026f
+C387 el vbp_syn 0.02248f
+C388 a_1962_2697# a_3118_3073# 0.0078f
+C389 a_1290_2951# a_1962_2697# 0.03443f
+C390 vdd aux 0.05063f
+C391 spk sub_b 0.00717f
+C392 a_1136_184# a_2340_4810# 0.00506f
+C393 a_936_6274# a_188_6274# 0.69492f
+C394 vdd abus 0.10329f
+C395 a_276_4082# a_3118_3073# 0
+C396 a_1290_2951# a_276_4082# 0.13977f
+C397 a_1290_2951# a_3118_3073# 0
+C398 a_1136_184# a_188_6274# 0
+C399 a_1136_184# a_492_184# 0.0032f
+C400 vdd vbn_ref 0.3702f
+C401 a_188_184# vdd 0.29269f
+C402 vreset aux 0.03715f
+C403 vreset abus 1.26682f
+C404 vm hold 0.36346f
+C405 vdd a_3182_2697# 0.00376f
+C406 vbp_st en 0.03564f
+C407 vreset vbn_ref 0.14734f
+C408 el vm 0.08688f
+C409 spk vbn_prb 0.02304f
+C410 a_266_2697# a_1054_2697# 0.01442f
+C411 vdd a_2762_1923# 1.94769f
+C412 vreset a_3182_2697# 0
+C413 a_1962_2697# en 0
+C414 vdd a_2240_6148# 0.00356f
+C415 vbn_ref sub 0.02872f
+C416 a_276_4082# en 0.00195f
+C417 a_4142_2697# aux 0.00146f
+C418 a_3118_3073# en 0.0046f
+C419 vreset a_2762_1923# 0.06117f
+C420 a_1290_2951# en 0.01136f
+C421 a_2452_4810# abus 0.00569f
+C422 mreset vdd 0.00834f
+C423 a_1962_2697# rsel 0.00113f
+C424 vreset a_2240_6148# 0
+C425 vdd a_188_6274# 0.00262f
+C426 a_492_184# vdd 0.46549f
+C427 a_266_2697# hold 0.1091f
+C428 sta vbp_syn 0.00123f
+C429 a_1962_2697# sub_b 0.00137f
+C430 vbp_syn vsrc 0.0427f
+C431 a_266_2697# el 0
+C432 a_1136_184# a_2818_3073# 0.00471f
+C433 el vbn_leak 0.04817f
+C434 a_2452_4810# a_2762_1923# 0
+C435 vbn_prb vbp_st 1.26685f
+C436 a_1054_2697# hold 0.03711f
+C437 vbp_syn stb 0.00122f
+C438 vbp_syn aux 0
+C439 a_2452_4810# a_2240_6148# 0
 C440 aux vss 0.47162f
 C441 sub vss 0.01485f
-C442 vsrc vss 1.83348f
-C443 vreset vss 1.24528f
-C444 abus vss 3.33307f
-C445 vdd vss 24.69056f
-C446 a_492_184# vss 1.56853f
-C447 a_188_184# vss 2.33785f
-C448 a_4142_2697# vss 0.04192f
-C449 a_3182_2697# vss 1.09579f
-C450 a_1054_2697# vss 0.7943f
-C451 a_3118_3073# vss 0.04192f
-C452 a_1962_2697# vss 0.74403f
-C453 a_2452_4810# vss 0.28048f
-C454 a_2340_4810# vss 1.14511f
-C455 a_1136_184# vss 1.77847f
-C456 a_1880_4810# vss 1.1391f
-C457 a_276_4082# vss 2.00335f
-C458 a_936_6274# vss 4.5426f
+C442 vsrc vss 1.83491f
+C443 vreset vss 1.24543f
+C444 abus vss 3.33615f
+C445 vdd vss 24.67782f
+C446 a_492_184# vss 1.56918f
+C447 a_188_184# vss 2.33786f
+C448 a_4142_2697# vss 0.04196f
+C449 a_3182_2697# vss 1.09588f
+C450 a_1054_2697# vss 0.79495f
+C451 a_3118_3073# vss 0.04196f
+C452 a_1962_2697# vss 0.74473f
+C453 a_2452_4810# vss 0.28307f
+C454 a_2340_4810# vss 1.15056f
+C455 a_1136_184# vss 1.782f
+C456 a_1880_4810# vss 1.14034f
+C457 a_276_4082# vss 2.00354f
+C458 a_936_6274# vss 4.25392f
+C459 a_266_2697# vss 0.84208f
 .ends
 
