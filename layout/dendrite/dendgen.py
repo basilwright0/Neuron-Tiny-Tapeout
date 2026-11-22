@@ -19,6 +19,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import flatten                      # noqa: E402
 from router import Router           # noqa: E402
+sys.path.append(str(HERE.parent / "slot"))
+import keptdev                      # noqa: E402  (layout/slot/keptdev.py)
 
 CELL = "dend_d1"
 U = 200
@@ -166,6 +168,8 @@ BIGCAPS = {"XS.XC.XC": "vs", "XC1.XC": "d1", "XC2.XC": "d2"}
 
 # ============================================================================ device library
 def devcell(d):
+    if d.get("slot"):
+        return keptdev.kept_name(d["model"], d["W"], d["L"], d["slot"])
     f = lambda v: ("%g" % v).replace(".", "p")
     return f"{d['model'][0]}_w{f(d['W'])}_l{f(d['L'])}"
 
@@ -223,6 +227,18 @@ def split_wide(devs):
 # 387f708): the plateau detector input XNI went 1/1 -> 1/0.5; packing it tight shifted XN2..XNE 0.5 um west, and the
 # region-1 trial route then stalled on a d1/vdd conflict (route_try.py 1), which the kept slot avoids.
 SLOT_L = {f"{p}.XDT.XNI": 1.0 for p in ("XP1", "XP2")}
+# Kept-footprint devices (layout/slot/keptdev.py): name -> footprint L. Unlike SLOT_L (a shorter PDK cell
+# right-aligned in the old slot: its source stripe moves), the gate is narrowed inside the old cell, so diffusion,
+# stripes and pin access are unchanged and the route cache replays. Level 4 (cells aabada4): the 3 leak OTAs
+# (soma XS.XL, dendrite leaks XL1/XL2) and the 4 axial OTAs (XA1/XA2 . XA/XB): inputs XM1/XM2 and diodes XD1/XD2
+# (drawn as halves _a/_b) L 1 -> 0.5 um, same W, in their L = 1 um footprints.
+KEPT_L = {f"{p}.{m}": 1.0 for p in ("XS.XL", "XL1", "XL2", "XA1.XA", "XA1.XB", "XA2.XA", "XA2.XB")
+          for m in ("XM1", "XM2", "XD1", "XD2")}
+
+
+def mark_kept(devs):
+    """Tag kept-footprint devices (KEPT_L, only when shorter than their footprint) with d['slot'] = footprint L."""
+    return [dict(d, slot=KEPT_L[d["name"]]) if KEPT_L.get(d["name"], 0) > d["L"] + 1e-9 else d for d in devs]
 
 
 def placement(lib, devs):
@@ -268,12 +284,14 @@ PLACE = {}
 
 def build():
     ports, devs, caps = flatten.write_lvs(HERE / f"{CELL}_lvs.spice", CELL)
-    devs = split_wide(devs)
+    devs = split_wide(mark_kept(devs))
     ANT_FORBID.clear()
     lib = {}
     for d in devs:
         c = devcell(d)
         if c not in lib:
+            if d.get("slot"):
+                keptdev.make(HERE / "devices", d["model"], d["W"], d["L"], d["slot"])
             lib[c] = load_dev(c)
     PLACE.clear()
     PLACE.update(placement(lib, devs))
@@ -816,7 +834,8 @@ def check_overlaps(insts):
 
 def write_devlist():
     ports, devs, caps = flatten.flatten(CELL)
-    devs = split_wide(devs)
+    # kept-footprint devices: list their footprint cell (keptdev.make derives the short-gate cell from it)
+    devs = [dict(d, L=d["slot"], slot=0) if d.get("slot") else d for d in split_wide(mark_kept(devs))]
     (HERE / "devices").mkdir(exist_ok=True)
     (HERE / "devices" / "devlist.tcl").write_text("".join(
         f"mk {c} {d['model']} [dict merge $common {{w {d['W']:g} l {d['L']:g}}}]\n"

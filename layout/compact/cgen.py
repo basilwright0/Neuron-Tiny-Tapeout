@@ -105,8 +105,16 @@ ROUTE_FIRST = ["vm", "vr", "spk"]
 HAS_CFB = any({c["a"], c["b"]} == {"spk", "vm"} for c in flatten.flatten(CELL)[2])
 
 
+# Kept-slot devices: name -> footprint L (geom.pitch). Level 4 (cells aabada4): the leak OTA inputs XM1/XM2 and diodes
+# XD1/XD2 went L 1 -> 0.5 um, same W. Drawn at their old 1 um gate pitch (channel narrowed about the centre, plain
+# diffusion either side), every chain keeps its width, contacts and gate pads, so the same SEED/SWEEP reproduces the
+# placement and the route of the level-3 finals. KEPT_L=0 in the environment draws them packed (new search needed).
+KEPT_L = {} if os.environ.get("KEPT_L") == "0" else {f"XL.{m}": 1.0 for m in ("XM1", "XM2", "XD1", "XD2")}
+
+
 def netlist():
     ports, devs, caps = flatten.flatten(CELL)
+    devs = [dict(d, slot=KEPT_L[d["name"]]) if KEPT_L.get(d["name"], 0) > d["L"] + 1e-9 else d for d in devs]
     fingers = []
     for d in devs:
         if d["name"] in TALL:

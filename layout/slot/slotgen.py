@@ -18,6 +18,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import flatten                      # noqa: E402
 from router import Router, HW, PAD  # noqa: E402
+import keptdev                      # noqa: E402
 
 import os
 CELL = os.environ.get("SLOT_CELL", "slot_ah")   # slot_ah (S), slot_ah_h (H: + gap trim), slot_ah_p (P: + trim, EL from aux)
@@ -204,6 +205,10 @@ if CMP:
         "XNC": (21.60, 16.00),
     })
 HEAD_DOWN = {"XC2.XC"}                # devices whose gate head is drawn below the diffusion
+# Kept-slot devices (keptdev.py): name -> footprint L. Level 4 (cells aabada4): the leak OTA inputs XM1/XM2 and
+# diodes XD1/XD2 (drawn as halves XD1a/b, XD2a/b) went L 1 -> 0.5 um, same W. They are drawn in their old L = 1 um
+# footprint (same diffusion, stripes, centres), so the placement, pin access and the cached routes stay valid.
+KEPT_L = {f"XL.{m}": 1.0 for m in ("XM1", "XM2", "XD1", "XD2")}
 # Metal1 vss shield plates (AH800: over XC2, from above its gate head to the top ring)
 # y0 30.66: the plate is "wide metal" (> 10 um), so M1.2b needs 0.30 um to the XC2 gate-head pad (top 30.34)
 PLATES = [(0.60, 30.66, 13.48, H1)] if CELL == "slot_ah_800" else []
@@ -228,8 +233,20 @@ if os.environ.get("MAX_SCHED"):            # try only the first n schedules (wit
 
 # ============================================================================ device library
 def devcell(d):
+    if d.get("slot"):
+        return keptdev.kept_name(d["model"], d["W"], d["L"], d["slot"])
     f = lambda v: ("%g" % v).replace(".", "p")
     return f"{d['model'][0]}_w{f(d['W'])}_l{f(d['L'])}"
+
+
+def mark_kept(devs):
+    """Tag kept-slot devices (KEPT_L, only when shorter than their slot) with d['slot'] = footprint L."""
+    return [dict(d, slot=KEPT_L[d["name"]]) if KEPT_L.get(d["name"], 0) > d["L"] + 1e-9 else d for d in devs]
+
+
+def footprint(d):
+    """The device as placed and routed: kept-slot devices at their footprint L (route-cache key, devlist)."""
+    return dict(d, L=d["slot"], slot=0) if d.get("slot") else d
 
 
 def load_dev(name):
@@ -293,14 +310,18 @@ class Layout:
 
 def build():
     ports, devs, caps = flatten.write_lvs(HERE / f"{CELL}_lvs.spice", CELL)
-    devs = split_devs(devs)
+    devs = split_devs(mark_kept(devs))
     DEVNAMES.clear()
     DEVNAMES.update(d["name"] for d in devs)
-    DEVS_KEY[:] = [repr(sorted((d["name"], d["model"], d["d"], d["g"], d["s"], d["W"], d["L"]) for d in devs))]
+    # key on the footprint: a kept-slot L change leaves every routed shape valid (build.sh reuse replays the cache)
+    DEVS_KEY[:] = [repr(sorted((d["name"], d["model"], d["d"], d["g"], d["s"], d["W"], d["L"])
+                               for d in map(footprint, devs)))]
     lib = {}
     for d in devs:
         c = devcell(d)
         if c not in lib:
+            if d.get("slot"):
+                keptdev.make(HERE / "devices", d["model"], d["W"], d["L"], d["slot"])
             lib[c] = load_dev(c)
     L = Layout()
     insts = []
@@ -749,7 +770,7 @@ def write_devlist():
     """One PDK device cell per unique (model, W, L) over all slot variants (input to gen_devices.tcl)."""
     sizes = {}
     for cell in SLOTS + ("trim_el4", "trim_tau4"):
-        for d in split_devs(flatten.flatten(cell)[1]):
+        for d in map(footprint, split_devs(mark_kept(flatten.flatten(cell)[1]))):   # kept-slot: footprint cell
             sizes[devcell(d)] = d
     (HERE / "devices" / "devlist.tcl").write_text("".join(
         f"mk {c} {d['model']} [dict merge $common {{w {d['W']:g} l {d['L']:g}}}]\n" for c, d in sorted(sizes.items())))

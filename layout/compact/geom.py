@@ -50,6 +50,7 @@ class Finger:
     d: str
     g: str
     s: str
+    slot: float = 0.0    # kept-slot footprint L (> L): drawn in that gate pitch, channel narrowed about its centre
 
 
 @dataclass
@@ -77,10 +78,16 @@ def fold(dev, wmax):
         if k > 64:
             raise ValueError(f"cannot fold {dev['name']} W={W}")
     typ = dev["model"][0]
+    sl = dev.get("slot", 0.0)
     if k == 1:
-        return [Finger(dev["name"], dev["name"], typ, W, dev["L"], dev["d"], dev["g"], dev["s"])]
-    return [Finger(f"{dev['name']}_f{i}", dev["name"], typ, snap(W / k), dev["L"], dev["d"], dev["g"], dev["s"])
+        return [Finger(dev["name"], dev["name"], typ, W, dev["L"], dev["d"], dev["g"], dev["s"], sl)]
+    return [Finger(f"{dev['name']}_f{i}", dev["name"], typ, snap(W / k), dev["L"], dev["d"], dev["g"], dev["s"], sl)
             for i in range(k)]
+
+
+def pitch(f):
+    """Gate pitch of a finger in its chain: L, or the kept-slot footprint L (level 4: leak OTA 0.5 um in 1 um)."""
+    return max(f.L, f.slot)
 
 
 def draw_chain(ch, contacted):
@@ -135,9 +142,13 @@ def draw_chain(ch, contacted):
         x += w
         if i < k:
             f, fl = ch.items[i]
-            gates.append((f, x, x + f.L))
-            shapes.append((mos, (x, 0, x + f.L, f.W)))
-            x += f.L
+            pad = (pitch(f) - f.L) / 2          # kept slot: plain diffusion either side of the narrowed channel
+            if pad > 1e-9:
+                shapes.append((diff, (x, 0, x + pad, f.W)))
+                shapes.append((diff, (x + pad + f.L, 0, x + pitch(f), f.W)))
+            gates.append((f, x + pad, x + pad + f.L))
+            shapes.append((mos, (x + pad, 0, x + pad + f.L, f.W)))
+            x += pitch(f)
     width = x
     top = max(Ws + [CMIN_H])
     # gate heads: level 0 at top + HEAD_DY; staggered to level 1 where the previous head is too close
@@ -145,7 +156,7 @@ def draw_chain(ch, contacted):
     lvl_prev, xprev = None, None
     for gi, (f, x0, x1) in enumerate(gates):
         cx = (x0 + x1) / 2
-        hx = max(f.L / 2, HEAD_POLY)
+        hx = max(pitch(f) / 2, HEAD_POLY)       # kept slot: head (and the stagger decision) as for the footprint
         lvl = 0
         if xprev is not None and lvl_prev == 0:
             pcx, phx = xprev
