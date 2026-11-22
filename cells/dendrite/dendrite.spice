@@ -27,7 +27,7 @@
 
 * --------------------------------------------------------------- ax_pair ---
 * Axial conductance between x and y: two back-to-back follower OTAs (leak_ota_deg, membrane.spice;
-* same devices incl. the 2026-11-19 headroom fix: inputs 4/1, degeneration diodes 8/1).
+* same devices incl. the 2026-11-19 headroom fix: inputs 4/1, degeneration diodes 8/1; level 4: inputs 4/0.5, diodes 8/0.5).
 * I(into x) = Iax*tanh((Vy-Vx)/VL), and the mirror image into y: a symmetric conductance
 * g_ax = 6.2 S/A * Iax for |Vx-Vy| < ~80 mV, saturating at +-Iax beyond ~150 mV.
 * Hold: each OTA output reaches its compartment through a pfet switch (off while hold = 1), as the
@@ -36,10 +36,10 @@
 * output pfet leaking pA into the node).
 .subckt ax_ota_h out in vbn hold vdd vss
 XMT  t   vbn vss vss nfet_03v3 W=2u L=4u
-XM1  a   in  s1  vss nfet_03v3 W=4u L=1u
-XD1  s1  s1  t   vss nfet_03v3 W=8u L=1u
-XM2  o   o   s2  vss nfet_03v3 W=4u L=1u
-XD2  s2  s2  t   vss nfet_03v3 W=8u L=1u
+XM1  a   in  s1  vss nfet_03v3 W=4u L=0.5u
+XD1  s1  s1  t   vss nfet_03v3 W=8u L=0.5u
+XM2  o   o   s2  vss nfet_03v3 W=4u L=0.5u
+XD2  s2  s2  t   vss nfet_03v3 W=8u L=0.5u
 XP1  a   a   vdd vdd pfet_03v3 W=2u L=4u
 XP2  o   a   vdd vdd pfet_03v3 W=2u L=4u
 XHO  out hold o  vdd pfet_03v3 W=1u L=0.28u

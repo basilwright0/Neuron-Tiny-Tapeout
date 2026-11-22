@@ -35,6 +35,19 @@ _cells = cells
 if os.environ.get("D1_SPICE"):
     def cells():  # noqa: F811
         return _cells().replace(str(ngs.CELLS / "dendrite/dendrite.spice"), os.environ["D1_SPICE"])
+if os.environ.get("D1_REPL"):   # level 4: "cells/rel/path=/abs/copy;..." swaps included cell files (before/after copies)
+    _cells2 = cells
+
+    def cells():  # noqa: F811
+        out = _cells2()
+        for kv in os.environ["D1_REPL"].split(";"):
+            a_, b_ = kv.split("=")
+            out = out.replace(str(ngs.CELLS / a_), b_)
+        return out
+if os.environ.get("D1_DEL"):    # level 4: EL / Vth / Vreset shifted together (level-1 operating point EL 1.5 V)
+    _d = float(os.environ["D1_DEL"])
+    dcommon.EL, dcommon.VTH, dcommon.VRESET = dcommon.EL + _d, dcommon.VTH + _d, dcommon.VRESET + _d
+    EL, VTH, VRESET = dcommon.EL, dcommon.VTH, dcommon.VRESET
 if TRIM != 8:   # per-bit trim lines (dcommon's DUT ties ta3/tb3 to one 'ta' source = code 8)
     DUT = DUT.replace("vsyn 0 0 0 ta 0 0 0 ta", "vsyn tq0 tq1 tq2 tq3 tq0 tq1 tq2 tq3")
     _bias = bias

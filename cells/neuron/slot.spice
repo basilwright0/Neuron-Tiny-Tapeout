@@ -75,8 +75,8 @@ XSW mc  sel m   vss nfet_03v3 W=1u L=0.28u
 XSB m   sb  abus vss nfet_03v3 W=1u L=0.28u
 .ends prb_tap
 
-* leak_ota_deg with the mirror diode node a as a port (identical devices and names).
-.subckt leak_ota_degx vm el a vbn vdd vss wi=4u li=1u wt=2u lt=4u wl=2u ll=4u wd=8u ld=1u
+* leak_ota_deg with the mirror diode node a as a port (identical devices and names; level 4: inputs and diodes L 0.5 um).
+.subckt leak_ota_degx vm el a vbn vdd vss wi=4u li=0.5u wt=2u lt=4u wl=2u ll=4u wd=8u ld=0.5u
 XMT  t   vbn vss vss nfet_03v3 W={wt} L={lt}
 XM1  a   el  s1  vss nfet_03v3 W={wi} L={li}
 XD1  s1  s1  t   vss nfet_03v3 W={wd} L={ld}

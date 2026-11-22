@@ -102,7 +102,7 @@ def rheo_dc():
 if CELL == "slot_cmp_h":
     VSRC = 0.6
 else:
-    VSRC = sb.cal_vsrc(corner, temp, S, tag=f"spd_{corner}_{temp}_S{S:g}_d{DEL:g}")
+    VSRC = sb.cal_vsrc(corner, temp, S, tag=f"spd_{corner}_{temp}_S{S:g}_d{DEL:g}" + os.environ.get("FI_TAG", "") + (f"_{CELL}" if os.environ.get("FI_TAG") else ""))
 vtrip, rheo_m = rheo_dc()
 with Pool(NP) as p:
     res = p.map(tran, KS)
