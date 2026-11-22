@@ -42,6 +42,14 @@ use p_w2_l4  XL_XP2
 timestamp 1795051080
 transform 1 0 2000 0 1 5420
 box -574 -330 574 330
+use n_w1_l2  XNC
+timestamp 1795051080
+transform 1 0 4320 0 1 3200
+box -312 -168 312 168
+use p_w1_l2  XPC
+timestamp 1795051080
+transform 1 0 2840 0 1 5420
+box -374 -230 374 230
 use p_w1_l2  XD_XPT
 timestamp 1795051080
 transform 1 0 3480 0 1 5420
@@ -72,7 +80,7 @@ transform 1 0 1460 0 1 4580
 box -202 -230 202 230
 use p_w1_l2  XD_Xi1_XS
 timestamp 1795051080
-transform 1 0 2840 0 1 5420
+transform 1 0 880 0 1 4580
 box -374 -230 374 230
 use p_w1_l0p28  XD_Xi1_XP
 timestamp 1795051080

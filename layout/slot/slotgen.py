@@ -194,6 +194,15 @@ if CMP:
         "XD.Xi1.XN": (8.60, 17.60), "XD.Xi2.XN": (10.30, 17.60), "XR.Xi.XN": (12.00, 17.60),
         "XD.XN1": (14.60, 17.60), "XD.XN2": (18.00, 17.60), "XD.XH2": (4.84, 19.85),
     })
+    # Level 3 (2026-11-22, cells/neuron/slot.spice): det_cmp's vbp is the local vbp_cmp leg, XNC (nfet 1/2 on
+    # vbn_prb) into the diode XPC (pfet 1/2). XPC takes the inv3s starve XD.Xi1.XS's row-B spot, right next to
+    # its mirror partner XPT (same device, same orientation); Xi1.XS moves to the free left end of row A, above
+    # XH2 and two slots left of its inverter Xi1.XP. XNC sits in the free nfet area right of the leak tail XMT,
+    # under XR.XNR, below the vbn_prb column (drain stripe flipped to the left, towards the n-well).
+    PLACE.update({
+        "XPC": (14.20, 27.10), "XD.Xi1.XS": (4.40, 22.90),
+        "XNC": (21.60, 16.00),
+    })
 HEAD_DOWN = {"XC2.XC"}                # devices whose gate head is drawn below the diffusion
 # Metal1 vss shield plates (AH800: over XC2, from above its gate head to the top ring)
 # y0 30.66: the plate is "wide metal" (> 10 um), so M1.2b needs 0.30 um to the XC2 gate-head pad (top 30.34)
@@ -202,7 +211,7 @@ FLIP = {"XPM.XSW", "XPR.XSW", "XR.XNR", "XS.XWA", "XS.XWB", "XS.XPH", "XS.XQA", 
 if PROBE_CHAIN:
     FLIP |= {"XPM.XSC", "XPM.XSB", "XPR.XSB"}
 if CMP:
-    FLIP |= {"XD.XN1"}
+    FLIP |= {"XD.XN1", "XNC"}
 if TRIM:
     FLIP |= {f"XT.X{t}{k}" for t in ("P", "N", "L") for k in range(4)}
 
