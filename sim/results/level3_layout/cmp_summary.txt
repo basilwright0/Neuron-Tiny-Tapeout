@@ -1,0 +1,51 @@
+rev cc6b7d7 Sun Nov 22 10:53:00 AM UTC 2026
+ M layout/dendrite/dend_d1.mag
+ M layout/dendrite/dend_d1_base.mag
+ M layout/dendrite/dend_d1_paint.tcl
+ M layout/dendrite/out/dend_d1.gds
+ M layout/dendrite/out/dend_d1_ext.spice
+ M layout/dendrite/out/dend_d1_klayout_drc.lyrdb
+ M layout/dendrite/out/dend_d1_lvs_report.txt
+ M layout/dendrite/out/dend_d1_pex.spice
+ M layout/dendrite/out/dend_d1_pex_summary.txt
+ M layout/dendrite/out/route_cache_dend_d1.json
+ M layout/dendrite/out/route_region0.json
+ M layout/dendrite/out/route_region1.json
+ M layout/dendrite/out/route_region2.json
+ M layout/dendrite/preview.png
+build: 0 min
+=================== slot_cmp_h
+  reusing routing from route_cache_slot_cmp_h.json
+FAILED: none
+MAGIC_DRC_COUNT 0
+Final result: Circuits match uniquely.
+KLAYOUT_DRC_COUNT 0
+834 parasitic capacitors in slot_cmp_h_pex.spice
+Cfb  (spk-vm coupling, MOM + routing) = 0.12 fF   (target 8 fF +-25 %: 6.0 .. 10.0)
+vm   total wiring capacitance          = 10.37 fF
+  reusing routing from route_cache_slot_cmp_h.json
+FAILED: none
+XXNC vbp_cmp vbn_prb vss vss nfet_03v3 W=1u L=2u
+XXPC vbp_cmp vbp_cmp vdd vdd pfet_03v3 W=1u L=2u
+XXD_XPT XD.t vbp_cmp vdd vdd pfet_03v3 W=1u L=2u
+XXR_XPC vr XR.spkb vdd vdd pfet_03v3 W=1u L=0.28u
+WARNING: frame is not 28 x 91.48
+f-I: 0 min
+== fi_S10000.log
+calibrated vsrc = 0.3617 V (schematic detector)
+slot_cmp_h typical 27C S=10000: tau=1.0us rheobase=16000pA vsrc=0.362
+ Iin/rheo  rate_sch(Hz)  rate_pex(Hz)  pex/sch   vm[min,max] sch        vm[min,max] pex      sch/ideal-LIF
+    1.50     697185.7      553406.6    0.794   [1.299,1.389]   [1.299,1.400]   0.905
+    2.00     941601.4      739618.7    0.785   [1.299,1.392]   [1.299,1.404]   0.841
+    3.00    1327462.4     1027685.7    0.774   [1.300,1.396]   [1.299,1.410]   0.804
+    5.00    1875259.8     1433088.3    0.764   [1.300,1.402]   [1.299,1.418]   0.794
+    8.00    2401062.9     1807597.2    0.753   [1.300,1.409]   [1.300,1.427]   0.801
+== fi_S100.log
+calibrated vsrc = 0.5830 V (schematic detector)
+slot_cmp_h typical 27C S=100: tau=100.0us rheobase=160pA vsrc=0.583
+ Iin/rheo  rate_sch(Hz)  rate_pex(Hz)  pex/sch   vm[min,max] sch        vm[min,max] pex      sch/ideal-LIF
+    1.50       7641.1        6445.8    0.844   [1.299,1.382]   [1.299,1.390]   0.992
+    2.00      10598.3        8916.4    0.841   [1.299,1.382]   [1.299,1.390]   0.947
+    3.00      15337.1       12891.7    0.841   [1.299,1.382]   [1.299,1.391]   0.929
+    5.00      22107.5       18668.5    0.844   [1.299,1.382]   [1.299,1.390]   0.935
+    8.00      28562.1       24232.0    0.848   [1.299,1.382]   [1.299,1.390]   0.953

@@ -1,57 +1,57 @@
-829 parasitic capacitors in slot_cmp_h_pex.spice
-Cfb  (spk-vm coupling, MOM + routing) = 0.24 fF   (target 8 fF +-25 %: 6.0 .. 10.0)
-vm   total wiring capacitance          = 8.44 fF
+834 parasitic capacitors in slot_cmp_h_pex.spice
+Cfb  (spk-vm coupling, MOM + routing) = 0.12 fF   (target 8 fF +-25 %: 6.0 .. 10.0)
+vm   total wiring capacitance          = 10.37 fF
 vm   breakdown (to other nodes):
-       vss               1.584 fF
-       vdd               1.518 fF
-       rsel              0.404 fF
-       a_2510_1740#      0.379 fF
-       m1_2440_960#      0.357 fF
-       sub_b             0.349 fF
-       m1_218_2312#      0.312 fF
-       vbp_st            0.310 fF
-       spk               0.243 fF
-       m1_3040_4730#     0.217 fF
-       m1_2260_960#      0.216 fF
-       m1_760_8360#      0.216 fF
-       a_2720_3620#      0.205 fF
-       sub               0.204 fF
-       m1_3348_296#      0.197 fF
-       vbp_syn           0.175 fF
-       en                0.152 fF
-       a_480_5620#       0.146 fF
-       vreset            0.143 fF
-       a_2080_2940#      0.133 fF
-       vbn_leak          0.105 fF
-       t1                0.079 fF
-       m1_1400_6220#     0.074 fF
-       t0                0.070 fF
-       sta               0.066 fF
-       a_1684_3624#      0.065 fF
-       m1_1960_6220#     0.064 fF
-       t2                0.062 fF
-       a_1632_2940#      0.062 fF
-       el                0.056 fF
-       stb               0.055 fF
-       m1_3200_6220#     0.040 fF
-       m1_1680_4540#     0.039 fF
-       a_288_2940#       0.034 fF
-       m1_3620_6220#     0.030 fF
-       t3                0.027 fF
-       m1_2440_6996#     0.023 fF
-       aux               0.011 fF
-       hold              0.010 fF
-       a_2784_4734#      0.003 fF
-       a_1424_4734#      0.001 fF
+       vss               2.356 fF
+       vdd               2.284 fF
+       el                0.649 fF
+       a_368_4070#       0.615 fF
+       a_1632_2940#      0.553 fF
+       a_480_5620#       0.448 fF
+       en                0.406 fF
+       vbp_syn           0.246 fF
+       m1_3360_172#      0.239 fF
+       a_288_2940#       0.226 fF
+       m1_2280_960#      0.207 fF
+       sub               0.180 fF
+       a_2510_1740#      0.179 fF
+       m1_644_2570#      0.174 fF
+       sub_b             0.169 fF
+       vreset            0.154 fF
+       m1_3052_4742#     0.153 fF
+       spk               0.120 fF
+       m1_2448_868#      0.110 fF
+       rsel              0.102 fF
+       m1_1960_6220#     0.076 fF
+       t1                0.073 fF
+       m1_1400_6220#     0.062 fF
+       a_2720_3620#      0.062 fF
+       t3                0.058 fF
+       sta               0.055 fF
+       t2                0.049 fF
+       t0                0.046 fF
+       stb               0.044 fF
+       m1_3188_6220#     0.042 fF
+       m1_841_6220#      0.035 fF
+       a_2080_2940#      0.034 fF
+       m1_2436_8920#     0.033 fF
+       m1_3600_6548#     0.024 fF
+       a_1684_3624#      0.023 fF
+       hold              0.022 fF
+       abus              0.013 fF
+       a_2784_4734#      0.013 fF
+       m1_1092_4130#     0.011 fF
+       aux               0.006 fF
+       a_1424_4734#      0.006 fF
+       m1_2972_1572#     0.004 fF
+       vbn_leak          0.002 fF
+       m1_3704_1572#     0.002 fF
+       m1_1244_4440#     0.001 fF
        m1_4822_412#      0.000 fF
-       mreset            0.000 fF
-       m1_4902_6422#     0.000 fF
-       m1_2972_1572#     0.000 fF
-       vsrc              0.000 fF
+       vbp_st            0.000 fF
        m1_4052_1572#     0.000 fF
-       m1_3704_1572#     0.000 fF
+       vsrc              0.000 fF
        vbn_ref           0.000 fF
-       abus              0.000 fF
        vbn_prb           0.000 fF
 vr   total wiring capacitance          = 0.00 fF
-spk  total wiring capacitance          = 7.55 fF
+spk  total wiring capacitance          = 3.32 fF
