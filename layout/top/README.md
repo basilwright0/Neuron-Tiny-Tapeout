@@ -48,6 +48,23 @@ floorplan box and keep its pins on the box edge (stubs are drawn 0.7 µm out of 
   at slot (0,3). Its row pins (rt_out, sub/sub_b, spk_in[12], trim bits of nibble 6) sit on the row-0 band, its rsel
   on the row-1 band (`geom.array` picks each cell's pins per band from the label y).
 
+## M3 re-assembly (MIL-133 top3, branch m3-top3, 2026-11-22)
+
+- **B1 M3** (`bias_b1` 242 × 114.5 at (103, 12), notches N1 + pocket NB). Power hookups re-derived from the M3 GDS
+  (KLayout net trace): east vss = 3 via3 + Metal4 jumper on the vss Metal3 line at local y 40.2, vdd stub to the x 345
+  stripe; west entry (IR fix) = via3 on the vdd line (local y 79.05, 2 cuts) and the vss line (y 71.65, 3 cuts) under
+  the x 121 / 123.6 stripes. B1's pin polygons differ from rev C (labels are the same), so 17 B1 code nets were rerouted.
+- **TOP-1:** array Metal3 buses 315.1–317.0 → 300.5–302.4, right above the en_c / rt_out lines that already hug the
+  array top; tie row powered by via stacks onto the x 50 / 52.6 stripes (no drops through the strip).
+- **TOP-4:** glue row split into two R0 rows in H3 (`fp.GLUE_ROWS`, x 282.6, y 130.4 / 136.4, rails stacked to the
+  x 286.7 / 290.0 stripes), same cells and nets (+2 fillties).
+- **Free areas** (`fp.RESERVED`: RW, RB, RT, RG) are Metal2/3 keep-outs for the router (Metal4 may cross, as over a block).
+- **Incremental routing:** `route.py reroute <nets>` (in command-line order) on top of the m2-rc1 routes; `route.py check`
+  lists nets whose wires are illegal against the current geometry; `conncheck.py` checks every task is connected.
+  Measurement: `area_dump.py` (KLayout) + `area_free.py` (largest free rectangles for an M1–M3 block).
+- VM build (`vm_top3.sh`): LVS match, KLayout 0 / antenna 0, magic 0, TT precheck pass (`work/vm3/`). Report:
+  `/home/basil/tt-m3/reports/top3.md`.
+
 ## Status (2026-11-20, τ cells rev B)
 
 | Block | Used as | Source |
