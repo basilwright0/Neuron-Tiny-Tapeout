@@ -38,6 +38,17 @@ DEL = float(os.environ.get("FI_DEL", "0"))     # shift EL / Vth / Vreset togethe
 if DEL:
     sb.EL, sb.VTH, sb.VRESET = sb.EL + DEL, sb.VTH + DEL, sb.VRESET + DEL
 b = sb.Bias(S)
+IBSCALE = float(os.environ.get("FI_IBSCALE", "1"))   # 10000x gate, Option 0: leak-code calibration = leak master x IBSCALE
+b.ib *= IBSCALE
+PEXF = os.environ.get("FI_PEX")                 # 10000x gate: absolute path of a <name>_pex.spice (DUT = that subckt)
+if PEXF:
+    import re as _re
+    _pn = os.path.basename(PEXF)[:-len("_pex.spice")]
+    _txt = _re.sub(r"\n\+", " ", open(PEXF).read())
+    _ports = _re.search(rf"^\.subckt\s+{_pn}\s+(.*)$", _txt, _re.M | _re.I).group(1).split()
+    _pinst = f".include {PEXF}\nXn " + " ".join(sb.nets(CELL)[p_] for p_ in _ports) + f" {_pn}"
+    _sb_body0 = sb.slot_body
+    sb.slot_body = lambda *a, **kw: _sb_body0(*a, **{**kw, "inst": _pinst, "include_libs": False})
 VTHC = os.environ.get("FI_VTHC")                # CMP only: vth_cmp level (re-calibration test)
 if VTHC:
     _sb_body = sb.slot_body
@@ -94,6 +105,8 @@ def rheo_dc():
                  corner=corner, temp=temp), f"fidc_{TAG}")
     v, i, s = r["_x"], r["i(vvm)"], r["v(spk)"]
     trip = crossings(v, s, 1.65)
+    global G_EL
+    G_EL = float(abs(np.interp(sb.EL + 0.01, v, i) - np.interp(sb.EL - 0.01, v, i)) / 0.02)   # leak g at vm = EL
     vt = float(trip[0]) if len(trip) else float("nan")
     k = np.where(v < vt - 1e-3)[0][-1] if len(trip) else len(v) - 1
     return vt, float(abs(i[k]))
@@ -104,12 +117,17 @@ if CELL == "slot_cmp_h":
 else:
     VSRC = sb.cal_vsrc(corner, temp, S, tag=f"spd_{corner}_{temp}_S{S:g}_d{DEL:g}" + os.environ.get("FI_TAG", "") + (f"_{CELL}" if os.environ.get("FI_TAG") else ""))
 vtrip, rheo_m = rheo_dc()
+if os.environ.get("FI_GONLY"):                  # calibration probe: DC only (leak g at EL), no transients
+    (RESULTS / f"g_{TAG}.json").write_text(json.dumps(dict(cell=CELL, corner=corner, temp=temp, S=S, ibscale=IBSCALE,
+                                                           g_el=G_EL, g_nom=b.g * sb.GFAC.get(CELL, 1.0), vtrip=vtrip, rheo_meas=rheo_m)))
+    print(f"{TAG}: ibscale={IBSCALE:g} g_el={G_EL:.4g} S g_nom={b.g * sb.GFAC.get(CELL, 1.0):.4g} S")
+    sys.exit(0)
 with Pool(NP) as p:
     res = p.map(tran, KS)
 hi = res[-1]
 isi8 = 1 / hi["rate"] if hi["rate"] > 0 else float("nan")
 out = dict(cell=CELL, corner=corner, temp=temp, S=S, vsrc=VSRC, tau=TAU, rheo=RHEO, tref_nom=TREF,
-           vtrip=vtrip, rheo_meas=rheo_m, res=res, w_over_isi8=hi["w_spk"] / isi8)
+           vtrip=vtrip, rheo_meas=rheo_m, g_el=G_EL, ibscale=IBSCALE, pex=PEXF, res=res, w_over_isi8=hi["w_spk"] / isi8)
 (RESULTS / f"fi_{TAG}.json").write_text(json.dumps(out, indent=1))
 print(f"{TAG}: tau={TAU*1e6:.2f}us vsrc={VSRC:.3f} trip={vtrip:.3f} rheo nom/meas={RHEO*1e12:.0f}/{rheo_m*1e12:.0f}pA "
       f"t_ref nom/meas={TREF*1e9:.0f}/{hi['t_ref']*1e9:.0f}ns w_spk={hi['w_spk']*1e9:.1f}ns w/ISI8={out['w_over_isi8']:.3f}")

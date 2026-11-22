@@ -55,12 +55,29 @@ if TRIM != 8:   # per-bit trim lines (dcommon's DUT ties ta3/tb3 to one 'ta' sou
     def bias(**kw):  # noqa: F811
         return _bias(**kw) + "".join(f"Vtq{b} tq{b} 0 {3.3 if TRIM >> b & 1 else 0}\n" for b in range(4))
 
+if os.environ.get("D1_PEX"):    # 10000x gate: extracted dend_d1 (layout/dendrite/out/dend_d1_pex.spice, as tb_synapse.py pex)
+    import re as _re
+    _src = open("/work/cells/dendrite/dendrite.spice").read().replace("\n+", " ")
+    _sch = [t_ for t_ in _re.search(r"^\.subckt dend_d1 (.*)$", _src, _re.M).group(1).split() if "=" not in t_]
+    _m = dict(zip(_sch, DUT.split()[1:-1]), VSUBS="0")
+    _pex = open(os.environ["D1_PEX"]).read().replace("\n+", " ")
+    DUT = "XD " + " ".join(_m[p_] for p_ in _re.search(r"^\.subckt dend_d1 (.*)$", _pex, _re.M).group(1).split()) + " dend_d1"
+
+    def cells():  # noqa: F811
+        return (include("neuron/membrane.spice", "neuron/lif.spice", "readout/readout.spice", "dendrite/dtrim.spice")
+                + f"\n.include {os.environ['D1_PEX']}")
+if os.environ.get("D1_IBSCALE"):    # 10000x gate, Option 0: leak-code calibration = leak master (ib_leak) x D1_IBSCALE
+    _bias3 = bias
+
+    def bias(**kw):  # noqa: F811
+        return _bias3(ib_leak=g_leak(kw.get("S", 100.0)) / dcommon.G_PER_IB * float(os.environ["D1_IBSCALE"]), **kw)
+XB = os.environ.get("D1_XB", "xd.xp1.xb")      # plateau detector output (PEX: the extracted net name of XP1.XDT xb)
 S = float(sys.argv[1])
 CASES = [(c.split(":")[0], int(c.split(":")[1])) for c in
          (sys.argv[2] if len(sys.argv) > 2 else "typical:27,ss:0,ff:85,sf:0").split(",")]
 NP = int(sys.argv[3]) if len(sys.argv) > 3 else 2
 k = 100.0 / S          # time scale
-SV = ["v(vs)", "v(d1)", "v(d2)", "v(spk)", "v(xd.xp1.xb)"]
+SV = ["v(vs)", "v(d1)", "v(d2)", "v(spk)", f"v({XB})"]
 
 
 def pwl(node, segs):
@@ -93,7 +110,7 @@ def ramp(res, corner, temp, vc):
     T, T0 = 7e-3 * k, 2e-3 * k
     r = tran(corner, temp, pwl("d1", [(0, 0), (T0, 0), (T0 + T, 700e-12 / k), (T0 + T + 1e-6 * k, 0)]),
              T0 + T + 0.5e-3 * k, "ramp", vc, vc)
-    t, xb = r["_x"], r["v(xd.xp1.xb)"]
+    t, xb = r["_x"], r[f"v({XB})".lower()]
     m = t > T0
     tc = crossings(t[m], xb[m], 1.65)
     rest = float(np.interp(T0 - 1e-6 * k, t, r["v(d1)"]))
@@ -108,7 +125,7 @@ def pulse(res, corner, temp, vc):
     t0 = 2e-3 * k
     src = pwl("d1", [(0, 0), (t0, 0), (t0 + 1e-6 * k, 800e-12 / k), (t0 + 100e-6 * k, 800e-12 / k), (t0 + 101e-6 * k, 0)])
     r = tran(corner, temp, src, 6e-3 * k, "pulse", vc, vc)
-    t, xb, d1 = r["_x"], r["v(xd.xp1.xb)"], r["v(d1)"]
+    t, xb, d1 = r["_x"], r[f"v({XB})".lower()], r["v(d1)"]
     m0 = t > 0.95 * t0
     up = crossings(t[m0], xb[m0], 1.65)
     dn = crossings(t[m0], xb[m0], 1.65, rising=False)
