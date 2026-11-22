@@ -24,7 +24,7 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as spl
 import klayout.db as db
 
-sys.path.insert(0, "/work/sim/tb/top")
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 sys.path.insert(0, "/work/layout/top")
 import topnet as T            # noqa: E402
 import config as C            # noqa: E402

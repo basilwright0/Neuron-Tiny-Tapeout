@@ -2,7 +2,7 @@
 VGND terminal of every analog / glue device; the macro is modelled separately).
 
   python3 sim/tb/top/tb_top_icur.py [corner] [T]
-Cases: S = 100 nominal, probe off; S = 1000, probe on (far slot S3), IB_X2 = 1 (R1 pad driver 800 uA).
+Cases: S = 100 nominal, probe off; S = 1000, probe on (far slot (3,0), M2 layout B: F2), IB_X2 = 1 (R1 pad driver 800 uA).
 Writes sim/results/top/icur_<corner>_<T>.json: case -> {"terms": {terminal: I}, "blocks": {block: [I_vdd, I_vss]}}
 (I > 0 = drawn from VDD / sunk into VSS), used by sim/tb/top/pgrid.py for the IR-drop solve.
 """
@@ -10,7 +10,7 @@ import json
 import sys
 from collections import defaultdict
 
-sys.path.insert(0, "/work/sim/tb/top")
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 import topbench as B          # noqa: E402
 import topnet as T            # noqa: E402
 
@@ -18,7 +18,7 @@ CORNER = sys.argv[1] if len(sys.argv) > 1 else "typical"
 TEMP = int(sys.argv[2]) if len(sys.argv) > 2 else 27
 CASES = {"S100_probe_off": dict(S=100.0, probe=None, ib_x2=0),
          "S1000_probe_on_ibx2": dict(S=1000.0, probe=dict(row=3, col=0, sub=0), ib_x2=1)}
-VM = ["s01", "s02", "s10", "s11", "s12", "s13", "s20", "s21", "s22", "s23", "s30", "s31", "s32", "s33"]
+VM = [i for n, i, c in T.neurons()]          # every array neuron (floorplan MAP, REF excluded)
 res = {}
 for case, kw in CASES.items():
     T._cache.pop("pterms", None)

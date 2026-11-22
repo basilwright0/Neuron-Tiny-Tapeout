@@ -14,7 +14,7 @@ from collections import defaultdict
 
 import numpy as np
 
-sys.path.insert(0, "/work/sim/tb/top")
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 import topbench as B          # noqa: E402
 import topnet as T            # noqa: E402
 from ngs import crossings     # noqa: E402
@@ -23,7 +23,7 @@ MODE = sys.argv[1] if len(sys.argv) > 1 else "dc"
 LINES = ["vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vreset", "vreset_src", "vsrc", "vth_ref",
          "aux0", "aux2", "aux3", "vbn_ax", "vbp_w"]
 DRIVER = {"vsrc": "r1", "vreset": "r1"}            # others: b1
-FAR = ["s30", "s33", "ax", "d1", "tau0", "tau2"]    # far array column top (S3, AH800), AdEx, D1, tau cells
+FAR = ["s30", "s33", "ax", "d1", "tau0", "tau2"]    # array top row ends (M2 layout B: F2, AH400), AdEx, D1, tau cells
 lines = []
 
 
@@ -141,7 +141,9 @@ elif MODE == "spk":
     S = 1000.0
     g = 200e-15 * S / 10e-3
     rheo = g * 0.08
-    VICTIM, QUIET, SPIKERS = "s11", "s20", ["s01", "s10", "s12", "s21"]
+    # victim H2 (1,1) and its 4 neighbours H1 (0,1), P2 (1,0), H3 (1,2), S2 (2,1); quiet S1 (2,0) (M2 layout B)
+    VICTIM, QUIET = T.slot_inst("H2"), T.slot_inst("S1")
+    SPIKERS = [T.slot_inst(n) for n in ("H1", "P2", "H3", "S2")]
     src = {"vstim": "Vstim vstim 0 3.3", "Ivic": f"Ivic vstim {T.vnode(VICTIM + '.vm')} DC {2 * rheo:g}"}
     if ON:
         for k, s in enumerate(SPIKERS):

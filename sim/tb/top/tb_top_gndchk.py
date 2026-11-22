@@ -7,7 +7,7 @@ from collections import defaultdict
 
 import numpy as np
 
-sys.path.insert(0, "/work/sim/tb/top")
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 import topbench as B          # noqa: E402
 import topnet as T            # noqa: E402
 

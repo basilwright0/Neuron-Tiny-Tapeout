@@ -13,13 +13,14 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, "/work/sim/lib")
-sys.path.insert(0, "/work/sim/tb/top")
+_HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(_HERE.parents[1] / "lib"))
+sys.path.insert(0, str(_HERE))
 import numpy as np                      # noqa: E402
 import topnet as T                      # noqa: E402
 from ngs import header, run             # noqa: E402
 
-OUT = Path("/work/sim/results/top")
+OUT = T.ROOT / "sim/results/top"
 RUNS = "top"                            # run() writes sim/results/<name>.*; we prefix names with top/
 
 CB = 200e-12                            # pad + board on ua[1]
@@ -84,9 +85,22 @@ def chip(S=100.0, codes=None, probe=None, rt=(0, 0, 0, 0), ib_x2=0, sources=None
     return body + "\n".join(tt + ns) + "\n"
 
 
+def _save_name(v):
+    """`save` form of a wrdata vector: v(n) -> n, i(vx) -> vx#branch."""
+    m = re.match(r"^([vi])\((.+)\)$", v.strip(), re.I)
+    if not m:
+        return v
+    return m.group(2) if m.group(1).lower() == "v" else f"{m.group(2)}#branch"
+
+
 def deck(body, analysis, save, corner="typical", temp=27, opts="", pre=""):
-    """ngspice deck; `pre` = control-block lines before the analysis (alter, etc.)."""
+    """ngspice deck; `pre` = control-block lines before the analysis (alter, etc.).
+    Only the written vectors are kept (`save`): without it ngspice stores every node of the full chip at every
+    time / sweep point, which is what got the M1 full-chip DC sweeps OOM-killed. TOP_SAVE_ALL=1 keeps all."""
+    import os
     vecs = " ".join(save)
+    if os.environ.get("TOP_SAVE_ALL") != "1":
+        pre = "save " + " ".join(_save_name(v) for v in save) + "\n" + pre
     return f"""* top-level PEX bench
 {header(corner=corner, temp=temp)}
 .option rshunt=1e14 abstol=1e-14 {opts}
@@ -144,7 +158,7 @@ def block_terms(net, inst, box=None):
 def slot_box(inst):
     import config as C
     cell, x, y = C.instances()[inst]
-    w, h = C.LIB[cell]["size"] if "size" in C.LIB[cell] else (28.0, 43.5)
+    w, h = C.LIB[cell].get("size", (T.fp.SLOT_W, T.fp.TALL_H))
     return (x, y, x + w, y + h)
 
 

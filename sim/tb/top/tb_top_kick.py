@@ -6,24 +6,40 @@ No neuron has an input; every membrane starts at EL. Events (macro outputs drive
 preconditioning release at 0.5 us, see topbench.chip):
    20 us  HOLD on (rt_out[2])            40 us  HOLD off
    60 us  MRESET pulse 1 us (rt_out[3])
-   80 us  PROBE_EN on, S3 selected (en_c0)   90 us  PROBE_EN off   95 us  SEL -> H1 (rsel row 0)   100 us sub -> 1
-  110 us  config write (LOAD): H1 trim 8 -> 7 (cfg_out[7..10], 4 lines toggle)
+   80 us  PROBE_EN on, far slot (3,0) selected (M2 layout B: F2; en_c0)   90 us  PROBE_EN off
+   95 us  SEL -> H1 (its rsel row; M2: (0,1))   100 us sub -> 1
+  110 us  config write (LOAD): H1 trim 8 -> 7 (nibble 0 = cfg_out[7..10], 4 lines toggle)
   130 us  config write: IDAC word byte 0x02 (vbn_ax / vbp_w codes, B1 code lines toggle; BIAS_EN stays 1)
   150 us  stimulus A pulse 2 us (rt_out[0]), nominal weight (every array neuron gets ~2 fC of synapse charge)
 edge = vm change 20-60 ns after the edge (the capacitive kick, before the synapse / leak act), step = mean of
 1-3 us after minus the pre-event baseline (pre-event slope removed). Hold drift: vm slope in the HOLD window.
-Writes sim/results/top/kick_<corner>_<T>.txt.
+Victims: vm of every array neuron (floorplan MAP, REF excluded), D1 vs / d1 / d2, AdEx vm.
+Writes sim/results/top/kick_<corner>_<T>.txt.   `--list`: print the victims and probe targets only (no PEX).
 """
 import sys
+from pathlib import Path
 
-import numpy as np
-
-sys.path.insert(0, "/work/sim/tb/top")
-import topbench as B          # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import topnet as T            # noqa: E402
 
-CORNER = sys.argv[1] if len(sys.argv) > 1 else "typical"
-TEMP = int(sys.argv[2]) if len(sys.argv) > 2 else 27
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+CORNER = ARGS[0] if len(ARGS) > 0 else "typical"
+TEMP = int(ARGS[1]) if len(ARGS) > 1 else 27
+FAR = (3, 0)                                          # top row, column 0: longest abus / column-line path
+FAR_N = T.fp.slot_map()[FAR]
+H1 = T.slot_pos("H1")                                 # trim nibble 0 (TRIM_NIBBLES["H1.VTH"])
+assert T.fp.TRIM_NIBBLES["H1.VTH"] == 0
+VICT = {f"{n} {i}": f"{i}.vm" for n, i, c in T.neurons()}
+VICT.update({"D1 vs": "d1.vs", "D1 d1": "d1.d1", "D1 d2": "d1.d2", "AdEx vm": "ax.vm"})
+if "--list" in sys.argv:
+    print(f"probe: far {FAR_N} {FAR}, then SEL -> H1 {H1}")
+    for k, n in VICT.items():
+        print(f"  {k:12s} {n}")
+    sys.exit(0)
+
+import numpy as np            # noqa: E402
+import topbench as B          # noqa: E402
+
 S = 100.0
 codes = B.op_point(S)
 EL = 1.30
@@ -39,23 +55,24 @@ def at(t, **kw):
 
 cw = dict(codes)
 EVENTS = [("HOLD on", 60e-6), ("HOLD off", 80e-6), ("MRESET on", 100e-6), ("MRESET off", 101e-6),
-          ("PROBE_EN on (S3)", 120e-6), ("PROBE_EN off", 130e-6), ("SEL row 3->0", 135e-6), ("SUB 0->1", 140e-6),
+          (f"PROBE_EN on ({FAR_N})", 120e-6), ("PROBE_EN off", 130e-6), (f"SEL row {FAR[0]}->{H1[0]}", 135e-6),
+          ("SUB 0->1", 140e-6),
           ("LOAD: H1 trim 8->7", 150e-6), ("LOAD: IDAC byte 2", 170e-6), ("stim A on", 190e-6),
           ("stim A off", 192e-6)]
 at(60e-6, rt=(0, 0, 1, 0))
 at(80e-6)
 at(100e-6, rt=(0, 0, 0, 1))
 at(101e-6)
-at(120e-6, probe=dict(row=3, col=0, sub=0))
-at(130e-6, probe=dict(row=3, col=0, sub=0, en=0))
-at(135e-6, probe=dict(row=0, col=2, sub=0, en=0))
-at(140e-6, probe=dict(row=0, col=2, sub=1, en=0))
-st = T.config(codes=codes, probe=dict(row=0, col=2, sub=1, en=0))
+at(120e-6, probe=dict(row=FAR[0], col=FAR[1], sub=0))
+at(130e-6, probe=dict(row=FAR[0], col=FAR[1], sub=0, en=0))
+at(135e-6, probe=dict(row=H1[0], col=H1[1], sub=0, en=0))
+at(140e-6, probe=dict(row=H1[0], col=H1[1], sub=1, en=0))
+st = T.config(codes=codes, probe=dict(row=H1[0], col=H1[1], sub=1, en=0))
 for j in range(4):                                    # nibble 0 (H1) = cfg_out[7..10]: 8 -> 7
     st[f"cfg_out[{7 + j}]"] = 3.3 * ((7 >> j) & 1)
 evs.append((150e-6, dict(st)))
 cw = dict(codes, i3=codes["i3"] ^ 0b10101, i4=codes["i4"] ^ 0b01010)   # byte 2 holds i3[4:1], i4[3:0]
-st2 = T.config(codes=cw, probe=dict(row=0, col=2, sub=1, en=0))
+st2 = T.config(codes=cw, probe=dict(row=H1[0], col=H1[1], sub=1, en=0))
 for j in range(4):
     st2[f"cfg_out[{7 + j}]"] = 3.3 * ((7 >> j) & 1)
 evs.append((170e-6, dict(st2)))
@@ -64,9 +81,6 @@ st3["rt_out[0]"] = 3.3
 evs.append((190e-6, st3))
 evs.append((192e-6, dict(st2)))
 TEND = 210e-6
-VICT = {"S1 s01": "s01.vm", "H1 s02": "s02.vm", "H2 s10": "s10.vm", "P2 s20": "s20.vm", "AH50 s22": "s22.vm",
-        "S3 s30": "s30.vm", "CMP s13": "s13.vm", "AH800 s33": "s33.vm", "F3 s31": "s31.vm",
-        "D1 vs": "d1.vs", "D1 d1": "d1.d1", "D1 d2": "d1.d2", "AdEx vm": "ax.vm"}
 LINES = ["vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vreset", "vsrc", "vth_ref", "aux3",
          "vbn_ax", "vbp_w"]
 body = B.chip(S, state_over=B.timeline(evs))

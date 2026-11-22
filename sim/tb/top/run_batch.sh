@@ -4,6 +4,8 @@
 #   bash sim/tb/top/run_batch.sh smoke    # fast environment check: static coupling + bias DC op (~15 min)
 #   bash sim/tb/top/run_batch.sh full     # every remaining check, at most $JOBS at once
 #   bash sim/tb/top/run_batch.sh ramp     # probe DC transfer as ramps (replaces the full-chip DC sweeps)
+#   bash sim/tb/top/run_batch.sh pex      # M2 VM set (sim/tb/top/vm_pex.sh): static coupling + kick transient for
+#                                         # every neuron, probe step, bias DC / spiking neighbours; no DC sweeps
 #
 # Env: JOBS (default 5)  STOP_SELF=1 to stop this Boat VM when the batch ends (any outcome)
 #      WAIT_PATTERN=<pgrep -f pattern> to wait for other jobs on the VM before stopping.
@@ -19,7 +21,7 @@ SUMMARY="$OUT/summary_${MODE}.txt"
 run() {  # name, command (run inside the container from /work)
   local name="$1"; shift
   local t0=$(date +%s)
-  scripts/eda.sh "nice -n 15 $*" > "$OUT/$name.log" 2>&1
+  bash scripts/eda.sh "nice -n 15 $*" > "$OUT/$name.log" 2>&1
   local rc=$?
   printf '%-28s rc=%-3s %5d min   %s\n' "$name" "$rc" $(( ($(date +%s) - t0) / 60 )) "$*" >> "$SUMMARY"
   return $rc
@@ -32,6 +34,15 @@ if [ "$MODE" = ramp ]; then      # probe-chain DC transfer as up/down ramps, one
   for c in "typical 27" "ss 0"; do for k in 0 1 2 3; do
     JOBLIST+=("probe_ramp_${c// /}_tap$k|python3 sim/tb/top/tb_top_probe.py ramp $c $k")
   done; done
+elif [ "$MODE" = pex ]; then      # longest first (kick: 210 us transient); no full-chip DC sweeps (M1: OOM)
+  JOBLIST=(
+    "kick_typ27|python3 sim/tb/top/tb_top_kick.py typical 27"
+    "probe_step_typ27|python3 sim/tb/top/tb_top_probe.py step typical 27"
+    "coupling|python3 sim/tb/top/tb_top_coupling.py"
+    "bias_dc_S100|python3 sim/tb/top/tb_top_bias.py dc 100"
+    "bias_spk_on|python3 sim/tb/top/tb_top_bias.py spk on"
+    "bias_spk_off|python3 sim/tb/top/tb_top_bias.py spk off"
+  )
 elif [ "$MODE" = smoke ]; then
   JOBLIST=(
     "smoke_coupling|python3 sim/tb/top/tb_top_coupling.py"
