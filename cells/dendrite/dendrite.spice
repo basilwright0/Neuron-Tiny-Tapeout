@@ -81,7 +81,7 @@ XQ  pb  p   vdd vdd pfet_03v3 W=0.22u L=4u
 XON xb  pb  vss vss nfet_03v3 W=0.5u L=0.28u
 XOP xb  pb  vdd vdd pfet_03v3 W=1u L=0.28u
 * hysteresis: while xb is high a second input nfet helps pull n1 down, so the detector releases
-* below its trip point (no re-trigger as the subunit decays through threshold); XNH = XNI (1/0.5) keeps the x2 ratio
+* below its trip point (no re-trigger as the subunit decays through threshold); XNH kept 1/1 while XNI is 1/0.5 (level 3; hysteresis 16/23/42 mV at S=100/1000/10000)
 XNH n1  vd  h   vss nfet_03v3 W=1u L=1u
 XNE h   xb  vsrc vss nfet_03v3 W=1u L=0.28u
 .ends pdet

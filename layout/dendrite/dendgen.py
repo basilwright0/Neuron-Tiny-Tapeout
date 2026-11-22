@@ -213,8 +213,16 @@ def split_wide(devs):
     return out
 
 
+# Fixed-slot devices: name -> gate length of the slot they keep. A shorter device is right-aligned in that slot (pad
+# on its left), so its drain stripe and every later device in the row stay where they were. Level 3 (schematic
+# 387f708): the plateau detector input XNI went 1/1 -> 1/0.5; packing it tight shifted XN2..XNE 0.5 um west, and the
+# region-1 trial route then stalled on a d1/vdd conflict (route_try.py 1), which the kept slot avoids.
+SLOT_L = {f"{p}.XDT.XNI": 1.0 for p in ("XP1", "XP2")}
+
+
 def placement(lib, devs):
     by = {d["name"]: lib[devcell(d)] for d in devs}
+    dl_by = {d["name"]: d["L"] for d in devs}
     place = {}
     for row in ROWS:
         yb, x0, names = row[0], row[1], row[-1]
@@ -223,6 +231,7 @@ def placement(lib, devs):
         for n in names:
             lc = by[n]
             dl, db, dr, dt = lc["diff"]
+            x += max(0.0, SLOT_L.get(n, 0.0) - dl_by[n])     # diffusion length grows 1:1 with L
             cx = snap(x - dl)
             cy = snap(yb - db)
             place[n] = (cx, cy)
