@@ -147,3 +147,50 @@ channel reserved for the analog column lines, trim tracks broken by a Metal4 jum
 > Benches: `sim/tb/top/` (topnet, topbench, ext_c.tcl, ext_rc.tcl, pgrid, tb_top_icur, tb_top_coupling,
 > tb_top_bias, tb_top_kick, tb_top_probe, tb_top_gndchk). Outputs: `sim/results/top/` (git-ignored) and
 > `layout/top/work/pex*/` (git-ignored).
+
+## M2 full-chip PEX (layout B, 2026-11-22)
+
+Typical 27 °C, S = 100, branch `m2-compact` @ 38d6092; M1 = post-stim-A-fix run (`sim/results/top/batch_fix`,
+bias DC / probe from `vm_2026-11-20`). Compared by neuron name (M1 used another slot map); M1 AH800 -> M2 AH400.
+**Pending:** `tb_top_bias.py spk on|off` (still running, not included). Edge kicks in mV (20-60 ns after the edge).
+
+| Event | Tall cells H/P/CMP: M1 -> M2 | Compact cells S/F: M1 (tall) -> M2 | AH50 | AH800 -> AH400 | D1 vs / d2 | AdEx vm |
+|---|---|---|---|---|---|---|
+| HOLD on / off | +8.9..+10.3 / -10.2..-14.6 -> +7.5..+8.7 / -7.7..-12.4 | +3.8..+4.1 / -4.8..-5.5 -> +4.7..+8.6 / -5.3..-10.8 | +9.4/-12.1 -> **+14.4/-24.1** | +1.7/-2.2 -> +1.8/-2.3 | -43.0/-13.6 -> -26.0/**-19.1** | -4.1 -> -4.1 |
+| PROBE_EN on, unselected same column | -2.5 -> **-5.9 (P2)** | -> **-5.7 (S1)** | +0.7 -> +0.8 | | | |
+| SEL / SUB | H1 SEL +3.8 -> +2.1; SUB <= +2.0 | <= 1.5 | <= 0.9 | | 0 | SUB -7.3 -> -7.0 |
+| LOAD (H1 trim / IDAC) | H1 +19.2 -> +19.2 (own trim); others <= 1.6 | 0 | 0 | 0 | 0 | 0 |
+| stim A on / off | H1 +3.6/-7.7 -> +3.2/-6.5; H2 +6.9/-10.2 -> +4.1/-6.7; P2 +6.9/-10.2 -> +7.0/-9.6; CMP +7.2/-8.3 -> +4.7/-7.3 | S1 +3.2/-6.5 -> **+6.4/-9.3**; S3 +4.9/-8.3 -> +5.9/-8.8; F3 +2.9/-6.3 -> **+5.1/-9.2**; F1/F2 +7.0..7.3/-9.7..-10.6 | +10.5/-16.2 -> **+17.5/-19.7** | +0.6/-2.0 -> +2.3/-4.3 | vs +1.2/-1.2 -> **+3.6/-3.5** | +10.8/-14.9 -> +12.7/-17.1 |
+
+**Stimulus-A decomposition** (M2; ramp = intended synapse charge, from step - edge of the off event; asym = on + off
+edge = non-cancelling in-slot charge injection; net = vm change left by one 2 us pulse; checked against the M1 waveform).
+
+| Neuron | on edge | top-level rt_out[0] (coupling.txt) | in-slot rest | ramp (syn charge) | asym | net per pulse |
+|---|---|---|---|---|---|---|
+| H1 / P3 / H2 / H3 | +3.2..+4.1 | 1.4 / 1.4 / <= 1.6 / <= 1.6 | 1.8..2.6 | 5.5..5.7 (~1.2 fC) | -2.6..-3.3 | +2.4..+2.9 |
+| P2 | +7.0 | **3.7** (249 aF) | 3.3 | 5.4 | -2.6 | +2.8 |
+| CMP | +4.7 | <= 2.5 | >= 2.2 | 5.7 | -2.6 | +3.1 |
+| S1..S3, F1..F3 | +5.1..+7.3 | <= 1.0 | 4.4..6.9 | 5.8..6.3 | -2.6..-4.0 | +2.1..+3.7 |
+| AH50 (50 fF + 9.9 fF) | +17.5 | 1.0 (19 aF) | 16.5 | 14.8 (~0.9 fC) | -2.2 | +12.6 |
+| AH400 (471 fF) | +2.3 | 0.3 | 2.0 | 2.9 | -2.0 | +0.9 |
+| D1 vs | +3.6 | **4.1** (284 aF, new) | ~0 | (stim A -> d1) | 0 | 0 |
+
+- The kick bench's "stim A off" *step* (-12..-17 mV, AH50 -34.5) is mostly an artefact: its drift correction extends the
+  synaptic ramp (~2.9 mV/us) past the off edge. The real state after a pulse is **+2..+4 mV** (AH50 +12.6): ramp minus
+  ~3 mV of in-slot injection, i.e. ~50 % of the ramp at 2 us pulses.
+- Shared lines: vbp_syn sits +13 mV during the pulse (M1 +15.6) -> I_w ~30 % low (nominal ~2 fC -> ~1.3 fC seen);
+  el / vreset / vbn_ref +7..+9 mV recover in 2 us (< 0.2 mV on vm). They set the charge, not the edge.
+- Verdict: the edge is **in-slot** (block level) except P2 (53 % top-level) and D1 vs (all top-level); H1/P3/H2/H3
+  ~40 % top-level. A top-level-only fix can remove ~3 mV on P2 and D1 vs and ~1.4 mV on H/P; compact cells and AH50
+  need a cell change. Compact cells kick ~2x the tall cells (stim A and HOLD) although their pin-pair `blk` Cc is only
+  58-69 aF: likely sta/hold coupling into internal nodes (da, vl) - confirm with a block-level kick sim of `cslot_ah`.
+- AH50 -16.2 -> -19.7 (off): node C 68.9 -> 59.9 fF (vm wiring 18.9 -> 9.9 fF in the compact cell) = +15 %, effective
+  Cc 338 -> 358 aF = +6 %. On edge +66 % (220 -> 317 aF effective); HOLD off -12.1 -> -24.1 (253 -> 437 aF); top-level adds
+  only 46 aF over all lines.
+
+**Other changes.** Static top-added coupling, all lines together: array 8-35 mV -> 2.0-12.2 mV (AH50 34.6 -> 2.6), CMP
+16.9 -> 15.6, D1 d1 32.2 -> 34.3. Worst single line CMP vm <- probe_sub_b 3.8 -> 5.4 mV (existed in M1); sub / sub_b
+switch in antiphase (net 145 aF), measured SUB kick on CMP +0.9 -> +1.4 mV. Hold-window drift: H/P -36..-44 -> -66..-68
+mV/ms, F3 -5.7 -> -10.9, AH50 -35 -> -46, CMP -115 -> -63. vbp_st at HOLD +-10 -> +-24 mV (back in 2.3 us); vbp_syn at
+HOLD on +154 -> +178 mV. Bias DC unchanged (el +0.161, vreset <= +0.004, vsrc -0.039..-0.048 mV). Probe step worst
+1969 ns (M1 1965) -> PASS, 31 ns margin.
