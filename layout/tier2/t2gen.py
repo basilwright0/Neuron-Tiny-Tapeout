@@ -24,14 +24,21 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import flatten                      # noqa: E402
 from router import Router           # noqa: E402
+sys.path.append(str(HERE.parent / "slot"))
+import keptdev                      # noqa: E402  (layout/slot/keptdev.py)
 
 U = 200
 RING = 0.60
 PITCH = 0.70
 NTAP = 0.60
 GAP = 0.90
-ITERS = 40
-SCHEDULES = [(1.3, 0.5), (1.6, 0.3), (1.2, 0.7)]
+ITERS = int(os.environ.get("T2ITERS", 40))
+SCHEDULES = [(1.3, 0.5), (1.6, 0.3), (1.2, 0.7), (1.4, 0.4), (1.8, 0.6), (1.1, 0.3)]
+# Route variants (run in parallel, each with its own T2TAG cache): T2SCHED = schedule indices to try ("3,1"),
+# T2FIRST = nets routed right after ROUTE_FIRST ("XA.s,vbn_leak"), T2GRID = base grid pitch (0.70).
+if os.environ.get("T2SCHED"):
+    SCHEDULES = [SCHEDULES[int(k)] for k in os.environ["T2SCHED"].split(",")]
+GRID_BASE = float(os.environ.get("T2GRID", 0.70))
 ROUTE_LAST = ["vdd", "vss"]
 
 # ============================================================================ per-cell configuration
@@ -64,6 +71,10 @@ CFG["adex_a1"] = dict(
     KEEPOUT={},
     PINS={},
     MOMS=[dict(a="spk", b="vm", x=24.4, y=1.6, nf=12, lf=3.6)],
+    # Level 3 (cells b283ae9): XPA 0.5/1 -> 0.5/2, XPB 4/0.5 -> 32/0.5 (4 fingers 8/0.5, top band right of Cw),
+    # decay stack 3 x 0.22/15 -> 5 x 0.5/10 (4 rows at a 2.6 um pitch, XT3 + XT2 share one; XR1/XR2 next to XT1),
+    # XW 0.22/8 -> 4/1 (2 fingers 2/1 in the y 39.4 row: a W 4 nfet there would reach the n-well).
+    # Level 4 (cells aabada4): leak OTA XM1/XM2/XD1/XD2 L 1 -> 0.5 um, drawn in their L = 1 footprints (KEPT_L).
     # XD.XK = det_ah reset-state keeper (2026-11-19 fix, pfet 0.22/1 on pb gated by spk), at the end of the
     # y 59.0 pfet row next to the other detector devices. Detector and refractory-inverter nfets sit in the
     # row just below the n-well, under their pfets; the probe-mux nfets are grouped in the y 35.4 row.
@@ -73,26 +84,36 @@ CFG["adex_a1"] = dict(
         (11.6, 9.6, 1.2, ["XS.XNA", "XS.XNB", "XS.XMR", "XR.XSW"]),
         (15.8, 9.6, ["XP.XT0.XMB", "XR.XNR", "XL.XMT", "XL.XM1", "XL.XD1", "XL.XD2", "XL.XM2"]),
         # the decay stack fills the space left of the tall leak diodes; y 33-39 stays free as a routing channel
-        (21.2, 9.6, ["XA.XT1"]),
-        (24.2, 9.6, ["XA.XT2"]),
-        (27.4, 9.6, ["XA.XT3", "XA.XR1", "XA.XR2"]),
+        # stack chain vss-XT5-m4-XT4-m3-XT3-m2-XT2-m1-XT1-vw snakes up with the shared nodes at adjacent ends;
+        # vw (XT1, XR1) ends at the top row next to the mreset pair
+        (21.0, 9.6, ["XA.XT5"]),
+        (23.6, 9.6, ["XA.XT4"]),
+        (26.2, 9.6, ["XA.XT3", "XA.XT2"]),
+        (28.8, 9.6, ["XA.XR2", "XA.XR1", "XA.XT1"]),
         # XA.Xi.XN (output vrb) stays away from the detector devices: vrb next to n1/p/pb made a runt on spk
         (31.4, 9.6, ["XA.Xi.XN", "XP.Xi0.XN", "XP.Xi1.XN", "XP.XSA", "XP.XSC", "XP.XS1", "XP.XT0.XME", "XP.XT0.XSW",
                      "XD.XN2"]),
-        (39.4, 9.6, ["XE.XE1", "XA.XW", "XD.XNI", "XD.XN3", "XD.Xi4.XN", "XR.Xi.XN"]),
-        (44.6, 9.9, ["XL.XP1", "XL.XP2", "XS.XWA", "XS.XWB", "XA.XPB"]),
+        (39.4, 9.6, ["XE.XE1", "XA.XW_a", "XA.XW_b", "XD.XNI", "XD.XN3", "XD.Xi4.XN", "XR.Xi.XN"]),
+        (44.6, 9.9, ["XL.XP1", "XL.XP2", "XS.XWA", "XS.XWB"]),
         (51.0, 9.9, ["XA.Xi.XS", "XA.XPW", "XS.XPH", "XP.XPB", "XD.XPS", "XD.XS2", "XD.XS3"]),
         (54.6, 9.9, ["XA.Xi.XP", "XA.XPS", "XP.XPE", "XP.XPF", "XE.XE3", "XE.XE2", "XA.XPA"]),
         (59.0, 9.9, 1.0, ["XS.XQA", "XS.XQB", "XS.XHL", "XP.Xi0.XP", "XP.Xi1.XP", "XR.Xi.XP", "XR.XPC", "XD.XPI",
                           "XD.XP2", "XD.XP3", "XD.Xi4.XP", "XD.XK"]),
         (62.8, 10.4, ["XA.XCW"]),
+        (62.0, 23.0, ["XA.XPB_a", "XA.XPB_b", "XA.XPB_c", "XA.XPB_d"]),
     ],
-    FLIP={f"XL.{d}" for d in ("XM1", "XD1")},
+    SPLIT={"XA.XPB": 4, "XA.XW": 2},
+    KEPT_L={f"XL.{m}": 1.0 for m in ("XM1", "XM2", "XD1", "XD2")},
+    FLIP={f"XL.{d}" for d in ("XM1", "XD1")} | {"XA.XT4", "XA.XT2", "XA.XT1"},
     BIGCAPS={"XC.XC": "vm", "XA.XCW": "vw"},
     BIGCAP_ALLOW={"XC.XC": {"vm", "vss"}, "XA.XCW": {"vw", "vdd"}},
-    ROUTE_FIRST=["vm", "vw", "spk"],
+    # level 3: XA.s (now 4 XPB fingers at the top + XPW + XPA) and vbn_leak (5 stack gates, 4 XPB fingers) right after
+    # the critical nodes; route variant v5 of 6 (the default order stalled at 2-13 conflicts), work/adex_l3/route_v5.log
+    ROUTE_FIRST=["vm", "vw", "spk", "XA.s", "vbn_leak"],
     LABEL_NETS=["vm", "vw"],
 )
+if os.environ.get("T2FIRST"):
+    CFG["adex_a1"]["ROUTE_FIRST"] = CFG["adex_a1"]["ROUTE_FIRST"] + os.environ["T2FIRST"].split(",")
 
 # ---------------------------------------------------------------------------- S1
 _NOV_N = [f"XN.{d}" for d in ("Xi0.XN", "XO1.XN1", "XO1.XN2", "Xd1.XN", "Xd2.XN", "XO2.XN1", "XO2.XN2", "Xd3.XN",
@@ -129,6 +150,7 @@ CFG["scdend_s1"] = dict(
     ],
     FLIP={f"XS.XL.{d}" for d in ("XM1", "XD1")},
     BIGCAPS={"XS.XC.XC": "vs", "XCD.XC": "d"},
+    KEPT_L={f"XS.XL.{m}": 1.0 for m in ("XM1", "XM2", "XD1", "XD2")},   # devlist only (S1 not rebuilt at level 4)
     BIGCAP_ALLOW={"XS.XC.XC": {"vs", "vss"}, "XCD.XC": {"d", "vss"}},
     ROUTE_FIRST=["vs", "d", "ca", "cl", "spk"],
     LABEL_NETS=["vs", "d"],
@@ -154,6 +176,8 @@ def select(cell):
     for k, v in c.items():
         g[k] = v
     g["HM3"] = c.get("HM3", [])
+    g["SPLIT"] = c.get("SPLIT", {})
+    g["KEPT_L"] = c.get("KEPT_L", {})
     g["SPINE_SIDE"] = c.get("SPINE_SIDE", "right")
     g["PIN_EDGE"] = c.get("PIN_EDGE", "top")
     n = len(SPINE)
@@ -169,8 +193,27 @@ def select(cell):
 
 # ============================================================================ device library
 def devcell(d):
+    if d.get("slot"):
+        return keptdev.kept_name(d["model"], d["W"], d["L"], d["slot"])
     f = lambda v: ("%g" % v).replace(".", "p")
     return f"{d['model'][0]}_w{f(d['W'])}_l{f(d['L'])}"
+
+
+def prep_devs(devs, split, kept):
+    """Layout-only device list: SPLIT devices as k parallel fingers <name>_a.. of W/k (the LVS reference keeps the
+    single device; netgen adds parallel widths); KEPT_L devices shorter than their footprint get d['slot'] (keptdev)."""
+    out = []
+    for d in devs:
+        if kept.get(d["name"], 0) > d["L"] + 1e-9:
+            d = dict(d, slot=kept[d["name"]])
+        k = split.get(d["name"], 1)
+        out += [dict(d, name=f"{d['name']}_{'abcdefgh'[j]}", W=round(d["W"] / k, 4)) for j in range(k)] if k > 1 else [d]
+    return out
+
+
+def footprint(d):
+    """The device cell as generated by gen_devices.tcl (kept-footprint devices: their footprint L)."""
+    return dict(d, L=d["slot"], slot=0) if d.get("slot") else d
 
 
 def load_dev(name):
@@ -246,10 +289,13 @@ def build():
     if SUBCKT != CELL:           # layout variant of the same netlist: reference subckt named after the layout cell
         f = HERE / f"{CELL}_lvs.spice"
         f.write_text(f.read_text().replace(f".subckt {SUBCKT} ", f".subckt {CELL} ").replace(f".ends {SUBCKT}", f".ends {CELL}"))
+    devs = prep_devs(devs, SPLIT, KEPT_L)
     lib = {}
     for d in devs:
         c = devcell(d)
         if c not in lib:
+            if d.get("slot"):
+                keptdev.make(HERE / "devices", d["model"], d["W"], d["L"], d["slot"])
             lib[c] = load_dev(c)
     PLACE.clear()
     PLACE.update(placement(lib, devs))
@@ -475,7 +521,8 @@ def mom_cap(L, obst, m):
 
 
 # ============================================================================ routing
-def make_grid(L, base=0.70):
+def make_grid(L, base=None):
+    base = base or GRID_BASE
     req_x, req_y = set(), set()
     for net, terms in L.nets.items():
         for t in terms:
@@ -731,9 +778,9 @@ def check_overlaps(insts):
 
 def write_devlist():
     cells = {}
-    for top in {c.get("cell", k) for k, c in CFG.items()}:
-        ports, devs, caps = flatten.flatten(top)
-        for d in devs:
+    for k, cfg in CFG.items():
+        ports, devs, caps = flatten.flatten(cfg.get("cell", k))
+        for d in map(footprint, prep_devs(devs, cfg.get("SPLIT", {}), cfg.get("KEPT_L", {}))):
             cells[devcell(d)] = d
     (HERE / "devices").mkdir(exist_ok=True)
     (HERE / "devices" / "devlist.tcl").write_text("".join(

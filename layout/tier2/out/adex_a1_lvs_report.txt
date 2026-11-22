@@ -31,35 +31,37 @@ Device classes nfet_03v3 and nfet_03v3 are equivalent.
 Flattening unmatched subcell p_w0p22_l1 in circuit adex_a1 (0)(1 instance)
 Flattening unmatched subcell p_w2_l4 in circuit adex_a1 (0)(4 instances)
 Flattening unmatched subcell n_w2_l4 in circuit adex_a1 (0)(2 instances)
-Flattening unmatched subcell n_w4_l1 in circuit adex_a1 (0)(2 instances)
+Flattening unmatched subcell n_w4_l0p5_k1 in circuit adex_a1 (0)(2 instances)
 Flattening unmatched subcell n_w0p5_l0p28 in circuit adex_a1 (0)(9 instances)
 Flattening unmatched subcell p_w1_l0p5 in circuit adex_a1 (0)(1 instance)
 Flattening unmatched subcell n_w1_l0p28 in circuit adex_a1 (0)(5 instances)
 Flattening unmatched subcell n_w0p5_l0p5 in circuit adex_a1 (0)(1 instance)
 Flattening unmatched subcell p_w1_l0p28 in circuit adex_a1 (0)(13 instances)
 Flattening unmatched subcell n_w1_l0p5 in circuit adex_a1 (0)(1 instance)
+Flattening unmatched subcell n_w2_l1 in circuit adex_a1 (0)(2 instances)
 Flattening unmatched subcell p_w1_l2 in circuit adex_a1 (0)(7 instances)
-Flattening unmatched subcell n_w0p22_l15 in circuit adex_a1 (0)(3 instances)
-Flattening unmatched subcell n_w0p22_l8 in circuit adex_a1 (0)(2 instances)
+Flattening unmatched subcell n_w0p5_l10 in circuit adex_a1 (0)(5 instances)
 Flattening unmatched subcell n_w0p22_l2 in circuit adex_a1 (0)(3 instances)
-Flattening unmatched subcell n_w8_l1 in circuit adex_a1 (0)(2 instances)
+Flattening unmatched subcell n_w8_l0p5_k1 in circuit adex_a1 (0)(2 instances)
+Flattening unmatched subcell p_w8_l0p5 in circuit adex_a1 (0)(4 instances)
 Flattening unmatched subcell p_w2_l0p5 in circuit adex_a1 (0)(2 instances)
 Flattening unmatched subcell n_w2_l2 in circuit adex_a1 (0)(1 instance)
+Flattening unmatched subcell n_w0p22_l8 in circuit adex_a1 (0)(1 instance)
 Flattening unmatched subcell n_w7p07_l7p07 in circuit adex_a1 (0)(1 instance)
 Flattening unmatched subcell p_w0p22_l8 in circuit adex_a1 (0)(1 instance)
 Flattening unmatched subcell n_w4_l2 in circuit adex_a1 (0)(1 instance)
 Flattening unmatched subcell n_w3p54_l3p54 in circuit adex_a1 (0)(1 instance)
 Flattening unmatched subcell p_w7p07_l7p07 in circuit adex_a1 (0)(1 instance)
-Flattening unmatched subcell p_w0p5_l1 in circuit adex_a1 (0)(1 instance)
-Flattening unmatched subcell p_w4_l0p5 in circuit adex_a1 (0)(1 instance)
+Flattening unmatched subcell p_w0p5_l2 in circuit adex_a1 (0)(1 instance)
 
+Class adex_a1 (0):  Merged 4 parallel devices.
 Subcircuit summary:
 Circuit 1: adex_a1                         |Circuit 2: adex_a1                         
 -------------------------------------------|-------------------------------------------
-pfet_03v3 (32)                             |pfet_03v3 (32)                             
-nfet_03v3 (34)                             |nfet_03v3 (34)                             
-Number of devices: 66                      |Number of devices: 66                      
-Number of nets: 55                         |Number of nets: 55                         
+pfet_03v3 (35->32)                         |pfet_03v3 (32)                             
+nfet_03v3 (37->36)                         |nfet_03v3 (36)                             
+Number of devices: 68                      |Number of devices: 68                      
+Number of nets: 57                         |Number of nets: 57                         
 ---------------------------------------------------------------------------------------
 Resolving symmetries by property value.
 Resolving symmetries by pin name.
@@ -68,7 +70,6 @@ Netlists match uniquely.
 Subcircuit pins:
 Circuit 1: adex_a1                         |Circuit 2: adex_a1                         
 -------------------------------------------|-------------------------------------------
-vw                                         |vw                                         
 vm                                         |vm                                         
 hold                                       |hold                                       
 vbp_syn                                    |vbp_syn                                    
@@ -83,12 +84,13 @@ vbn_prb                                    |vbn_prb
 en                                         |en                                         
 sel_adex                                   |sel_adex                                   
 abus                                       |abus                                       
+vss                                        |vss                                        
+vbn_leak                                   |vbn_leak                                   
+vw                                         |vw                                         
 mreset                                     |mreset                                     
 sub0                                       |sub0                                       
 vsrc                                       |vsrc                                       
-vss                                        |vss                                        
 vdd                                        |vdd                                        
-vbn_leak                                   |vbn_leak                                   
 vbp_st                                     |vbp_st                                     
 spk                                        |spk                                        
 ---------------------------------------------------------------------------------------
