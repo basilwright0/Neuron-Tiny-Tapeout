@@ -98,7 +98,13 @@ oscilloscope or ADC reads `ua[1]`.
    1. probe REF (PROBE_SUB = 3) to measure EL;
    2. set the threshold code using the REF channel and firing-rate checks;
    3. set EL;
-   4. set the H, P, CMP and D1 trims.
+   4. set the H, P, CMP and D1 trims;
+   5. **leak code at high speed (S ≥ ~1000):** scale the `vbn_leak` code with S, then correct it so that the
+      large-signal behaviour scales, not the small-signal one. Measure the rheobase of an S neuron (the smallest
+      stimulus that makes it fire) at S = 100, then at the target S, and adjust the leak code until
+      rheo(S) / ((S / 100) · rheo(100)) ≈ 1. Post-layout simulation gives the nominal code × 13/12 at tt, ss and ff
+      (ratio 1.03 / 0.98 / 1.03). Do **not** match the leak conductance at rest (the small-signal τ at EL): at ss / 0 °C
+      that over-corrects (code 21: no firing at 1.1 × rheobase). Repeat after a large temperature change.
 6. **Run the analog neurons:** set RT_EN, drive stimulus A/B on `ui[3]`/`ui[4]` and count spikes on `uo`/`uio`. Move the
    probe to observe membranes on `ua[1]`.
 7. **Run the digital LIF:** write the LIF parameters with LIF_EN = 0, then set LIF_EN = 1. Drive `clk` and tick `ui[7]`,
@@ -116,10 +122,14 @@ oscilloscope or ADC reads `ua[1]`.
   without it.
 - **Pulse MRESET after setting BIAS_EN** to clear the AdEx adaptation node, which powers up near VDD.
 - **Wait for the leak line to settle** after a leak-code change: up to about 10 ms at S = 10.
-- **Speed range:** S = 10–1000 is supported.
+- **Speed range:** S = 10–1000 is fully supported; S = 10000 with the limits below.
   - At S ≥ ~300, use EL / Vth / Vreset ≈ 1.50 / 1.58 / 1.50 V so the leak OTA has enough headroom at every corner.
   - From S = 1000 up to about 2000: stimulate at most ~4 array neurons at once, set IB_X2 and use the ÷1 `ua[0]` mode.
-  - S = 10000 is not supported.
+  - S = 10000 (M2 cells, level 3 + 4): use EL / Vreset 1.50 V and the high-speed leak-code rule (step 5.5). Every slot
+    type passes the post-layout f–I gate (0.7–1.4 × ideal scaling) at tt / ss / ff, including ss / 0 °C. Limits: the
+    CMP slot needs Vth ≈ 1.58 V but the VDAC tops out at 1.511 V, so CMP stays tripped at EL 1.5 on this revision
+    (a B1 DAC shift is planned); AH50 is marginal at ss / 0 °C (1.38 of 1.4). The full chip has not been simulated
+    at S = 10000.
 
 ## External hardware
 
