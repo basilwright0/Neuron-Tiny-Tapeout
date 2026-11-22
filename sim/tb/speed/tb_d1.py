@@ -8,15 +8,39 @@ S-scaled I_st) and the tb_plateau.py 'ramp' and 'pulse' stimuli time-scaled by 1
          soma spikes / burst rate; durations reported in S = 100 units (x S/100)
   atten  d1: 300 pA * S/100 step for 6 tau, plateau off, soma passive (vsrc 1.4 V): soma/d1 at the end
 -> sim/results/speed/d1_S<S>.json
+Env overrides (defaults = the behaviour above): D1_OUT=<dir under /work> (results dir), D1_SPICE=<path> (dendrite
+netlist instead of cells/dendrite/dendrite.spice), D1_TAG=<str> (file/json suffix), D1_TRIM=<0..15> (TRIM nibbles
+7/8 code on both subunits; default 8), D1_TESTS=ramp,pulse,atten (subset).
 """
 import json
+import os
 import sys
+from pathlib import Path
 from multiprocessing import Pool
 
 sys.path.insert(0, "/work/sim/tb/speed")
 from common import RESULTS  # noqa: E402
+import ngs  # noqa: E402
+if os.environ.get("D1_OUT"):
+    RESULTS = ngs.RESULTS = Path(os.environ["D1_OUT"])
+    (RESULTS / "dendrite").mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, "/work/sim/tb/dendrite")
 from dcommon import *  # noqa: E402,F403
+import dcommon  # noqa: E402
+
+TAG = os.environ.get("D1_TAG", "")
+TRIM = int(os.environ.get("D1_TRIM", "8"))
+TESTS = os.environ.get("D1_TESTS", "ramp,pulse,atten").split(",")
+_cells = cells
+if os.environ.get("D1_SPICE"):
+    def cells():  # noqa: F811
+        return _cells().replace(str(ngs.CELLS / "dendrite/dendrite.spice"), os.environ["D1_SPICE"])
+if TRIM != 8:   # per-bit trim lines (dcommon's DUT ties ta3/tb3 to one 'ta' source = code 8)
+    DUT = DUT.replace("vsyn 0 0 0 ta 0 0 0 ta", "vsyn tq0 tq1 tq2 tq3 tq0 tq1 tq2 tq3")
+    _bias = bias
+
+    def bias(**kw):  # noqa: F811
+        return _bias(**kw) + "".join(f"Vtq{b} tq{b} 0 {3.3 if TRIM >> b & 1 else 0}\n" for b in range(4))
 
 S = float(sys.argv[1])
 CASES = [(c.split(":")[0], int(c.split(":")[1])) for c in
@@ -36,14 +60,23 @@ def tran(corner, temp, src, tstop, name, vsrc, vsrc_cal, pl_en=1):
 {src}
 {DUT}
 """
-    return run(deck(body, f"tran {1e-6 * k} {tstop}", SV, corner=corner, temp=temp), f"d1_{name}_{corner}_{temp}_S{S:g}")
+    return run(deck(body, f"tran {1e-6 * k} {tstop}", SV, corner=corner, temp=temp), f"d1_{name}_{corner}_{temp}_S{S:g}{TAG}{'' if TRIM == 8 else f'_t{TRIM}'}")
 
 
 def case(arg):
     corner, temp = arg
     vc = cal_vsrc(corner, temp, S)
-    res = dict(corner=corner, temp=temp, S=S, vsrc=vc)
-    # ramp
+    res = dict(corner=corner, temp=temp, S=S, vsrc=vc, trim=TRIM, tag=TAG)
+    if "ramp" in TESTS:
+        ramp(res, corner, temp, vc)
+    if "pulse" in TESTS:
+        pulse(res, corner, temp, vc)
+    if "atten" in TESTS:
+        atten(res, corner, temp, vc)
+    return res
+
+
+def ramp(res, corner, temp, vc):
     T, T0 = 7e-3 * k, 2e-3 * k
     r = tran(corner, temp, pwl("d1", [(0, 0), (T0, 0), (T0 + T, 700e-12 / k), (T0 + T + 1e-6 * k, 0)]),
              T0 + T + 0.5e-3 * k, "ramp", vc, vc)
@@ -55,7 +88,10 @@ def case(arg):
         res["thr_mV_el"] = (float(np.interp(tc[0], t, r["v(d1)"])) - EL) * 1e3
         res["thr_mV_rest"] = (float(np.interp(tc[0], t, r["v(d1)"])) - rest) * 1e3
         res["thr_pA_norm"] = 700 * (tc[0] - T0) / T
-    # pulse
+    res["rest_mV_el"] = (rest - EL) * 1e3
+
+
+def pulse(res, corner, temp, vc):
     t0 = 2e-3 * k
     src = pwl("d1", [(0, 0), (t0, 0), (t0 + 1e-6 * k, 800e-12 / k), (t0 + 100e-6 * k, 800e-12 / k), (t0 + 101e-6 * k, 0)])
     r = tran(corner, temp, src, 6e-3 * k, "pulse", vc, vc)
@@ -71,7 +107,9 @@ def case(arg):
                t_above250_us_norm=float(hi[-1] - hi[0]) / k * 1e6 if len(hi) else 0.0,
                d1_max_mV=float(d1[m0].max() - EL) * 1e3, vs_max_mV=float(r["v(vs)"][m0].max() - EL) * 1e3,
                nspk=int(len(spk)), burst_hz_norm=float(1 / np.mean(np.diff(spk))) * k if len(spk) > 2 else 0.0)
-    # attenuation (plateau off, soma passive)
+
+
+def atten(res, corner, temp, vc):
     tau = C / g_leak(S)
     src = pwl("d1", [(0, 0), (5 * tau, 0), (5 * tau + 1e-9, 300e-12 / k)])
     r = tran(corner, temp, src, 11 * tau, "atten", 1.4, vc, pl_en=0)
@@ -79,15 +117,17 @@ def case(arg):
     b = {n: float(np.interp(4.9 * tau, t, r[f"v({n})"])) for n in ("vs", "d1")}
     e = {n: float(np.interp(11 * tau, t, r[f"v({n})"])) - b[n] for n in ("vs", "d1")}
     res.update(atten=e["vs"] / e["d1"], d1_step_mV=e["d1"] * 1e3)
-    return res
 
 
 if __name__ == "__main__":
     with Pool(NP) as p:
         res = p.map(case, CASES)
+    nan = float("nan")
     for r in res:
-        print(f"D1 S={S:g} {r['corner']:7s} {r['temp']:3d}: thr {r.get('thr_mV_el', float('nan')):.1f} mV>EL "
-              f"({r.get('thr_pA_norm', float('nan')):.0f} pA@S100) plateau {r['t_plat_us_norm']:.0f} us d1>+250mV "
-              f"{r['t_above250_us_norm']:.0f} us d1max +{r['d1_max_mV']:.0f} soma max +{r['vs_max_mV']:.0f} mV spikes {r['nspk']} "
-              f"burst {r['burst_hz_norm']:.0f} Hz | atten soma/d1 {r['atten']:.3f} (d1 +{r['d1_step_mV']:.1f} mV)", flush=True)
-    (RESULTS / f"d1_S{S:g}.json").write_text(json.dumps(res, indent=1))
+        g = r.get
+        print(f"D1{TAG} S={S:g} trim {TRIM} {r['corner']:7s} {r['temp']:3d}: thr {g('thr_mV_el', nan):.1f} mV>EL "
+              f"(rest {g('rest_mV_el', nan):+.1f}, {g('thr_pA_norm', nan):.0f} pA@S100) plateau {g('t_plat_us_norm', nan):.0f} us "
+              f"d1>+250mV {g('t_above250_us_norm', nan):.0f} us d1max +{g('d1_max_mV', nan):.0f} soma max +{g('vs_max_mV', nan):.0f} mV "
+              f"spikes {g('nspk', -1)} burst {g('burst_hz_norm', nan):.0f} Hz | atten soma/d1 {g('atten', nan):.3f} "
+              f"(d1 +{g('d1_step_mV', nan):.1f} mV)", flush=True)
+    (RESULTS / f"d1_S{S:g}{TAG}{'' if TRIM == 8 else f'_t{TRIM}'}.json").write_text(json.dumps(res, indent=1))

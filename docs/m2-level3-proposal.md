@@ -189,3 +189,16 @@ This only works if the phase-2 B1 split and D1/AdEx regeneration land by ~Nov 29
   - At 1.50 V with I_ref recalibrated for t_ref (x0.66 tt, x0.5 ss): tt/27 1.57 mV, ss/0 4.63 mV, ss/85 5.09 mV (0.09 over the 5 mV spec).
 - **vbn_ref code range (tb_bias_top.py):** the receiver swap (rx_n2 -> rx_n1) works (code 31 = 1.99-3.60x target), but it **is probably not needed**. Raising EL to 1.5 V shortens t_ref (0.50-0.66x), which calls for *less* I_ref (about code 12 at ss/0 with no swap), not the 1.5-2x more assumed in §5.1. Baseline at EL 1.3, ss/0: code 23.8 needed, code 31 = 1.00x. **Decision (reversible, taken overnight under Chief's rule):** don't swap. This keeps the full code resolution; revisit only if the post-layout tref check needs more than code 31.
 - Runtime ~4 min in total.
+
+## Step-1 results, schematic (2026-11-22)
+- **CMP (`36be54a`):** det_cmp runs on a fixed ~0.5 µA tail from a local `vbn_prb` mirror (+2 devices, no pin change).
+  - S = 10000 passes at tt/27 and ff/85 (EL 1.3), and at all corners at EL 1.5; ss/0 at EL 1.3 is leak-OTA-limited (see the gate question).
+  - BIAS_EN = 0: the tail is off.
+  - To do: the B1 vth_cmp DAC needs +0.12 V (R_base 53 → 59 sq), plus the slot_cmp_h re-place/route and its LVS netlist.
+  - Open, existing behaviour: CMP spk sits at 3.3 V with bias off.
+- **D1:** the plateau-detector input XNI is now L 1 → 0.5 µm, matched to the soma (results: sim/results/level3_d1/).
+  - The trip shift (pdet − soma) is 0.0–0.1 mV at every S and corner, against +31–110 mV before.
+  - XNH is kept at 1/1. This is the variant with the smaller hysteresis: 16/23/42 mV at S = 100/1000/10000, giving 49 mV of re-arm margin at 10000. It is a reversible choice taken overnight. Shortening XNH too grows the hysteresis to 69 mV and latches the detector at code 8.
+  - **D1 trim code (PLAT1/PLAT2, nibbles 7/8): use code ~3, not 8.** A higher code raises the d1 rest and lowers the threshold. Code 3 restores the ~+25 mV offset and gives a plateau at S = 100/1000/10000 for tt/ss/ff. Code 0 fails ss/0 at 10000.
+  - S = 100 at code 3: threshold 330 vs 350 pA, plateau 1219 vs 1203 µs, burst rate −7 %. No worse than before.
+  - Layout: gate length only, on 2 devices (the 2 XNI). This fits the 70 × 104 footprint; it needs a poly edit and a DRC/LVS rerun.
