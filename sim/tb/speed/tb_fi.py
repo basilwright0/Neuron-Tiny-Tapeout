@@ -19,6 +19,17 @@ import numpy as np
 sys.path.insert(0, "/work/sim/tb/speed")
 from common import RESULTS, sb  # noqa: E402
 from ngs import deck, run, crossings, rate  # noqa: E402
+import ngs  # noqa: E402
+
+# level-3 overrides (defaults = original bench): FI_RESULTS = output dir, FI_SLOTLIB = absolute path of an
+# alternative slot.spice (before/after and sweep copies of slot_cmp_h), FI_TAG = output-name suffix
+import os as _os
+if _os.environ.get("FI_RESULTS"):
+    from pathlib import Path as _P
+    RESULTS = ngs.RESULTS = _P(_os.environ["FI_RESULTS"])
+    RESULTS.mkdir(parents=True, exist_ok=True)
+if _os.environ.get("FI_SLOTLIB"):
+    sb.LIBS = tuple(_os.environ["FI_SLOTLIB"] if x == "neuron/slot.spice" else x for x in sb.LIBS)
 
 CELL, corner, temp, S = sys.argv[1], sys.argv[2], int(sys.argv[3]), float(sys.argv[4])
 NP = int(sys.argv[5]) if len(sys.argv) > 5 else 2
@@ -31,11 +42,15 @@ VTHC = os.environ.get("FI_VTHC")                # CMP only: vth_cmp level (re-ca
 if VTHC:
     _sb_body = sb.slot_body
     sb.slot_body = lambda *a, **kw: _sb_body(*a, **kw).replace(f"Vthc vthc 0 {sb.VTH}", f"Vthc vthc 0 {VTHC}")
+IPRB = os.environ.get("FI_IPRB")                # vbn_prb master current (default 1 uA; level 3: B1 value per corner)
+if IPRB:
+    _sb_body2 = sb.slot_body
+    sb.slot_body = lambda *a, **kw: _sb_body2(*a, **kw).replace("Ibp vdd vbp 1u", f"Ibp vdd vbp {IPRB}")
 GF, CF = sb.GFAC.get(CELL, 1.0), sb.CFAC.get(CELL, 1.0)
 RHEO, TAU = b.rheo * GF, b.tau * CF / GF
 TREF = sb.TREF_BIO / S
 KS = [1.1, 1.5, 2, 3, 5, 8]
-TAG = f"{CELL}_{corner}_{temp}_S{S:g}" + (f"_EL{sb.EL:.2f}" if DEL else "") + (f"_vthc{VTHC}" if VTHC else "")
+TAG = f"{CELL}_{corner}_{temp}_S{S:g}" + (f"_EL{sb.EL:.2f}" if DEL else "") + (f"_vthc{VTHC}" if VTHC else "") + (f"_iprb{IPRB}" if IPRB else "") + os.environ.get("FI_TAG", "")
 HAS_SPK = "spk" in sb.PORTS[CELL]
 
 
