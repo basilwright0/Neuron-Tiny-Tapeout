@@ -212,3 +212,19 @@ lines behind them see the same neighbours as before. `route.py reroute 'rt_out[0
 (`route.KEEP`). Local RC PEX, rt_out[0] top-added: P2 vm 249 -> 96 aF (3.69 -> 1.42 mV, same as the other tall cells),
 D1 vs 284 -> 81 aF (4.11 -> 1.17), D1 d1 143 -> 19, d2 96 -> 4, S1 42 -> 1, F2 67 -> 55. No victim / aggressor pair got
 worse (largest change +0.0 aF). LVS matches.
+
+### Stim-A reroute confirmed in the transient (2026-11-22, `330bf04`, VM PEX rerun 06:39–08:13)
+Full-chip LVS match, Magic DRC 0, KLayout DRC 0, antenna 0, TT precheck passed. All 6 PEX benches rc=0.
+Stim A edge kick (on / off, mV, typical 27 C), before -> after the reroute:
+
+| Neuron | before | after |
+|---|---|---|
+| P2 s10 | +6.99 / -9.62 | +4.02 / -6.62 (now equal to H1/H2/H3/P3) |
+| D1 vs | +3.57 / -3.55 | +1.56 / -1.55 |
+| D1 d1 | +11.92 / -12.61 | +10.81 / -11.45 |
+| S1 s20 | +6.39 / -9.32 | +5.83 / -8.75 |
+| F2 s30 | +7.31 / -10.61 | +5.22 / -9.25 |
+
+Every other neuron and every other event is unchanged within 0.1 mV (HOLD, MRESET, PROBE_EN, SEL, SUB, LOAD).
+The spiking-neighbour shift is unchanged (H2 55.65 kHz with neighbours on vs 50.38 off, ISI jitter 27 ns), so it
+is not stim-A related; still open (suspect shared-line ripple: vreset 97 mV p-p, vbn_ref 28.6 mV p-p).
