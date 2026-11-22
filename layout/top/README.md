@@ -228,3 +228,53 @@ Stim A edge kick (on / off, mV, typical 27 C), before -> after the reroute:
 Every other neuron and every other event is unchanged within 0.1 mV (HOLD, MRESET, PROBE_EN, SEL, SUB, LOAD).
 The spiking-neighbour shift is unchanged (H2 55.65 kHz with neighbours on vs 50.38 off, ISI jitter 27 ns), so it
 is not stim-A related; still open (suspect shared-line ripple: vreset 97 mV p-p, vbn_ref 28.6 mV p-p).
+
+### Level-3 chip PEX (9146017) vs stim-A reroute (330bf04)
+Same benches (`run_batch.sh pex`, typical 27 C, S = 100); A = 330bf04, B = 9146017 (level-3 CMP fixed tail, D1 XNI L 0.5,
+D1 antenna re-route). Top-level `routes.json` is identical in A and B, so only the CMP and D1 cells differ. The A kick table equals
+the 38d6092 run (within 0.02 mV), so the bench is deterministic. Edge (step) kick in mV:
+
+| Event / victim | A 330bf04 | B 9146017 | isolated block PEX, ideal lines (replaying A's line excursions) |
+|---|---|---|---|
+| HOLD on, all array cells | +1.8..+14.4 | same within 0.1 (CMP +7.5 -> +8.7) | S +4.7 (+5.0), H +7.9 (+8.1), AH50 +14.7 (+15.3) |
+| HOLD off H1/P3/P2/H2/H3 | -12.4 (-11.9) | **-16.8 (-13.7)** | slot_ah_h -15.7 (-15.9) |
+| HOLD off S1..S3 | -10.7..-10.8 (-10.0) | **-15.2..-15.3 (-14.4)** | cslot_ah -14.8 (-15.1) |
+| HOLD off F1 / F2, F3 | -5.3 / -9.4 | -7.2 / -11.7 | cslot_ah_f -6.9 (-7.2) / czslot_ah_f -11.4 (-11.7) |
+| HOLD off AH50 / AH400 | -24.1 / -2.3 | **-35.7** / -3.2 | -34.9 (-35.5) / -2.7 (-2.9) |
+| HOLD off CMP | -7.7 | -11.0 | slot_cmp_h (level 3) -9.9 (-10.0) |
+| HOLD off D1 vs / d1 / d2 | -25.9 / -11.5 / -19.0 | -17.8 / -25.3 / -23.4 | - |
+| HOLD off AdEx vm | -4.1 | -8.3 | - |
+| Hold drift H/P, CMP (mV/ms) | -66..-68, -63 | -117..-119, -84 | slot_ah_h -100 (-105), slot_cmp_h -70 (-75) |
+| MRESET on edge H/P, S, AdEx, D1 vs | -7.2, +0.7, **+364**, **+148** | +0.3, +8.6, +2.3, -1.1 | - |
+| vreset line at MRESET on | -37.7 mV | +31.7 mV | - |
+| Shared lines at HOLD off: vbp_st / vbp_syn / vbn_ref / vbn_leak / el | -22.5 / -31.2 / -13.9 / -9.1 / -9.5 | -23.6 / -33.4 / -14.8 / -8.8 / -8.8 | - |
+| PROBE_EN, SEL, SUB, LOAD, stim A (array) | | within 0.5 mV (stim A: D1 d1 +10.8 -> +7.0, AdEx +12.7 -> +12.0) | |
+
+Other files: coupling.txt changed only for CMP (C 12.0 -> 13.8 fF, worst probe_en_c[3] 406 aF = 6.3 mV) and D1 (vs:
+**d1_sel0 392 aF = 5.7 mV**, new; all lines 10.3 -> 17.8 mV); vbp_st C_total 207.3 -> 199.5 fF (-3.8 %). bias_dc: every line
+the same to 0.1 mV except aux0 / aux2 0.331 / 0.335 -> 0.384 / 0.387 V (P-cell leak bias, single nA nodes in the full-chip .op;
+the P-cell kicks follow the H cells exactly, so they are not part of this). bias_spk: victim rate 50.35 / 55.65 kHz (no
+change), vbp_st ripple with neighbours on 19.5 -> 22.1 mV p-p, vreset 97 -> 81, vsrc 87 -> 101. Probe step 1971 ns, PASS.
+
+**Cause.** It is not the `vbp_st` load that CMP no longer has. `vbp_st` keeps its DC (2.4091 V) and loses 3.8 % of its C. Its HOLD
+excursion grows by only 1.1-1.4 mV, and vm-vbp_st is 0.10 fF in cslot_ah. On the isolated cells, replaying A's and B's
+shared-line excursions (vbp_st alone or all lines) gives the same HOLD-off kick to 0.003 mV. Moving vbp_st, vsrc, el or
+vbp_syn by 20 mV DC, or changing the HOLD edge by 10x, changes the kick by < 0.05 mV (`work/l3kick/tb_hold_slot.py`).
+**B is the expected value:** each unchanged cell's B HOLD-off kick and hold drift match its isolated block PEX within
+0.5-1 mV. A (and 38d6092) were 2-12 mV smaller at the off edge only, and their tall-cell drift was too small. The A offset is
+about 0.4-1.0 fC per slot, and an F slot (half leak-OTA tail) has about half of it. That points to the leak-OTA output
+(vl) state when HOLD is released. In the isolated cell, vl is still 17.5 mV above vm 20 us after the +177 mV HOLD-on kick
+on vl. The kick moves 0.06 mV per mV of vl (vbn_leak -30 mV DC -> -13.1 instead of -14.8). So A's slots likely ended HOLD with
+a different leak-OTA state; not proven, because the A waveforms were not saved. The MRESET rows are a bench
+settling artefact. In A, AdEx and D1 vs were not at rest at 100 us (AdEx vm ~0.88 V: the vw start value comes from the
+full-chip op, and nothing preconditions vw; the M1 waveform shows the same 0.88 V and D1 vs drifting 1.28 -> 1.09 V).
+MRESET clamps them onto vreset (-37.7 mV in A, +31.7 mV in B), and that shifts every array row. The low AdEx vm in A also
+explains its smaller HOLD-off kick (XHL Vsg 0.88 V instead of 1.3 V). D1 changed in B, and D1 was not settled in A, so the
+D1 A/B values cannot be compared. Check d1 -25.3 mV and the new d1_sel0 -> vs coupling at block level.
+
+**Fix.** Do not add a vbp_st decap or dummy load: it would recover ~0 mV, because the replay difference is 0.003 mV. Level 3 stays as it is. Bench:
+precondition AdEx vw (and the D1 nodes) or pulse MRESET early, as the firmware does after BIAS_EN. Also save absolute
+vbn_leak and one slot's vl in the kick bench, so a future A/B difference can be traced. The HOLD kick only happens at
+the HOLD release edge (HOLD on is unchanged). It is a one-time negative vm step that decays with tau_m (100 us at S = 100);
+AH50 -35.7 mV is the worst case. A negative step cannot cause a spike; it delays the next spike after a freeze. Size of
+the in-slot HOLD-off kick: XHL channel charge plus vl-vm sharing.
