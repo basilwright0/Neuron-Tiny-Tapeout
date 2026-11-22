@@ -508,11 +508,11 @@ MACRO tt_um_basilwright0_analog_neurons
   END VGND
   OBS
       LAYER Nwell ;
-        RECT 8.750 5.070 340.660 322.750 ;
+        RECT 8.750 13.260 340.660 322.750 ;
       LAYER Metal1 ;
-        RECT 1.700 5.200 343.960 322.620 ;
+        RECT 1.700 12.000 343.960 322.620 ;
       LAYER Metal2 ;
-        RECT 1.800 0.460 344.500 325.170 ;
+        RECT 1.800 0.460 345.000 325.170 ;
       LAYER Metal3 ;
         RECT 0.260 0.000 345.650 325.170 ;
       LAYER Metal4 ;

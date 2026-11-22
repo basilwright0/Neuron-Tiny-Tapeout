@@ -220,13 +220,14 @@ def std_cells():
         x = round(round((px - 1.40) / 0.005) * 0.005, 3)
         S[f"tie{i}"] = ("tieh", x, fp.TIE_ROW_Y)
         S[f"tap{i}"] = ("filltie", x + SC_W["tieh"], fp.TIE_ROW_Y)
-    # glue row (west -> east)
-    x, y = fp.GLUE_ROW
-    for inst, cell in [("gtap0", "filltie"), ("g_or", "or4_1"), ("g_enb", "nor3_1"), ("g_in", "inv_1"),
-                       ("g_i0", "inv_1"), ("g_i1", "inv_1"), ("g_s0", "nor3_1"), ("g_s1", "nor3_1"),
-                       ("g_s2", "nor3_1"), ("gtap1", "filltie")]:
-        S[inst] = (cell, round(x, 3), y)
-        x += SC_W[cell]
+    # glue rows (west -> east), M3: split over the two rows in H3 (fp.GLUE_ROWS); same cells and nets
+    rows = [[("gtap0", "filltie"), ("g_or", "or4_1"), ("g_enb", "nor3_1"), ("g_in", "inv_1"),
+             ("g_i0", "inv_1"), ("g_i1", "inv_1"), ("gtap1", "filltie")],
+            [("gtap2", "filltie"), ("g_s0", "nor3_1"), ("g_s1", "nor3_1"), ("g_s2", "nor3_1"), ("gtap3", "filltie")]]
+    for (x, y), row in zip(fp.GLUE_ROWS, rows):
+        for inst, cell in row:
+            S[inst] = (cell, round(x, 3), y)
+            x += SC_W[cell]
     return S
 
 

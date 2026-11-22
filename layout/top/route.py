@@ -209,6 +209,10 @@ def build():
     for tb in (fp.BLOCKS["TE0 tau trim col 0"], fp.BLOCKS["TE2 tau trim col 2"]):
         i0, i1 = ispan(tb[0] - 1, tb[2] + 1, OX, NX)
         g.ko[0:2, j0:j1 + 1, i0:i1 + 1] = True
+    # M3 free areas (fp.RESERVED): no Metal2/3 routing (Metal4 may still cross, as over an M1-M3 block)
+    for rb in fp.RESERVED.values():
+        for l in (0, 1):
+            g.keepout(l, rb, 0.0)
     # bias channel (between B1 / tau cells and the array): Metal2/3 reserved for the analog column lines
     g.bz = np.zeros((3, NY, NX), np.bool_)
     i0, i1 = ispan(0.0, fp.BLOCKS["A1 AdEx"][0], OX, NX)
@@ -602,9 +606,8 @@ def reroute(nets):
             print("reroute", net, "keeps", len(kw), "wires,", len(kv), "vias in", b, flush=True)
         kept[net] = (kw, kv)
         R[net] = {"wires": [[l, list(r)] for l, r in kw], "vias": [list(v) for v in kv]}
-    for net, grps in tasks + tie_tasks():
-        if net not in nets:
-            continue
+    order = {n: i for i, n in enumerate(nets)}                 # route in the order given on the command line
+    for net, grps in sorted([t for t in tasks + tie_tasks() if t[0] in nets], key=lambda t: order[t[0]]):
         seed = [(LI[l], r) for l, r in kept[net][0]]
         paths, ok, msg = route_net(g, ids[net], grps, net=net, seed=seed)
         if not ok:
@@ -619,9 +622,51 @@ def reroute(nets):
     (C.WORK / "routes.json").write_text(json.dumps(R))
 
 
+def check(skip=()):
+    """Legality of the wires in work/routes.json against the current fixed geometry / blocks / keep-outs (no
+    routing): prints each net with a wire or via node that the router would not allow now. Used to pick the nets
+    to rip up after a floorplan change (route.py reroute ...)."""
+    g, ids, tasks, stubs, F = build()
+    R = json.loads((C.WORK / "routes.json").read_text())
+    own_nets = {}
+    for net, rec in R.items():                     # other routed nets as marks (a wire conflicting with another net)
+        if net.startswith("_") or net in skip:
+            continue
+        commit(g, ids[net], [(l, tuple(r)) for l, r in rec["wires"]], [tuple(v) for v in rec["vias"]])
+    bad = {}
+    for net, rec in R.items():
+        if net.startswith("_") or net in skip:
+            continue
+        k = ids[net]
+        nodes = []
+        for l, r in rec["wires"]:
+            a0, a1 = idx_range(r[0] + 0.14, r[2] - 0.14, OX, NX); b0, b1 = idx_range(r[1] + 0.14, r[3] - 0.14, OY, NY)
+            nodes += [(LI[l], j, i, "w") for j in range(b0, b1 + 1) for i in range(a0, a1 + 1)]
+        for kind, x, y in rec["vias"]:
+            i, j = int(round((x - OX) / G)), int(round((y - OY) / G))
+            lo = 0 if kind == "via2" else 1
+            nodes += [(lo, j, i, "v"), (lo + 1, j, i, "v")]
+        for l, j, i, t in nodes:
+            arr = g.rw if t == "w" else g.rv
+            own = g.acc[l, j, i] == k
+            okk = arr[l, j, i] in (0, k) and (not g.ko[l, j, i] or own)
+            if net not in BIAS_OK and g.bz[l, j, i] and not own:
+                okk = False
+            if not okk:
+                bad.setdefault(net, []).append((l, round(OX + G * i, 2), round(OY + G * j, 2), int(arr[l, j, i]),
+                                                bool(g.ko[l, j, i])))
+    inv = {v: n for n, v in ids.items()}
+    for net, lst in sorted(bad.items()):
+        print(f"BAD {net:20s} {len(lst):5d} first {lst[0][:3]} owner {inv.get(lst[0][3], lst[0][3])} ko {lst[0][4]}")
+    print("check:", len(bad), "nets with illegal nodes")
+    return bad
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "check":
+        return check(set(sys.argv[2:]))
     if len(sys.argv) > 1 and sys.argv[1] == "reroute":
-        return reroute(set(sys.argv[2:]))
+        return reroute(list(dict.fromkeys(sys.argv[2:])))
     if len(sys.argv) > 1 and sys.argv[1] == "ties":
         return add_ties()
     if len(sys.argv) > 1 and sys.argv[1] == "stubs":

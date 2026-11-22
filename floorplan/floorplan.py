@@ -38,9 +38,11 @@ MACRO_STRAPS = [(15.92, "VDD"), (19.22, "VSS"), (65.92, "VDD"), (69.22, "VSS"),
 EXTENDED_STRAP_PAIRS = (0, 2)            # macro strap pairs extended full height as tile power stripes
 
 # --------------------------------------------------------------------- blocks (x0, y0, x1, y1)
-# B1 is notched: its frame is the box minus B1_NOTCHES (R1 corner, tau-cell column 2).
-B1_BOX = (80.0, 12.0, 344.5, 126.5)                                   # bias_b1 264.5 x 114.5 at (80, 12)
-B1_NOTCHES = {"R1": (262.0, 12.0, 302.0, 54.0), "TAU2": (80.0, 116.0, 103.0, 126.5)}
+# B1 is notched: its frame is the box minus B1_NOTCHES (R1 corner N1, bottom pocket NB).
+# M3 (MIL-133, b1d/b1int): bias_b1 242 x 114.5 at (103, 12); the west trim removed notch N2 (tau col 2) and
+# frees tile x 80-103 (RESERVED "RW"); pocket NB (local x 131-159, y 0-40) is empty in the GDS (RESERVED "RB").
+B1_BOX = (103.0, 12.0, 345.0, 126.5)                                  # bias_b1 242 x 114.5 at (103, 12)
+B1_NOTCHES = {"R1": (262.0, 12.0, 302.0, 54.0), "NB": (234.0, 12.0, 262.0, 52.0)}
 B1_CORRIDOR = (276.0, 54.0, 302.0, 126.5)                             # Metal3-free in B1: R1 feed-throughs
 BLOCKS = {
     "C1 control macro":     (MACRO_X, MACRO_Y, MACRO_X + MACRO_S, MACRO_Y + MACRO_S),
@@ -58,14 +60,14 @@ EST = {  # measured areas (um^2) of what goes in each box
     "C1 control macro": 166 * 166,
     "NA neuron array 4x4": 4 * 28.0 * (2 * 45.74 + 29.42 + 34.29),
     "D1 dendrite": 70 * 104,
-    "B1 bias generator": 264.5 * 114.5 - 40 * 42 - 23 * 10.5,
+    "B1 bias generator": 242.0 * 114.5 - 40 * 42 - 28 * 40,
     "R1 readout corner": 40 * 40,
     "A1 AdEx": 38 * 73,
     "TE0 tau trim col 0": 37 * 11.8,
     "TE2 tau trim col 2": 37 * 11.8,
 }
 CHANNELS = {  # routing-only regions (Metal2/Metal3; Metal4 may cross blocks between the stripes)
-    "CH_BOT ua entry, R1 power, glue row": (8.0, 0.0, 280.0, 11.5),
+    "CH_BOT ua entry, R1 power, D1 lines": (8.0, 0.0, 199.5, 11.5),
     "CH_BIAS B1 -> array columns, D1 lines": (8.0, 130.3, 120.0, 139.7),
     "CH_MID B1 codes <-> macro S edge": (167.5, 127.0, 344.5, 150.5),
     "CH_MIDW B1 bias outputs, D1/AdEx lines": (120.5, 127.0, 167.5, 139.5),
@@ -73,6 +75,15 @@ CHANNELS = {  # routing-only regions (Metal2/Metal3; Metal4 may cross blocks bet
     "CH_ROW array rows -> macro W edge": (120.5, 213.5, 169.5, 317.0),
     "CH_TOP_A array power buses, uio_oe ties": (8.0, 314.5, 120.0, 324.3),
     "CH_TOP_M TT pin jogs to the macro N edge": (120.5, 317.5, 344.5, 324.3),
+}
+
+# Free areas kept for later use (M3 decap / test structures): the router may not put Metal2-4 there and no block
+# may overlap them.  RW = B1's west trim, RB = pocket NB, RT = array-top strip (TOP-1), RG = CH_BOT west + H2 (TOP-4).
+RESERVED = {
+    "RW B1 west trim": (80.0, 12.0, 103.0, 116.0),
+    "RB B1 pocket NB": (234.0, 12.0, 262.0, 52.0),
+    "RT array-top strip": (8.0, 302.9, 120.0, 317.7),
+    "RG CH_BOT east of the D1 lines": (199.5, 0.0, 280.0, 11.5),
 }
 
 # --------------------------------------------------------------------- power stripes (Metal4, y 5 -> 320.36)
@@ -88,7 +99,10 @@ for p in EXTENDED_STRAP_PAIRS:                                 # macro straps (a
 
 # --------------------------------------------------------------------- std-cell rows (gf180mcu_fd_sc_mcu7t5v0)
 TIE_ROW_Y = 318.4      # uio_oe tie-high cells (one tieh + filltie under each uio_oe pin), rails drawn across
-GLUE_ROW = (170.0, 5.5)  # probe-enable / D1 tap-select glue (or4, 4x nor3, 3x inv, fillties), lower-left corner
+# probe-enable / D1 tap-select glue (or4, 4x nor3, 3x inv, fillties): M3 (TOP-4) two R0 rows in hole H3 (CH_MID east,
+# between the B1 code lines from the macro S edge (x <= 281.2) and bias_en (x 312)), lower-left corners; each row's
+# rails are tied to the strap-pair-2 stripes (x 286.72 / 290.02). Was one row in CH_BOT at (170, 5.5).
+GLUE_ROWS = [(282.6, 130.4), (282.6, 136.4)]
 
 # --------------------------------------------------------------------- NA slot map
 # M2 regrouped array, layout B (user decisions 2026-11-21 14:32 and 19:24 UTC, MIL-36 `array-regroup-plan`): the
@@ -202,9 +216,9 @@ def overlap(a, b, gap=0.0):
 def b1_rects():
     """B1 frame as rectangles (box minus notches)."""
     x0, y0, x1, y1 = B1_BOX
-    n1, n2 = B1_NOTCHES["R1"], B1_NOTCHES["TAU2"]
-    return [(x0, y0, n1[0], n2[1]), (n2[2], n2[1], n1[0], y1), (n1[0], n1[3], n1[2], y1),
-            (n1[2], y0, x1, y1)]
+    n1, nb = B1_NOTCHES["R1"], B1_NOTCHES["NB"]
+    assert nb[2] == n1[0] and nb[1] == n1[1] == y0
+    return [(x0, y0, nb[0], y1), (nb[0], nb[3], n1[0], y1), (n1[0], n1[3], n1[2], y1), (n1[2], y0, x1, y1)]
 
 
 def frames():
@@ -226,6 +240,10 @@ def checks():
                 for rb in fr[b]:
                     if (gap == 0.0 and overlap(ra, rb, -1e-9)) or (gap > 0 and overlap(ra, rb, gap)):
                         errs.append(f"{a} and {b} closer than {gap or 0} um")
+    for rn, rb in RESERVED.items():
+        for n, rs in fr.items():
+            if any(overlap(r, rb, -1e-9) for r in rs):
+                errs.append(f"{n} overlaps reserved area {rn}")
     for cn, cb in CHANNELS.items():
         for n, rs in fr.items():
             if any(overlap(r, cb, -1e-9) for r in rs):
@@ -329,6 +347,8 @@ def svg(path):
                                       f'height="{(b[3]-b[1])*s:.1f}" fill="{fill}" {extra}/>')
     for n, b in CHANNELS.items():
         o.append(rect(b, "#f4f4ff", 'stroke="#aab" stroke-dasharray="4 3"'))
+    for n, b in RESERVED.items():
+        o.append(rect(b, "#dff5df", 'stroke="#4a4" stroke-dasharray="2 2"'))
     for n, rs in frames().items():
         for b in rs:
             o.append(rect(b, COL[n[:2]], 'stroke="#333"'))

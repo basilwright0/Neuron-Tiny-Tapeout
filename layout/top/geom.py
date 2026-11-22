@@ -242,7 +242,9 @@ def array(F):
     # ---- power above the array: Metal1 VSS strip on the row-3 ring, vdd column stubs, Metal3 buses
     yt = ay1
     F.p("metal1", (ax0, yt - 0.1, ax1, yt + 0.6), "VGND")
-    VDDB, VSSB = (315.1, 315.9), (316.2, 317.0)
+    # M3 (TOP-1): buses right above the routed en_c / rt_out lines that hug the array top (y <= 300.06 in m2-rc1),
+    # so the strip above them (fp.RESERVED "RT") is one free rectangle. Was (315.1, 315.9), (316.2, 317.0).
+    VDDB, VSSB = (300.5, 301.3), (301.6, 302.4)
     F.p("metal3", (1.3, VDDB[0], 125.0, VDDB[1]), "VDPWR")
     F.p("metal3", (4.3, VSSB[0], 125.0, VSSB[1]), "VGND")
     for c in range(4):
@@ -275,26 +277,33 @@ def stdcells(F, VDDB, VSSB):
     x0, x1 = min(xs), max(x for (cell, x, y) in S.values() if y == ty) + C.SC_W["filltie"]
     F.p("metal1", (x0, ty - 0.3, x1, ty + 0.3), "VGND")
     F.p("metal1", (x0, ty + 3.62, x1, ty + 4.22), "VDPWR")
+    # M3 (TOP-1): no drops into the array buses (they crossed the array-top strip); the rails are tied to the
+    # x 50.0 VDPWR / 52.6 VGND stripes: VSS stack at the uio_oe[4] tieh's west end (on the stripe), VDD rail
+    # (above the stripes' top end 320.36) via1 -> Metal2 down -> via2/via3 onto the stripe at y 319.8.
+    xv = S["tie4"][1] + 0.40
+    assert 52.8 <= xv <= 54.0, xv
+    F.stack(xv, ty, "VGND")
+    xd = stripe_at("VDPWR", 50.8)
+    assert all(not (x - 0.5 < xd < x + C.SC_W["tieh"] + C.SC_W["filltie"] + 0.5) for (cell, x, y) in S.values() if y == ty and cell == "tieh")
+    F.via("via1", xd, ty + 3.92, "VDPWR")
+    F.p("metal2", (xd - 0.2, 319.6, xd + 0.2, ty + 4.12), "VDPWR")
+    F.via("via2", xd, 319.8, "VDPWR")
+    F.via("via3", xd, 319.8, "VDPWR")
     for i in range(8):
         _, x, _ = S[f"tie{i}"]
-        xv = x + 0.40                                            # VSS drop (tieh west end)
-        F.via("via1", xv, ty, "VGND")
-        F.p("metal2", (xv - 0.14, sum(VSSB) / 2 - 0.2, xv + 0.14, ty + 0.2), "VGND")
-        F.via("via2", xv, sum(VSSB) / 2, "VGND")
-        xd = x + C.SC_W["tieh"] + 0.84                          # VDD drop (filltie)
-        F.via("via1", xd, ty + 3.92, "VDPWR")
-        F.p("metal2", (xd - 0.14, sum(VDDB) / 2 - 0.2, xd + 0.14, ty + 4.12), "VDPWR")
-        F.via("via2", xd, sum(VDDB) / 2, "VDPWR")
         landing(F, sc, "tieh", x, ty, "Z", f"uio_oe[{i}]", (1.40, 2.85))
     # ---- glue row: rails, stacks to the macro strap-pair stripes, pin landing pads
-    gx0, gy0 = fp.GLUE_ROW
-    gxs = [x + C.SC_W[cell] for (cell, x, y) in S.values() if y == gy0]
-    gx1 = max(gxs)
-    F.p("metal1", (gx0, gy0 - 0.3, gx1, gy0 + 0.3), "VGND")
-    F.p("metal1", (gx0, gy0 + 3.62, gx1, gy0 + 4.22), "VDPWR")
-    for net, x, w in fp.STRIPES:
-        if gx0 + 0.5 < x + w / 2 < gx1 - 0.5:
-            F.stack(x + w / 2, gy0 + (3.92 if net == "VDPWR" else 0.0), net)
+    glue_y = {gy0 for gx0, gy0 in fp.GLUE_ROWS}
+    for gx0, gy0 in fp.GLUE_ROWS:
+        gx1 = max(x + C.SC_W[cell] for (cell, x, y) in S.values() if y == gy0)
+        F.p("metal1", (gx0, gy0 - 0.3, gx1, gy0 + 0.3), "VGND")
+        F.p("metal1", (gx0, gy0 + 3.62, gx1, gy0 + 4.22), "VDPWR")
+        n = 0
+        for net, x, w in fp.STRIPES:
+            if gx0 + 0.5 < x + w / 2 < gx1 - 0.5:
+                F.stack(x + w / 2, gy0 + (3.92 if net == "VDPWR" else 0.0), net)
+                n += 1
+        assert n == 2, (gx0, gy0, n)
     nets = C.nets()
     conn = {}
     for net, lst in nets.items():
@@ -304,7 +313,7 @@ def stdcells(F, VDDB, VSSB):
             "nor3_1": {"A3": (0.80, 1.975), "A2": (1.96, 2.9), "A1": (3.08, 1.9), "ZN": (3.69, 2.95)},
             "inv_1": {"I": (0.87, 1.7), "ZN": (1.43, 2.9)}}
     for inst, (cell, x, y) in S.items():
-        if y != gy0 or cell not in PICK:
+        if y not in glue_y or cell not in PICK:
             continue
         for pin, pt in PICK[cell].items():
             landing(F, sc, cell, x, y, pin, conn[(inst, pin)], pt)
@@ -343,23 +352,25 @@ def stripe_at(net, xc):
 
 def blocks_power(F):
     I = C.instances()
-    # ---- B1: VGND stripe over its east vss pin (Metal3), vdd pin stubbed east to the VDPWR stripe
+    # ---- B1 (M3, 242 x 114.5 at (103, 12); KLayout net trace of layout/bias/out/bias_b1.gds, local coordinates):
+    # east: vss Metal3 line local x 234.45-240.76, y 40.05-40.35 crosses the x 342.6 VGND stripe -> 3 via3 (Metal4
+    # jumper west of the stripe); vdd pin (local 241.1-241.5, 49.8-50.2) stubbed east to the x 345 VDPWR stripe.
     bx, by = I["b1"][1:]
     g = geo("bias_b1")["pins"]
-    vss = g["vss"][0]["rects"]; vdd = g["vdd"][0]["rects"]
-    # its vss pin is a 0.3 um Metal3 wire at local x 262.45-262.75 (tile 342.45-342.75), y 58.75-64.8
-    vx = bx + 262.6
-    F.p("metal4", (vx - 0.25, by + 58.9, stripe_at("VGND", 343.0), by + 64.6), "VGND")
-    for yy in (by + 59.5, by + 61.0, by + 62.5, by + 64.0):
-        F.p("via3", (vx - 0.14, yy - 0.14, vx + 0.14, yy + 0.14), "VGND")
+    vdd = g["vdd"][0]["rects"]
+    assert abs(bx - 103.0) < 1e-6 and abs(by - 12.0) < 1e-6, (bx, by)
+    vy = by + 40.2
+    F.p("metal4", (bx + 238.8, vy - 0.25, stripe_at("VGND", 343.0), vy + 0.25), "VGND")
+    for xx in (bx + 239.0, bx + 239.6, bx + 240.2):
+        F.p("via3", (xx - 0.14, vy - 0.14, xx + 0.14, vy + 0.14), "VGND")
     vy = by + (vdd[0][1] + vdd[0][3]) / 2
     xr = stripe_at("VDPWR", 345.4)
-    F.p("metal3", (bx + 263.41, vy - 0.2, xr + 0.25, vy + 0.2), "VDPWR")
+    F.p("metal3", (bx + vdd[0][2] - 0.09, vy - 0.2, xr + 0.25, vy + 0.2), "VDPWR")
     F.via("via3", xr, vy, "VDPWR")
-    # B1 west power entry (PEX IR drop: receivers ~22 mV / 14 mV off with east-edge-only power): via3 drops from the
-    # x 121.0 VDPWR / 123.6 VGND stripes onto B1's 0.4 um Metal3 via pads under them (net trace of the 946cd68 GDS)
-    for (lx, ly), net in (((41.6, 28.2), "VDPWR"), ((41.6, 33.0), "VDPWR"), ((44.55, 37.65), "VGND"),
-                          ((44.2, 43.7), "VGND")):
+    # B1 west power entry (m2-rc1 PEX IR drop fix, kept for M3): via3 drops from the x 121.0 VDPWR / 123.6 VGND
+    # stripes onto B1's Metal3 power lines under them: vdd local y 78.9-79.2 (x >= 18.4), vss local y 71.5-71.8
+    for (lx, ly), net in (((18.6, 79.05), "VDPWR"), ((19.2, 79.05), "VDPWR"), ((20.8, 71.65), "VGND"),
+                          ((21.4, 71.65), "VGND"), ((22.0, 71.65), "VGND")):
         F.p("via3", (bx + lx - 0.14, by + ly - 0.14, bx + lx + 0.14, by + ly + 0.14), net)
     # ---- R1: vdd/vss Metal3 rails extended down into CH_BOT, jogs to the strap-pair-2 / east stripes
     rx, ry = I["r1"][1:]
