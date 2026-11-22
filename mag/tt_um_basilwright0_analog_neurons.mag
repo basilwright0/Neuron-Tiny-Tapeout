@@ -1,7 +1,7 @@
 magic
 tech gf180mcuD
 magscale 1 10
-timestamp 1795362090
+timestamp 1795365755
 << checkpaint >>
 rect 4186 61594 19222 66550
 rect -400 44600 26000 61038
@@ -11890,195 +11890,195 @@ rect 69054 1000 69160 1044
 rect 69054 988 69064 1000
 rect 68988 978 69064 988
 use adex_a1  ax
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 25816 0 1 28000
 box 0 0 7600 14600
 use bias_b1  b1
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 16000 0 1 2400
 box 0 0 52900 22900
 use neuron_ctrl  ctrl
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 34000 0 1 30200
 box 0 0 33200 33200
 use dend_d1  d1
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 1594 0 1 2400
 box 0 0 14000 20800
 use gf180mcu_fd_sc_mcu7t5v0__nor3_1  g_enb
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 35568 0 1 1100
 box -86 -86 982 870
 use gf180mcu_fd_sc_mcu7t5v0__inv_1  g_i0
-timestamp 1623963940
+timestamp 1623967605
 transform 1 0 36912 0 1 1100
 box -86 -86 534 870
 use gf180mcu_fd_sc_mcu7t5v0__inv_1  g_i1
-timestamp 1623963940
+timestamp 1623967605
 transform 1 0 37360 0 1 1100
 box -86 -86 534 870
 use gf180mcu_fd_sc_mcu7t5v0__inv_1  g_in
-timestamp 1623963940
+timestamp 1623967605
 transform 1 0 36464 0 1 1100
 box -86 -86 534 870
 use gf180mcu_fd_sc_mcu7t5v0__or4_1  g_or
-timestamp 1623963940
+timestamp 1623967605
 transform 1 0 34224 0 1 1100
 box -86 -86 1430 870
 use gf180mcu_fd_sc_mcu7t5v0__nor3_1  g_s0
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 37808 0 1 1100
 box -86 -86 982 870
 use gf180mcu_fd_sc_mcu7t5v0__nor3_1  g_s1
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 38704 0 1 1100
 box -86 -86 982 870
 use gf180mcu_fd_sc_mcu7t5v0__nor3_1  g_s2
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 39600 0 1 1100
 box -86 -86 982 870
 use gf180mcu_fd_sc_mcu7t5v0__filltie  gtap0
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 34000 0 1 1100
 box -86 -86 310 870
 use gf180mcu_fd_sc_mcu7t5v0__filltie  gtap1
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 40496 0 1 1100
 box -86 -86 310 870
 use r1_ua1  r1
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 52400 0 1 0
 box 0 0 8000 10800
 use slot_ref  s00
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 1600 0 1 28000
 box 0 0 5600 9148
 use slot_ah_h  s01
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 7200 0 1 28000
 box 0 0 5600 9148
 use slot_ah_p  s02
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 12800 0 1 28000
 box 0 0 5600 9148
 use slot_ah_p  s10
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 1600 0 1 37148
 box 0 0 5600 9148
 use slot_ah_h  s11
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 7200 0 1 37148
 box 0 0 5600 9148
 use slot_ah_h  s12
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 12800 0 1 37148
 box 0 0 5600 9148
 use slot_cmp_h  s13
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 18400 0 1 28000
 box 0 0 5600 18296
 use cslot_ah  s20
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 1600 0 1 46296
 box 0 0 5600 5884
 use cslot_ah  s21
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 7200 0 1 46296
 box 0 0 5600 5884
 use cslot_ah  s22
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 12800 0 1 46296
 box 0 0 5600 5884
 use cslot_ah_f  s23
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 18400 0 1 46296
 box 0 0 5600 5884
 use czslot_ah_f  s30
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 1600 0 1 52180
 box 0 0 5600 6858
 use czslot_ah_f  s31
-timestamp 1623963940
+timestamp 1623967604
 transform 1 0 7200 0 1 52180
 box 0 0 5600 6858
 use czslot_ah_50  s32
-timestamp 1623963940
+timestamp 1623967605
 transform 1 0 12800 0 1 52180
 box 0 0 5600 6858
 use czslot_ah_400  s33
-timestamp 1623963940
+timestamp 1623967605
 transform 1 0 18400 0 1 52180
 box 0 0 5600 6858
 use gf180mcu_fd_sc_mcu7t5v0__filltie  tap0
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 16912 0 1 63680
 box -86 -86 310 870
 use gf180mcu_fd_sc_mcu7t5v0__filltie  tap1
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 15456 0 1 63680
 box -86 -86 310 870
 use gf180mcu_fd_sc_mcu7t5v0__filltie  tap2
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 14000 0 1 63680
 box -86 -86 310 870
 use gf180mcu_fd_sc_mcu7t5v0__filltie  tap3
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 12544 0 1 63680
 box -86 -86 310 870
 use gf180mcu_fd_sc_mcu7t5v0__filltie  tap4
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 11088 0 1 63680
 box -86 -86 310 870
 use gf180mcu_fd_sc_mcu7t5v0__filltie  tap5
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 9632 0 1 63680
 box -86 -86 310 870
 use gf180mcu_fd_sc_mcu7t5v0__filltie  tap6
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 8176 0 1 63680
 box -86 -86 310 870
 use gf180mcu_fd_sc_mcu7t5v0__filltie  tap7
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 6720 0 1 63680
 box -86 -86 310 870
 use trim_tau4  tau0
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 1600 0 1 23600
 box 0 0 7400 2360
 use trim_tau4  tau2
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 12800 0 1 23600
 box 0 0 7400 2360
 use gf180mcu_fd_sc_mcu7t5v0__tieh  tie0
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 16464 0 1 63680
 box -86 -86 534 870
 use gf180mcu_fd_sc_mcu7t5v0__tieh  tie1
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 15008 0 1 63680
 box -86 -86 534 870
 use gf180mcu_fd_sc_mcu7t5v0__tieh  tie2
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 13552 0 1 63680
 box -86 -86 534 870
 use gf180mcu_fd_sc_mcu7t5v0__tieh  tie3
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 12096 0 1 63680
 box -86 -86 534 870
 use gf180mcu_fd_sc_mcu7t5v0__tieh  tie4
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 10640 0 1 63680
 box -86 -86 534 870
 use gf180mcu_fd_sc_mcu7t5v0__tieh  tie5
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 9184 0 1 63680
 box -86 -86 534 870
 use gf180mcu_fd_sc_mcu7t5v0__tieh  tie6
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 7728 0 1 63680
 box -86 -86 534 870
 use gf180mcu_fd_sc_mcu7t5v0__tieh  tie7
-timestamp 1623963939
+timestamp 1623967604
 transform 1 0 6272 0 1 63680
 box -86 -86 534 870
 << labels >>
