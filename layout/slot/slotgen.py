@@ -200,9 +200,11 @@ if CMP:
     # its mirror partner XPT (same device, same orientation); Xi1.XS moves to the free left end of row A, above
     # XH2 and two slots left of its inverter Xi1.XP. XNC sits in the free nfet area right of the leak tail XMT,
     # under XR.XNR, below the vbn_prb column (drain stripe flipped to the left, towards the n-well).
+    # 2026-11-22 (10000x gate ss/0 fix): XNC 1/2 -> 2/2 (1 uA tail). Grown downwards: centre 16.00 -> 15.50, so its
+    # gate head (pad at 16.95) and the stripe tops stay where they were; the diffusion now spans 14.50-16.50.
     PLACE.update({
         "XPC": (14.20, 27.10), "XD.Xi1.XS": (4.40, 22.90),
-        "XNC": (21.60, 16.00),
+        "XNC": (21.60, 15.50),
     })
 HEAD_DOWN = {"XC2.XC"}                # devices whose gate head is drawn below the diffusion
 # Kept-slot devices (keptdev.py): name -> footprint L. Level 4 (cells aabada4): the leak OTA inputs XM1/XM2 and

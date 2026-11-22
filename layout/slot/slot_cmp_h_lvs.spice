@@ -9,7 +9,7 @@ XXL_XM2 vl vl XL.s2 vss nfet_03v3 W=4u L=0.5u
 XXL_XD2 XL.s2 XL.s2 XL.t vss nfet_03v3 W=8u L=0.5u
 XXL_XP1 la la vdd vdd pfet_03v3 W=2u L=4u
 XXL_XP2 vl la vdd vdd pfet_03v3 W=2u L=4u
-XXNC vbp_cmp vbn_prb vss vss nfet_03v3 W=1u L=2u
+XXNC vbp_cmp vbn_prb vss vss nfet_03v3 W=2u L=2u
 XXPC vbp_cmp vbp_cmp vdd vdd pfet_03v3 W=1u L=2u
 XXD_XPT XD.t vbp_cmp vdd vdd pfet_03v3 W=1u L=2u
 XXD_XM1 XD.x vm XD.t vdd pfet_03v3 W=2u L=1u

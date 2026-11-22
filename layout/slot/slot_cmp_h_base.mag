@@ -42,10 +42,10 @@ use p_w2_l4  XL_XP2
 timestamp 1795051080
 transform 1 0 2000 0 1 5420
 box -574 -330 574 330
-use n_w1_l2  XNC
+use n_w2_l2  XNC
 timestamp 1795051080
-transform 1 0 4320 0 1 3200
-box -312 -168 312 168
+transform 1 0 4320 0 1 3100
+box -312 -268 312 268
 use p_w1_l2  XPC
 timestamp 1795051080
 transform 1 0 2840 0 1 5420

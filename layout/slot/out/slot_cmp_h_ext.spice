@@ -134,7 +134,7 @@ XXT_XL3 m1_841_6220# m1_1540_9160# vbn_leak vss n_w0p5_l3
 XXD_XH2 vdd vdd m1_1244_4440# a_368_4070# p_w1_l6
 XXPM_XMF m1_3360_172# vdd vm vss n_w4_l2
 XXPC vdd vdd a_368_4070# a_368_4070# p_w1_l2
-XXNC a_368_4070# vss vbn_prb vss n_w1_l2
+XXNC a_368_4070# vss vbn_prb vss n_w2_l2
 XXS_XHL vdd vm hold a_1682_2940# p_w1_l0p28
 XXD_Xi2_XN a_1424_4734# vss spk vss n_w0p5_l0p28
 XXS_XMR mreset a_2510_1740# vdd vss n_w0p5_l0p28

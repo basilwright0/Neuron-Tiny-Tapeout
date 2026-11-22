@@ -1,7 +1,7 @@
 magic
 tech gf180mcuD
 magscale 1 10
-timestamp 1795361607
+timestamp 1795366149
 << nwell >>
 rect 3890 7020 5380 7780
 rect 180 5960 2700 6520
@@ -4298,15 +4298,15 @@ use p_w2_l4  XL_XP2
 timestamp 1795051080
 transform 1 0 2000 0 1 5420
 box -574 -330 574 330
-use n_w1_l2  XNC
+use n_w2_l2  XNC devices
 timestamp 1795051080
-transform 1 0 4320 0 1 3200
-box -312 -168 312 168
+transform 1 0 4320 0 1 3100
+box -312 -268 312 268
 use p_w1_l2  XPC
 timestamp 1795051080
 transform 1 0 2840 0 1 5420
 box -374 -230 374 230
-use n_w2_l2  XPM_XMB devices
+use n_w2_l2  XPM_XMB
 timestamp 1795051080
 transform 1 0 4818 0 1 1040
 box -312 -268 312 268

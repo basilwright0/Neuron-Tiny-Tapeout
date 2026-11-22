@@ -48,10 +48,10 @@ vm   breakdown (to other nodes):
        m1_3704_1572#     0.002 fF
        m1_1244_4440#     0.001 fF
        m1_4822_412#      0.000 fF
-       vsrc              0.000 fF
-       vbn_prb           0.000 fF
-       vbp_st            0.000 fF
        m1_4052_1572#     0.000 fF
+       vsrc              0.000 fF
        vbn_ref           0.000 fF
+       vbp_st            0.000 fF
+       vbn_prb           0.000 fF
 vr   total wiring capacitance          = 0.00 fF
 spk  total wiring capacitance          = 3.32 fF

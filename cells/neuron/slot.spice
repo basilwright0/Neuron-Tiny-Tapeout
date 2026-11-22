@@ -139,16 +139,18 @@ XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 * Level 3 (docs/m2-level3-proposal.md 2.1, 2026-11-22): det_cmp's vbp no longer comes from vbp_st (I_st scales with
 * S, so the comparator offset and spike width grew with S until it latched at S = 10000). A local 2-transistor leg
 * makes vbp_cmp from vbn_prb (bias_vi copy, ~1 uA into XDB 2/2; independent of ua[0], S and ib_x2):
-*   XNC nfet 1/2 on vbn_prb (1:2 of XDB -> ~0.5 uA; B1 corners 0.38 (ss/0) .. 0.66 (ff/85) uA) into XPC, a pfet 1/2
-*   diode, so XPT (1/2) carries the same ~0.5 uA tail, XH2 (1/6) ~0.17 uA, the inv3s starve ~0.5 uA.
-*   0.5 / 1 / 2 uA swept; 0.5 uA is the smallest that passes S = 10000 (sim/results/level3_cmp/fi_summary.txt).
-*   Idle cost ~1 uA (leg + tail) at every S. vbp_st now only feeds through. BIAS_EN = 0: vbn_prb ~0 V, so XNC is
+*   XNC nfet 2/2 on vbn_prb (1:1 of XDB -> ~1 uA) into XPC, a pfet 1/2 diode, so XPT (1/2) carries the same
+*   ~1 uA tail, XH2 (1/6) ~0.33 uA, the inv3s starve ~1 uA.
+*   Was 1/2 (0.5 uA, the smallest that passed S = 10000 at tt, sim/results/level3_cmp/fi_summary.txt), but the
+*   10000x gate (sim/results/gate10k/summary.txt) failed ss/0 at 0.68 (spike width / refractory). The 1 uA tail
+*   study (sim/results/gate10k/cmpfix/tail1u/, PEX estimate) gives S=10000/S=100 >= 0.74 ss/0, 0.78 tt, 0.80 ff.
+*   Idle cost ~2 uA (leg + tail) at every S. vbp_st now only feeds through. BIAS_EN = 0: vbn_prb ~0 V, so XNC is
 *   off and vbp_cmp sits at ~3.1 V (tail off), as before (sim/tb/tb_cmp_detoff.py).
 .subckt slot_cmp_h vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
 + vbp_syn sta stb hold mreset t0 t1 t2 t3 wf=4u lf=2u
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
-XNC vbp_cmp vbn_prb vss vss nfet_03v3 W=1u L=2u
+XNC vbp_cmp vbn_prb vss vss nfet_03v3 W=2u L=2u
 XPC vbp_cmp vbp_cmp vdd vdd pfet_03v3 W=1u L=2u
 XD  vm aux spk vbp_cmp vdd vss det_cmp
 XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
