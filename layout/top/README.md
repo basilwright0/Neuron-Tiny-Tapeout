@@ -64,6 +64,12 @@ floorplan box and keep its pins on the box edge (stubs are drawn 0.7 µm out of 
   Measurement: `area_dump.py` (KLayout) + `area_free.py` (largest free rectangles for an M1–M3 block).
 - VM build (`vm_top3.sh`): LVS match, KLayout 0 / antenna 0, magic 0, TT precheck pass (`work/vm3/`). Report:
   `/home/basil/tt-m3/reports/top3.md`.
+- **PEX (M3 run, VM top3/build3, tree 3fcf302, typical 27 °C):** 6/6 benches rc 0 (`sim/results/top/batch/summary_pex.txt`).
+  vth_cmp 1.5261 V at the nominal code (+140 mV as designed); other B1 lines and all edge kicks within 0.5 mV of run 4
+  (AdEx stim A on −0.7 mV); probe step 1759 ns PASS; new top-added line D1 vs ← probe_sel_d1 4.36 mV (latched select).
+  bias_spk: victim 51.16 → 52.88 kHz (off) / 56.10 → 55.52 kHz (on), on/off shift +9.7 % → +5.0 %; ripple with
+  neighbours on: vsrc 90 → 73, vreset 80 → 90, vbn_leak 10.4 → 7.5 mV p-p; quiet S1 vm p-p 0.80 / 2.95 → 0.93 / 2.68 mV.
+  CMP quiet vm p-p 47.5 / 73.2 → 0.9 / 2.1 mV: the vth_cmp shift removes the run-4 CMP reset-follow artefact.
 
 ## Status (2026-11-20, τ cells rev B)
 
