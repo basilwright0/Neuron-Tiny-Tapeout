@@ -70,6 +70,15 @@ floorplan box and keep its pins on the box edge (stubs are drawn 0.7 µm out of 
   bias_spk: victim 51.16 → 52.88 kHz (off) / 56.10 → 55.52 kHz (on), on/off shift +9.7 % → +5.0 %; ripple with
   neighbours on: vsrc 90 → 73, vreset 80 → 90, vbn_leak 10.4 → 7.5 mV p-p; quiet S1 vm p-p 0.80 / 2.95 → 0.93 / 2.68 mV.
   CMP quiet vm p-p 47.5 / 73.2 → 0.9 / 2.1 mV: the vth_cmp shift removes the run-4 CMP reset-follow artefact.
+- **bias_spk off-rate shift run 4 → M3 (51.16 → 52.88 kHz, +3.4 %), MIL-298 (branch m3-spk):** not the CMP state.
+  Same M3 netlist, neighbours off, TEND 100 us: vth_cmp code 20 (CMP tripped as in run 4, spk held at 3.3 V) 52.883 kHz,
+  code 26 (1.587 V, now the bench default) 52.880 kHz, code 31 (MIL-288 run) 52.881 kHz. Tripping the CMP only cuts the
+  vreset glitch at the victim (76.7 → 62.6 mV p-p, ~30 ns, settled long before the ~1.5 us refractory end). Not bias-line
+  IR drop either: every shared line at the victim matches the Nov 20 S1000 levels within 0.1 mV (vsrc -0.3 mV). The ISI is
+  very sensitive (vm reaches the ~1.613 V trip at ~3.5 mV/us, tau ~15.6 us: -0.64 us = ~2.4 mV of trip or ~3.5 mV of
+  asymptote), so the cause is a mV-level change local to the victim that the shared-line probes don't see. Still open;
+  M3's 52.88 kHz is reproducible to 0.003 kHz and independent of the CMP code. Bench fix: `topnet.vcodes` used the
+  pre-M3 vth_cmp mapping, so every M3 bench ran the CMP at code 31 (~1.655 V, DAC max); now code 26 at 1.58 V.
 
 ## Status (2026-11-20, τ cells rev B)
 
