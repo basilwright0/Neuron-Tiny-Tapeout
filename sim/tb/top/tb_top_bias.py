@@ -151,8 +151,18 @@ elif MODE == "spk":
     if ON:
         for k, s in enumerate(SPIKERS):
             src[f"Isp{k}"] = f"Isp{k} vstim {T.vnode(s + '.vm')} DC {4 * rheo:g}"
-    body = B.chip(S, ib_x2=1, sources=src)
-    TEND = 160e-6
+    # SPK_R2: override the vth_cmp code (CMP slot state A/B, MIL-298); SPK_TEND: shorter run (the ISI is steady from
+    # the first spike). Either one adds a suffix to the result names.
+    import os
+    codes = B.op_point(S)
+    tag = ""
+    if os.environ.get("SPK_R2"):
+        codes["r2"] = int(os.environ["SPK_R2"])
+        tag += f"_r2c{codes['r2']}"
+    TEND = float(os.environ.get("SPK_TEND", "160e-6"))
+    if "SPK_TEND" in os.environ:
+        tag += f"_t{TEND * 1e6:g}"
+    body = B.chip(S, codes=codes, ib_x2=1, sources=src)
     sh = ["vbn_leak", "vbn_ref", "vbp_st", "vbp_syn", "vbn_prb", "el", "vreset", "vsrc"]
     sv = [f"v({T.vnode(VICTIM + '.spk')})", f"v({T.vnode(VICTIM + '.vm')})", f"v({T.vnode(QUIET + '.vm')})"]
     near = {}
@@ -173,8 +183,10 @@ elif MODE == "spk":
             at_slot[(ln, s_)] = nn[0]
             sv.append(f"v({T.san(nn[0])})")
     sv += [f"v({T.vnode(s + '.vm')})" for s in SLOTS]
-    sv += [f"v({T.vnode(s + '.spk')})" for s in SPIKERS]
-    r = B.go(B.deck(body, f"tran 5n {TEND:g} 0 5n", sorted(set(sv))), f"bias_spk_{'on' if ON else 'off'}")
+    CMP = T.slot_inst("CMP")
+    sv += [f"v({T.vnode(s + '.spk')})" for s in SPIKERS + [CMP]]
+    name = f"bias_spk_{'on' if ON else 'off'}{tag}"
+    r = B.go(B.deck(body, f"tran 5n {TEND:g} 0 5n", sorted(set(sv))), name)
     t = r["_x"]
     sp = crossings(t, r[f"v({T.vnode(VICTIM + '.spk')})".lower()], 1.65)
     sp = sp[sp > 30e-6]
@@ -186,6 +198,9 @@ elif MODE == "spk":
     for s in SPIKERS:
         n = len(crossings(t, r[f"v({T.vnode(s + '.spk')})".lower()], 1.65))
         log(f"  neighbour {s}: {n} spikes")
+    cs = r[f"v({T.vnode(CMP + '.spk')})".lower()]
+    log(f"  CMP {CMP} (vth_cmp code r2 = {codes['r2']}): {len(crossings(t, cs, 1.65))} spike edges, spk mean "
+        f"{cs[t > 30e-6].mean():.3f} V")
     m = t > 30e-6
     q = r[f"v({T.vnode(QUIET + '.vm')})".lower()][m]
     log(f"quiet neuron {QUIET} vm: mean {q.mean():.4f} V, p-p {1e3 * (q.max() - q.min()):.2f} mV")
@@ -213,4 +228,4 @@ elif MODE == "spk":
             v_ = r[f"v({T.vnode(s_ + '.vm')})".lower()][m]
             log(f"{s_}{tag}  {names[s_]:6s} {cells}   {1e3 * (v_.max() - v_.min()):8.1f}")
         log(f"row {row_} max p-p " + " ".join(f"{pp_row[ln]:14.2f}" for ln in sh))
-    (B.OUT / f"bias_spk_{'on' if ON else 'off'}.txt").write_text("\n".join(lines) + "\n")
+    (B.OUT / f"{name}.txt").write_text("\n".join(lines) + "\n")

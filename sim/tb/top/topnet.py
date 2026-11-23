@@ -406,7 +406,9 @@ CODES_S100 = dict(i0=10, i1=14, i2=7, i3=9, i4=8)      # B1 report C.3 nominal c
 def vcodes(el=1.30, vreset=1.30, vth_cmp=1.38, vth_ref=0.505):
     r0 = round((el - 0.994) / 0.0201)
     r1 = round((vreset - 0.891) / 0.0201)
-    r2 = min(31, round((vth_cmp - 1.094) / 0.0133))
+    # M3 vth_cmp DAC (vdacr_vc R_base 60 sq): 1.231 .. 1.655 V; full-chip PEX gives 1.5261 V at code 22 (MIL-298).
+    # The pre-M3 mapping (1.094 + 13.3 mV / code) clipped 1.58 V at code 31, which the M3 DAC turns into 1.655 V.
+    r2 = min(31, round((vth_cmp - 1.2251) / 0.01368))
     v0 = round((vth_ref - 0.350) / 0.00635)
     return dict(r0=max(0, min(31, r0)), r1=max(0, min(31, r1)), r2=max(0, r2), v0=max(0, min(63, v0)))
 
