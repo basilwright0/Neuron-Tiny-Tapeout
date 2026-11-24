@@ -512,7 +512,7 @@ MACRO tt_um_basilwright0_analog_neurons
       LAYER Metal1 ;
         RECT 1.700 12.000 343.960 322.620 ;
       LAYER Metal2 ;
-        RECT 1.800 0.460 345.000 325.170 ;
+        RECT 1.800 0.460 344.500 325.170 ;
       LAYER Metal3 ;
         RECT 0.260 0.000 345.650 325.170 ;
       LAYER Metal4 ;

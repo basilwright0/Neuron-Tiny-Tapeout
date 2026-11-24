@@ -1,0 +1,33 @@
+2026-11-24 23:48:01 start 4 CPUs, 7 GB, no-git
+2026-11-24 23:50:23 build rc=0 LVS: Final result: Circuits match uniquely.
+KLAYOUT main 0
+KLAYOUT antenna 0
+MAGIC_DRC_COUNT 0
+2026-11-24 23:52:19 precheck rc=0
+2026-11-25 00:52:01 +0100: Memory Usage (487600K) : Executing deck antenna_via5 from /foss/pdks/gf180mcuD/libs.tech/klayout/tech/drc/rule_decks/antenna.rb
+2026-11-25 00:52:01 +0100: Memory Usage (488112K) : 
+2026-11-25 00:52:01 +0100: Memory Usage (488112K) : DRC RESULT: SUCCESS (0 violations)
+2026-11-25 00:52:01 +0100: Memory Usage (488112K) : # DRC Total Run time 4.43526865 seconds
+INFO: Running Verilog syntax check on /work/gds/tt_um_basilwright0_analog_neurons.v
+Preparing to run yowasp-yosys. This might take a while...
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
+
+-- Running command `read_verilog -sv "/work/gds/tt_um_basilwright0_analog_neurons.v"' --
+
+1. Executing Verilog-2005 frontend: /work/gds/tt_um_basilwright0_analog_neurons.v
+Parsing SystemVerilog input from `/work/gds/tt_um_basilwright0_analog_neurons.v' to AST representation.
+Generating RTLIL representation for module `\tt_um_basilwright0_analog_neurons'.
+Successfully finished Verilog frontend.
+
+End of script. Logfile hash: 8d88e6c524, time: 0.00s, user: 0.00s, system: 0.00s
+Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
+Time spent: 99% 2x read_verilog (0 sec), 0% 0x id_gc (0 sec)
+INFO: Precheck passed for /work/gds/tt_um_basilwright0_analog_neurons.gds! 🎉
+2026-11-24 23:52:19 gate ok=1
+2026-11-24 23:52:19 end
