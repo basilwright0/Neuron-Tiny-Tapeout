@@ -16,7 +16,8 @@ module tb ();
     reg          rst_n;
     reg  [7:0]   ui_in;
     reg  [7:0]   uio_in;
-    reg  [15:0]  spk_in;
+    localparam N_SPK = 24;
+    reg  [N_SPK-1:0] spk_in;
     wire [7:0]   uo_out;
     wire [7:0]   uio_out;
     wire [7:0]   uio_oe;
@@ -24,17 +25,20 @@ module tb ();
     wire [3:0]   probe_rsel, probe_en_c;
     wire         probe_sub, probe_sub_b, probe_sel_d1, probe_sel_adex;
     wire [1:0]   probe_sub_raw;
+    wire [2:0]   probe_sel_bay;
+    wire         probe_en_c4;
     wire [3:0]   rt_out;
 
     // the bias_b1 lines are left open here; the tests read them via u_ctrl.<name>
-    neuron_ctrl #(.LIF_W(12), .NTRIM(NTRIM), .TRIM_MASK(TRIM_MASK)) u_ctrl (
+    neuron_ctrl #(.LIF_W(12), .NTRIM(NTRIM), .TRIM_MASK(TRIM_MASK), .N_SPK(N_SPK)) u_ctrl (
         .clk(clk), .rst_n(rst_n),
         .ui_in(ui_in), .uio_in(uio_in),
         .uo_out(uo_out), .uio_out(uio_out), .uio_oe(uio_oe),
         .spk_in(spk_in), .cfg_out(cfg_out),
         .probe_rsel(probe_rsel), .probe_en_c(probe_en_c), .probe_sub(probe_sub),
         .probe_sub_b(probe_sub_b), .probe_sel_d1(probe_sel_d1), .probe_sel_adex(probe_sel_adex),
-        .probe_sub_raw(probe_sub_raw), .rt_out(rt_out)
+        .probe_sub_raw(probe_sub_raw), .probe_sel_bay(probe_sel_bay), .probe_en_c4(probe_en_c4),
+        .rt_out(rt_out)
     );
 endmodule
 

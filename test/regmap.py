@@ -8,16 +8,17 @@ import re
 
 AW = 5
 FW = AW + 8
-NREG = 23
+NREG = 24
+N_SPK = 24                            # spike inputs (OUT_BANK selects uo = ch 7..0 or 23..16)
 TRIM_MASK_DEFAULT = 0xC1FD            # nibbles 0, 2-8, 14, 15
 
 A = dict(
     IDAC=0x00, VDAC=0x05, ANA=0x06, PROBE=0x07, MODE=0x08, LIF_CTL=0x09,
     LIF_SR=0x0A, LIF_EL=0x0B, LIF_VTH=0x0C, LIF_VRST=0x0D, LIF_W=0x0E,
-    TRIM0=0x0F,
+    TRIM0=0x0F, OUT=0x17,
 )
 
-_USED = [0xFF] * 5 + [0x3F, 0xFF, 0x7F, 0xFF, 0x07] + [0xFF] * 5 + [0xFF] * 8
+_USED = [0xFF] * 5 + [0x3F, 0xFF, 0xFF, 0xFF, 0x07] + [0xFF] * 5 + [0xFF] * 8 + [0x01]
 assert len(_USED) == NREG
 
 
@@ -83,14 +84,33 @@ assert _fp.cell_at(*DUMMY_SLOT)[0] == _where["CMP"] and DUMMY_SLOT not in _where
 assert (D1_CH, ADEX_CH, REF_SLOT) == (13, 3, (0, 0))
 
 
-def probe_lines(sel, sub, en):
-    """Expected (probe_rsel, probe_en_c, probe_sel_d1, probe_sel_adex, probe_sub, probe_sub_b, probe_sub_raw)."""
+# PROBE_SEL[4] = 1 (SEL 16..31, PROBE[7]): 16..18 bay neurons 0..2 (probe_sel_bay[k], outside the array),
+# 22 / 23 column 4 rows 2 / 3 (probe_en_c4 + probe_rsel); every other value selects nothing.
+SLOT_HI = {22: (2, 4), 23: (3, 4)}
+BAY_SEL = {16: 0, 17: 1, 18: 2}
+
+
+def probe_lines_old(sel, sub, en):
+    """Rev E (fdcf2ad) decoder, 4-bit SEL: (rsel, en_c, d1, adex, sub, sub_b, sub_raw). Frozen regression table."""
     slot = REF_SLOT if sub == 3 else SLOT.get(sel)
     rsel = (1 << slot[0]) if slot else 0
     enc = (1 << slot[1]) if (slot and en) else 0
     d1 = int(bool(en) and sub != 3 and sel == D1_CH)
     adex = int(bool(en) and sub != 3 and sel == ADEX_CH)
     return rsel, enc, d1, adex, sub & 1, 1 - (sub & 1), sub
+
+
+def probe_lines(sel, sub, en):
+    """Expected (probe_rsel, probe_en_c, probe_sel_d1, probe_sel_adex, probe_sub, probe_sub_b, probe_sub_raw,
+    probe_sel_bay, probe_en_c4) for a 5-bit SEL."""
+    if sel < 16:
+        return probe_lines_old(sel, sub, en) + (0, 0)
+    slot = REF_SLOT if sub == 3 else SLOT_HI.get(sel)
+    rsel = (1 << slot[0]) if slot else 0
+    enc = (1 << slot[1]) if (slot and en and slot[1] < 4) else 0
+    c4 = int(bool(slot and en and slot[1] == 4))
+    bay = (1 << BAY_SEL[sel]) if (en and sub != 3 and sel in BAY_SEL) else 0
+    return rsel, enc, 0, 0, sub & 1, 1 - (sub & 1), sub, bay, c4
 
 
 # --------------------------------------------------------------- bias_b1 model
@@ -133,7 +153,13 @@ def bias_lines(regs):
 
 
 def probe(sel=0, sub=0, en=0):
-    return sel | (sub << 4) | (en << 6)
+    """PROBE byte for a 5-bit SEL: SEL[3:0] at [3:0], SEL[4] at [7]."""
+    return (sel & 0xF) | (sub << 4) | (en << 6) | (((sel >> 4) & 1) << 7)
+
+
+def probe_fields(byte):
+    """(sel5, sub, en) from a PROBE byte."""
+    return (byte & 0xF) | (((byte >> 7) & 1) << 4), (byte >> 4) & 3, (byte >> 6) & 1
 
 
 def mode(ua0=0, out_mux=0, rt_en=0, ib_x2=0):

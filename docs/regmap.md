@@ -15,7 +15,9 @@ Rev B (SPI register file with read-back, counter, spike muxes) is preserved in `
 
 The chip keeps only the configuration storage, the probe decoder and the digital LIF. Everything else (spike timestamping and counting, tick generation, sequencing, read-back of state) is done by the demo-board RP2040/RP2350 (PIO).
 
-Every byte resets to **0**, and all-zero means "everything off": every DAC code 0 (off), bias off, all groups disabled, probe off, rt pass-through off, digital LIF disabled, OUT_MUX = 0.
+Every byte resets to **0**, and all-zero means "everything off": every DAC code 0 (off), bias off, all groups disabled, probe off, rt pass-through off, digital LIF disabled, OUT_MUX = 0, OUT_BANK = 0.
+
+**R2 C1 (24 spike channels):** `spk_in` is 24 bits (`N_SPK`). New byte OUT (0x17): OUT_BANK selects uo = channels 7..0 (0, reset) or 23..16 (1); uio is unchanged. PROBE[7] is now PROBE_SEL[4] (SEL 16..31: bay neurons and column 4, §3.1). With OUT = 0 and PROBE[7] = 0 (reset) pins, outputs and the probe decode are identical to rev E.
 
 ## 1. Pins
 
@@ -29,7 +31,7 @@ Every byte resets to **0**, and all-zero means "everything off": every DAC code 
 | ui[5] | in | hold: `rt_out[2]` |
 | ui[6] | in | membrane reset: `rt_out[3]` |
 | ui[7] | in | **LIF tick**: one digital-LIF update per rising edge |
-| uo[7:0] | out | spikes of analog neurons 0..7 (combinational, buffered) |
+| uo[7:0] | out | OUT_BANK = 0: spike channels 0..7; OUT_BANK = 1: channels 16..23 (combinational, buffered) |
 | uio[5:0] | out | spikes of analog neurons 8..13 (combinational, buffered) |
 | uio[6] | out | OUT_MUX = 0: digital-LIF spike (1-clk pulse); OUT_MUX = 1: neuron 14 |
 | uio[7] | out | OUT_MUX = 0: config echo (shift-register MSB); OUT_MUX = 1: neuron 15 |
@@ -43,7 +45,7 @@ Every byte resets to **0**, and all-zero means "everything off": every DAC code 
 - **Only the last 13 bits before LOAD count.** A PIO can therefore send 16-bit words with 3 leading don't-care bits (tested), or any longer stream.
 - **Write:** pulse LOAD high. While LOAD is high, the latch byte `ADDR` is transparent and takes `DATA`; LOAD falling closes it. Exactly one byte changes, once (tested with LOAD widths of 10 ns to 500 ns).
 - **SCK with LOAD low never writes** (tested with 200 random bits).
-- Writes to unused addresses (0x17..0x1F) and to bits without storage are ignored.
+- Writes to unused addresses (0x18..0x1F) and to bits without storage are ignored (tested exhaustively for 0x18..0x1F).
 - There is no read-back. Link check: with OUT_MUX = 0, uio[7] = shift-register MSB, so every bit shifted in reappears on uio[7] 13 SCK rising edges later (it changes just after each SCK rising edge; sample it before the next one). Before the first 13 SCK edges after power-up the echo is undefined (the shift register has no reset).
 - The config port and latches do not use clk; they work with clk stopped (tested).
 - **Reset:** `rst_n` low clears every latch asynchronously (directly from the pin, no clk needed). LOAD has no effect while `rst_n` is low.
@@ -78,7 +80,7 @@ The latch enable is `le[a] = LOAD & (sr[12:8] == a)`. Because SCK has no edge fr
 - **Probe:** no on-chip break-before-make. To move the probe: write PROBE with EN = 0 and the *old* SEL/SUB, then EN = 0 with the new SEL/SUB, then EN = 1. (Changing EN and SEL in one write could briefly enable the new tap before the old one is off.) The row lines `probe_rsel` follow SEL even while EN = 0; only the column enables, `probe_sel_d1` and `probe_sel_adex` are gated.
 - **Bias codes:** a current-DAC code can straddle two bytes (§3.2), so one code change can take two writes with an intermediate code in between. Set BIAS_EN = 0 while changing bias codes (`docs/08 Updated Plan.md` §8), or accept the intermediate value.
 
-## 3. Map (5-bit address, 23 bytes)
+## 3. Map (5-bit address, 24 bytes)
 
 | Addr | Name | Bits | Meaning |
 |---|---|---|---|
@@ -89,9 +91,10 @@ The latch enable is `le[a] = LOAD & (sr[12:8] == a)`. Because SCK has no edge fr
 | | | [5] D1_CHAIN | **Analog.** D1 subunit topology: 0 star, 1 chain |
 | | | [6] BIAS_EN | **Analog.** Master bias enable (`bias_en`); also gates `ua0_int` |
 | | | [7] D1_BSEL | **Analog.** Stim B steering into the dendrite: 0 clustered into d1, 1 distributed into d2 |
-| 0x07 | PROBE | [3:0] PROBE_SEL | Spike channel k (0..15) whose neuron is probed (§3.1) |
+| 0x07 | PROBE | [3:0] PROBE_SEL[3:0] | With PROBE_SEL[4] (bit 7): 5-bit probe address 0..31 (§3.1) |
 | | | [5:4] PROBE_SUB | **Analog.** Array slots: 0 membrane, 1 secondary node; D1 / AdEx: tap select (`probe_sub_raw`); 3 = REF follower (slot (0,0), whatever SEL is) |
-| | | [6] PROBE_EN | **Analog.** Probe enable (gates the column lines, the D1 line and the AdEx line) |
+| | | [6] PROBE_EN | **Analog.** Probe enable (gates the column lines, column 4, the D1, AdEx and bay lines) |
+| | | [7] PROBE_SEL[4] | 0: rev E decode (SEL 0..15, unchanged); 1: SEL 16..31 (bay neurons, column 4) |
 | 0x08 | MODE | [1:0] UA0_MODE | **Analog.** ua[0]: 0 EXT ÷1 (reset), 1 EXT ÷16, 2 STIM, 3 INT_MON (§3.2) |
 | | | [2] OUT_MUX | 0: uio[6] = LIF spike, uio[7] = echo; 1: uio[7:6] = neurons 15:14 |
 | | | [3] IB_X2 | **Analog.** `ib_x2`: R1 bias 4 → 8 µA (×2) |
@@ -104,9 +107,10 @@ The latch enable is `le[a] = LOAD & (sr[12:8] == a)`. Because SCK has no edge fr
 | 0x0D | LIF_VRST | [7:0] | Vreset = code << (W − 8) |
 | 0x0E | LIF_W | [7:0] | Input weight in LSB units (unscaled) |
 | 0x0F..0x16 | TRIM0..7 | [3:0] nibble 2k, [7:4] nibble 2k+1 | **Analog.** 4-bit trim nibble n at byte 0x0F + n/2, nibble n%2. Only nibbles in `TRIM_MASK` (default 0, 2–8, 14, 15) have storage (§3.3) |
+| 0x17 | OUT | [0] OUT_BANK | 0: uo[7:0] = spike channels 7..0 (rev E); 1: uo[7:0] = channels 23..16. uio unaffected. [7:1] no storage |
 
-Spare (no storage): VDAC[7:6], PROBE[7], LIF_CTL[7:3], trim nibbles 1 and 9–13 (0x0F [7:4], 0x13 [7:4], 0x14 and 0x15 entirely; §3.3).
-Stored bits: 40 IDAC + 6 VDAC + 8 ANA + 7 PROBE + 8 MODE + 3 LIF_CTL + 40 LIF + 4 × 10 trim = **152 latches** (TRIM_MASK = 16'hFFFF: 176).
+Spare (no storage): VDAC[7:6], LIF_CTL[7:3], OUT[7:1], trim nibbles 1 and 9–13 (0x0F [7:4], 0x13 [7:4], 0x14 and 0x15 entirely; §3.3).
+Stored bits: 40 IDAC + 6 VDAC + 8 ANA + 8 PROBE + 8 MODE + 3 LIF_CTL + 40 LIF + 4 × 10 trim + 1 OUT = **154 latches** (TRIM_MASK = 16'hFFFF: 178).
 
 ### 3.1 Probe lines (row × column)
 
@@ -129,6 +133,17 @@ AH50 and AH400 have no vr tap since M2, so PROBE_SUB = 1 reads nothing on them; 
 | neuron | H1 | H3 | P3 | CMP | F1 | P2 | S1 | F2 | F3 | S2 | AH50 | H2 | S3 | AH400 |
 
 `test/regmap.py` checks that every decoded position holds a neuron and every neuron is decoded (`PROBE_NAME`).
+
+**PROBE_SEL[4] = 1 (R2 C1, SEL = 16 + k, k = PROBE[3:0]).** The table above is SEL[4] = 0 and is bit-identical to rev E
+(the AdEx / D1 lines are also gated by ~SEL[4]; regression-tested against the frozen fdcf2ad table).
+
+| SEL | 16 | 17 | 18 | 19..21 | 22 | 23 | 24..31 |
+|---|---|---|---|---|---|---|---|
+| target | bay neuron 0 | bay neuron 1 | bay neuron 2 | nothing | column 4, row 2 | column 4, row 3 | nothing |
+| lines | `probe_sel_bay[0]` | `probe_sel_bay[1]` | `probe_sel_bay[2]` | — | `probe_rsel[2]` + `probe_en_c4` | `probe_rsel[3]` + `probe_en_c4` | — |
+
+Spike channels: bay neurons 0..2 = `spk_in[16..18]`, column 4 rows 2/3 = `spk_in[22]` / `spk_in[23]`; `spk_in[19..21]` are spares
+(tied low at the top level). PROBE_SUB = 3 still selects REF (slot (0,0)) for every SEL.
 Spike channels are unchanged (`SPIKE_CH`); channel 15 is AH400 since M2 (MIL-127 N11: AH800 became AH400, so the
 capacitance sweep is AH50 / S / AH400 = 0.25 / 1 / 2×).
 
@@ -137,11 +152,13 @@ capacitance sweep is AH50 / S / AH400 = 0.25 / 1 / 2×).
 | `probe_rsel[3:0]` | one-hot row of the selected slot (0 for D1 and AdEx); not gated by PROBE_EN |
 | `probe_en_c[3:0]` | PROBE_EN & (column of the selected slot == c) |
 | `probe_sub`, `probe_sub_b` | PROBE_SUB[0] and its complement (vm/vr tap in the array slots) |
-| `probe_sel_d1` | PROBE_EN & (SEL == 13) & (PROBE_SUB != 3) |
+| `probe_sel_d1` | PROBE_EN & (SEL == 13) & (PROBE_SUB != 3) (SEL is 5 bit: SEL[4] = 0) |
 | `probe_sel_adex` | PROBE_EN & (SEL == 3) & (PROBE_SUB != 3) |
+| `probe_sel_bay[2:0]` | PROBE_EN & (SEL == 16 + k) & (PROBE_SUB != 3), k = 0..2 (bay neurons, outside the array) |
+| `probe_en_c4` | PROBE_EN & (SEL == 22 or 23) & (PROBE_SUB != 3) (column 4; row on `probe_rsel`) |
 | `probe_sub_raw[1:0]` | PROBE_SUB. D1 uses it directly; AdEx: 0 membrane, 1 adaptation node |
 
-A slot's switch is `probe_rsel[row] & probe_en_c[col]`, so at most one slot, D1 or AdEx is enabled. Reset: no column enabled, D1 and AdEx off (`probe_rsel` = 0001, the row of channel 0).
+A slot's switch is `probe_rsel[row] & probe_en_c[col]` (column 4: `probe_rsel[row] & probe_en_c4`), so at most one slot, D1, AdEx or bay neuron is enabled. Reset: no column enabled, D1, AdEx and bay off (`probe_rsel` = 0001, the row of channel 0).
 
 ### 3.2 bias_b1 lines (names = `cells/bias/bias_b1.spice` rev C)
 

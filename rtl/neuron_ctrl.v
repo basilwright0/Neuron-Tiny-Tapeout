@@ -9,7 +9,7 @@
 //   ui_in[0] SCK   ui_in[1] DATA   ui_in[2] LOAD      (config shift/latch port)
 //   ui_in[3] stim A  ui_in[4] stim B  ui_in[5] hold  ui_in[6] mem reset  (-> rt_out)
 //   ui_in[7] digital-LIF tick (rising edge)
-//   uo[7:0]  spikes of analog neurons 0..7         (combinational, buffered)
+//   uo[7:0]  OUT_BANK ? spike ch 23..16 : spike ch 7..0  (combinational, buffered)
 //   uio[5:0] spikes of analog neurons 8..13        (uio_oe = 0xFF)
 //   uio[6]   OUT_MUX ? neuron 14 : digital-LIF spike
 //   uio[7]   OUT_MUX ? neuron 15 : config echo (shift-register serial out)
@@ -24,9 +24,10 @@
 module neuron_ctrl #(
     parameter LIF_W = 12,   // digital LIF state width (8..12)
     parameter NTRIM = 16,   // trim nibbles in the map / on cfg_out (even, 2..16)
-    parameter [15:0] TRIM_MASK = 16'hC1FD  // nibble n has latches only if TRIM_MASK[n];
+    parameter [15:0] TRIM_MASK = 16'hC1FD, // nibble n has latches only if TRIM_MASK[n];
                                            // others read 0 and drive 0 on cfg_out.
                                            // C1FD: nibbles 0, 2-8, 14, 15 (docs/08 §5)
+    parameter N_SPK = 24    // spike inputs; the OUT_BANK mux assumes exactly 24
 ) (
 `include "nc_bias_ports.vh"                      // lines to bias_b1 (generated)
     input  wire                  clk,
@@ -38,7 +39,7 @@ module neuron_ctrl #(
     output wire [7:0]            uo_out,
     output wire [7:0]            uio_out,
     output wire [7:0]            uio_oe,
-    input  wire [15:0]           spk_in,           // async spikes from analog neurons
+    input  wire [N_SPK-1:0]      spk_in,           // async spikes from analog neurons
     output wire [7+4*NTRIM-1:0]  cfg_out,          // GRP_EN, PLATEAU_EN, D1_CHAIN, D1_BSEL, trims (CFG_*)
     output wire [3:0]            probe_rsel,       // array row of the selected slot
     output wire [3:0]            probe_en_c,       // PROBE_EN & (column of the selected slot == c)
@@ -47,6 +48,8 @@ module neuron_ctrl #(
     output wire                  probe_sel_d1,     // PROBE_EN & SEL == 13 & SUB != 3 (D1, outside the array)
     output wire                  probe_sel_adex,   // PROBE_EN & SEL == 3  & SUB != 3 (AdEx, outside the array)
     output wire [1:0]            probe_sub_raw,    // PROBE_SUB[1:0] (D1 / AdEx tap select)
+    output wire [2:0]            probe_sel_bay,    // PROBE_EN & SEL == 16+k & SUB != 3 (bay neuron k, outside the array)
+    output wire                  probe_en_c4,      // PROBE_EN & (selected slot is in column 4: SEL 22 / 23)
     output wire [3:0]            rt_out            // ui_in[6:3] & RT_EN
 );
 `include "nc_regmap.vh"
@@ -87,7 +90,7 @@ module neuron_ctrl #(
                 else if (rb == 4)                  cfg_idx = CFG_PLAT;
                 else if (rb == 5)                  cfg_idx = CFG_CHAIN;
                 else if (rb == 7)                  cfg_idx = CFG_BSEL;
-            end else if (ra >= A_TRIM0)            cfg_idx = CFG_TRIM + 8 * (ra - A_TRIM0) + rb;
+            end else if (ra >= A_TRIM0 && ra < A_TRIM0 + 8) cfg_idx = CFG_TRIM + 8 * (ra - A_TRIM0) + rb;
         end
     endfunction
     function integer is_bias;          // 1: bit latched in nc_bias_if.vh
@@ -117,7 +120,7 @@ module neuron_ctrl #(
                 localparam integer PS = (ri == A_PROBE && (bi == 4 || bi == 5)) ? 1 : 0;
                 if (BB != 0) begin : g_b
                     // latch and regs image in nc_bias_if.vh
-                end else if (REG_USED[8*ri+bi] && (ri < A_TRIM0 || trim_on(TI + bi / 4) != 0)) begin : g_l
+                end else if (REG_USED[8*ri+bi] && (ri < A_TRIM0 || ri >= A_TRIM0 + 8 || trim_on(TI + bi / 4) != 0)) begin : g_l
                     if (CI >= 0) begin : g_c
                         `NC_LAT(u_l, cfg_out[CI], ri, bi)
 `ifdef SYNTHESIS          // byte image of these bits only for simulation/tests:
@@ -149,6 +152,8 @@ module neuron_ctrl #(
 `include "nc_bias_if.vh"
 
     wire [3:0] probe_sel = regs[8*A_PROBE +: 4];
+    wire       probe_hi  = regs[8*A_PROBE+7];        // PROBE_SEL[4]
+    wire       out_bank  = regs[8*A_OUT];
     wire       probe_en  = regs[8*A_PROBE+6];
     wire       out_mux   = regs[8*A_MODE+2];
     wire [3:0] rt_en     = regs[8*A_MODE+4 +: 4];
@@ -160,45 +165,60 @@ module neuron_ctrl #(
     // (row 0 = bottom). ch3 (AdEx) and ch13 (D1) are outside the array:
     // probe_sel_adex / probe_sel_d1. Slot (0,3) is a dummy and is never
     // selected. PROBE_SUB = 3 selects the REF follower in slot (0,0) whatever SEL is.
+    // PROBE_SEL[4] = 0: the rev E decode, unchanged. PROBE_SEL[4] = 1 (SEL 16..31):
+    // 16..18 bay neurons 0..2 (probe_sel_bay, outside the array), 22 / 23 column 4
+    // rows 2 / 3 (probe_en_c4 + probe_rsel), anything else selects nothing.
     // Combinational from the latches. Firmware: PROBE_EN=0, change SEL/SUB, PROBE_EN=1.
     reg [1:0] p_row, p_col;
-    reg       p_arr;
+    reg       p_arr, p_c4;
     always @(*) begin
         p_arr = 1'b1;
-        case (probe_sel)
-            4'd0:    {p_row, p_col} = {2'd0, 2'd1};   // S1
-            4'd1:    {p_row, p_col} = {2'd1, 2'd2};   // F1
-            4'd2:    {p_row, p_col} = {2'd0, 2'd2};   // H1
-            4'd4:    {p_row, p_col} = {2'd1, 2'd3};   // S2
-            4'd5:    {p_row, p_col} = {2'd2, 2'd3};   // F2
-            4'd6:    {p_row, p_col} = {2'd1, 2'd0};   // H2
-            4'd7:    {p_row, p_col} = {2'd2, 2'd0};   // P2
-            4'd8:    {p_row, p_col} = {2'd3, 2'd0};   // S3
-            4'd9:    {p_row, p_col} = {2'd3, 2'd1};   // F3
-            4'd10:   {p_row, p_col} = {2'd2, 2'd1};   // H3
-            4'd11:   {p_row, p_col} = {2'd3, 2'd2};   // P3
-            4'd12:   {p_row, p_col} = {2'd1, 2'd1};   // CMP
-            4'd14:   {p_row, p_col} = {2'd2, 2'd2};   // AH50
-            4'd15:   {p_row, p_col} = {2'd3, 2'd3};   // AH800
-            default: begin                             // 3 AdEx, 13 D1: not in the array
-                {p_row, p_col} = 4'd0;
-                p_arr = 1'b0;
-            end
-        endcase
+        p_c4  = 1'b0;
+        {p_row, p_col} = 4'd0;
+        if (probe_hi) begin
+            case (probe_sel)
+                4'd6:    begin p_row = 2'd2; p_c4 = 1'b1; end   // column 4, row 2
+                4'd7:    begin p_row = 2'd3; p_c4 = 1'b1; end   // column 4, row 3
+                default: p_arr = 1'b0;                          // bay 16..18 or nothing
+            endcase
+        end else begin
+            case (probe_sel)
+                4'd0:    {p_row, p_col} = {2'd0, 2'd1};   // S1
+                4'd1:    {p_row, p_col} = {2'd1, 2'd2};   // F1
+                4'd2:    {p_row, p_col} = {2'd0, 2'd2};   // H1
+                4'd4:    {p_row, p_col} = {2'd1, 2'd3};   // S2
+                4'd5:    {p_row, p_col} = {2'd2, 2'd3};   // F2
+                4'd6:    {p_row, p_col} = {2'd1, 2'd0};   // H2
+                4'd7:    {p_row, p_col} = {2'd2, 2'd0};   // P2
+                4'd8:    {p_row, p_col} = {2'd3, 2'd0};   // S3
+                4'd9:    {p_row, p_col} = {2'd3, 2'd1};   // F3
+                4'd10:   {p_row, p_col} = {2'd2, 2'd1};   // H3
+                4'd11:   {p_row, p_col} = {2'd3, 2'd2};   // P3
+                4'd12:   {p_row, p_col} = {2'd1, 2'd1};   // CMP
+                4'd14:   {p_row, p_col} = {2'd2, 2'd2};   // AH50
+                4'd15:   {p_row, p_col} = {2'd3, 2'd3};   // AH800
+                default: p_arr = 1'b0;                     // 3 AdEx, 13 D1: not in the array
+            endcase
+        end
         if (probe_sub_raw == 2'd3) begin              // REF follower, slot (0,0)
             {p_row, p_col} = 4'd0;
             p_arr = 1'b1;
+            p_c4  = 1'b0;
         end
     end
     genvar pi;
     generate
         for (pi = 0; pi < 4; pi = pi + 1) begin : g_probe
             assign probe_rsel[pi] = p_arr & (p_row == pi);
-            assign probe_en_c[pi] = probe_en & p_arr & (p_col == pi);
+            assign probe_en_c[pi] = probe_en & p_arr & ~p_c4 & (p_col == pi);
+        end
+        for (pi = 0; pi < 3; pi = pi + 1) begin : g_bay
+            assign probe_sel_bay[pi] = probe_en & ~p_arr & probe_hi & (probe_sel == pi);
         end
     endgenerate
-    assign probe_sel_d1   = probe_en & ~p_arr &  probe_sel[3];   // SEL 13
-    assign probe_sel_adex = probe_en & ~p_arr & ~probe_sel[3];   // SEL 3
+    assign probe_en_c4    = probe_en & p_c4;               // p_c4 implies p_arr
+    assign probe_sel_d1   = probe_en & ~p_arr & ~probe_hi &  probe_sel[3];   // SEL 13
+    assign probe_sel_adex = probe_en & ~p_arr & ~probe_hi & ~probe_sel[3];   // SEL 3
     assign probe_sub    = probe_sub_raw[0];
     assign probe_sub_b  = ~probe_sub_raw[0];
 
@@ -270,7 +290,8 @@ module neuron_ctrl #(
     );
 
     // ------------------------------------------------------------ outputs
-    assign uo_out  = spk_in[7:0];
+    // OUT_BANK only changes between measurements (async mux: may glitch while it changes)
+    assign uo_out  = out_bank ? spk_in[23:16] : spk_in[7:0];
     assign uio_out = {out_mux ? spk_in[15] : echo,
                       out_mux ? spk_in[14] : lif_spike,
                       spk_in[13:8]};

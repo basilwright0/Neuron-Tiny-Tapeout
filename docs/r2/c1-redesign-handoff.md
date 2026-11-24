@@ -69,3 +69,51 @@ Risks:
 - 16 more pins on W: route congestion near the array probe lines.
 - Probe decode change could regress SEL 3/13 (covered by the regression test).
 - Tied spare inputs must not be left floating at the top level (LVS).
+
+## Step 2: RTL + cocotb (branch r2-c1-spk, on top of dd63c1c)
+Lead decisions applied: option (a) sized for area. N_SPK = 24, uo bank only, PROBE[7] = SEL[4]. Not hardened yet.
+RTL:
+- rtl/nc_regmap.vh: NREG 23 -> 24. A_OUT = 0x17 with REG_USED 8'h01 (bit 0 OUT_BANK, [7:1] unstored). PROBE REG_USED 8'h7F -> 8'hFF.
+- rtl/nc_cfg.v: non-ANSI header, so `le` is [NREG-1:0] (taken from nc_regmap.vh).
+- rtl/neuron_ctrl.v:
+  - parameter N_SPK = 24, spk_in[N_SPK-1:0], `uo_out = out_bank ? spk_in[23:16] : spk_in[7:0]`. uio is unchanged.
+  - cfg_idx and the trim-storage test are bounded to 0x0F..0x16, so 0x17 is not treated as a trim byte.
+  - The probe decode has a new SEL[4] branch: 16..18 drive new port probe_sel_bay[2:0] (PROBE_EN & SUB != 3). 22 / 23 drive new port probe_en_c4 plus probe_rsel[2] / [3]. Every other SEL selects nothing.
+  - SEL[4] = 0 runs the old case unchanged. probe_sel_adex / probe_sel_d1 are also gated by ~SEL[4], and probe_en_c[3:0] by ~p_c4. SUB = 3 still selects REF for any SEL.
+  - Existing ports are unchanged; there are 2 new latches and no new flops.
+- src/project.v is the empty analog TT wrapper (the top is built in layout/top), so there is no RTL instantiation to update.
+- Spare channels: spk_in[19..21] must be tied low at the top level (layout/top), see the open items.
+- test/regmap.py:
+  - NREG 24, A["OUT"], N_SPK.
+  - probe(sel) maps SEL[4] to bit 7, and probe_fields() decodes a PROBE byte.
+  - probe_lines() takes a 5-bit SEL and also returns (bay, c4). The new tables are SLOT_HI {22: (2,4), 23: (3,4)} and BAY_SEL {16,17,18}.
+  - probe_lines_old() is the frozen fdcf2ad decoder.
+- test/tb.v: 24-bit spk_in and the new ports.
+- docs/regmap.md: pins row, the OUT row, PROBE[7] = SEL[4], the SEL 16..31 table, port table, latch count 154, unused addresses 0x18..0x1F.
+- rtl/librelane/mkpins.py:
+  - W bottom (local y 2.5-11.5): spk_in[16..18] interleaved with probe_sel_bay[0..2], then spares spk_in[19..21].
+  - Free W slots: spk_in[22] at y 94.4, probe_en_c4 at y 96.6, spk_in[23] at y 100.0.
+  - The spk_in count assert is now N_SPK. pin_order.cfg was NOT regenerated (see open items).
+cocotb (test/test_ctrl.py):
+- reset: uo = ch 7..0 with ch 23..16 set differently, and the new probe lines are 0.
+- spike pins: 60 random 24-bit patterns for each OUT_BANK x OUT_MUX combination.
+- New test_out_reg_and_unused: a write to 0x17 changes only bit 0, with the full image and outputs checked. All 256 values to each of 0x18..0x1F change nothing.
+- probe: exhaustive SEL[4:0] x SUB x EN. For SEL < 16 the RTL equals probe_lines_old and the new lines stay 0. At most one target is enabled, the dummy slot is never selected, and every slot including (2,4) / (3,4) is reachable.
+- LIF src 3 is tested with OUT_BANK = 1 and decoy pulses on spk_in[16]. It still counts only spk_in[0].
+Results (shared VM, iic-osic-tools 2026.08, logs in test/c1spk_logs/):
+- tests.log: 15/15 PASS (12 test_ctrl + 3 test_lif). lint.log: LINT_OK (verilator x3 + iverilog).
+- Yosys (rtl/scripts/synth.ys, tt lib, flattened), area_base.txt vs area_new.txt:
+  - Cells 579 -> 606 (+27). Area 18051 -> 18525 um2 (+474 um2, +2.6%).
+  - The additions are 2 latrnq (+97 um2), 10 more mux2 (+285 um2), and decode. The digital LIF re-mapped 70 um2 smaller, which is abc noise.
+Backward compatibility:
+- At reset (OUT = 0, PROBE[7] = 0) pins and probe decode are identical to rev E.
+- Firmware that wrote PROBE[7] = 1 (it was unstored) or wrote to 0x17 now gets a different result. Port spk_in widens to 24, so every instantiation must change.
+Open items for the harden:
+1. Re-harden neuron_ctrl with the new ports (+3 spk_in used + 3 spare, probe_sel_bay[3], probe_en_c4), then check utilization.
+   Synthesis adds about 470 um2 against about 1352 um2 of fill at 94%, so expect about 96%. If it fails, trim repair buffers or lower PL_TARGET_DENSITY.
+2. Running mkpins.py on HEAD (even before this change) already moves the N-edge ui_in / uo_out[0] slots versus the committed pin_order.cfg, because floorplan PINS_TOP has drifted since the last harden.
+   Decide whether the N edge follows the new PINS_TOP before regenerating pin_order.cfg / config_fp.json.
+3. Top level:
+   - floorplan.py SPIKE_CH: names for 16..18 (bay) and 22, 23 (column 4), and the :288 assertion goes to 24 channels.
+   - layout/top/config.py:123: range(16) -> 24, tie spk_in[19..21] low, and route probe_sel_bay / probe_en_c4.
+4. docs/info.md (23 bytes, pinout) and firmware: add OUT_BANK and SEL 16..31 once the top is integrated.

@@ -1,0 +1,95 @@
+rm -f results.xml
+"make" -f Makefile results.xml
+make[1]: Entering directory '/work/test'
+mkdir -p sim_build
+/foss/tools/bin/iverilog -o sim_build/sim.vvp -s tb -g2012 -g2005 -I/work/test/../rtl -f sim_build/cmds.f  /work/test/tb.v /work/test/../rtl/neuron_ctrl.v /work/test/../rtl/nc_cfg.v /work/test/../rtl/nc_sync.v /work/test/../rtl/digital_lif.v
+rm -f results.xml
+COCOTB_TEST_MODULES=test_ctrl,test_lif COCOTB_TESTCASE= COCOTB_TEST_FILTER= COCOTB_TOPLEVEL=tb TOPLEVEL_LANG=verilog \
+         /foss/tools/bin/vvp -M /usr/local/lib/python3.12/dist-packages/cocotb/libs -m libcocotbvpi_icarus   sim_build/sim.vvp   
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:93   in _embed_init_python              Using Python 3.12.4 interpreter at /usr/bin/python3
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:79   in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Icarus Verilog version 14.0 (devel)
+     0.00ns INFO     cocotb                             Seeding Python random module with 1795552600
+     0.00ns INFO     cocotb                             Initialized cocotb v2.0.1 from /usr/local/lib/python3.12/dist-packages/cocotb
+     0.00ns INFO     cocotb                             Running tests
+     0.00ns INFO     cocotb.regression                  running test_ctrl.test_reset_defaults (1/15)
+                                                            Everything to the analog side is 0 after reset; pins are pass-through.
+  2900.00ns INFO     cocotb.regression                  test_ctrl.test_reset_defaults passed
+  2900.00ns INFO     cocotb.regression                  running test_ctrl.test_cfg_write_all (2/15)
+                                                            Random writes to every address (incl. OUT 0x17 and unused 0x18..0x1F) in random order,
+101580.00ns INFO     cocotb.regression                  test_ctrl.test_cfg_write_all passed
+101580.00ns INFO     cocotb.regression                  running test_ctrl.test_load_glitch_free (3/15)
+                                                            SCK activity with LOAD low never writes; a LOAD pulse changes only the
+116880.00ns WARNING  py.warnings                        /work/test/test_ctrl.py:129: DeprecationWarning: Use `signal.value_change` instead.
+                                                          await Edge(dut.u_ctrl.regs)
+129480.00ns INFO     cocotb.regression                  test_ctrl.test_load_glitch_free passed
+129480.00ns INFO     cocotb.regression                  running test_ctrl.test_latch_reset_and_no_clk (4/15)
+                                                            rst_n clears every latch; writes and reset work with clk stopped.
+148380.00ns INFO     cocotb.regression                  test_ctrl.test_latch_reset_and_no_clk passed
+148380.00ns INFO     cocotb.regression                  running test_ctrl.test_config_echo (5/15)
+                                                            uio[7] (OUT_MUX = 0) is the shift-register MSB: each bit reappears 13
+151780.00ns INFO     cocotb.regression                  test_ctrl.test_config_echo passed
+151780.00ns INFO     cocotb.regression                  running test_ctrl.test_spike_pins_and_out_mux (6/15)
+                                                            Spike inputs reach uo / uio combinationally; OUT_BANK picks uo = ch 7..0 / 23..16,
+160325.01ns WARNING  py.warnings                        /work/test/test_ctrl.py:224: DeprecationWarning: Use `signal.value_change` instead.
+                                                          await Edge(dut.uio_out)
+160332.01ns INFO     cocotb.regression                  test_ctrl.test_spike_pins_and_out_mux passed
+160332.01ns INFO     cocotb.regression                  running test_ctrl.test_out_reg_and_unused (7/15)
+                                                            OUT (0x17) stores bit 0 only and a write there changes nothing else;
+614728.01ns INFO     cocotb.regression                  test_ctrl.test_out_reg_and_unused passed
+614728.01ns INFO     cocotb.regression                  running test_ctrl.test_probe_decode (8/15)
+                                                            Exhaustive SEL[4:0] x SUB x EN against the floorplan-derived model: row/column
+777628.01ns INFO     cocotb.regression                  test_ctrl.test_probe_decode passed
+777628.01ns INFO     cocotb.regression                  running test_ctrl.test_bias_decode (9/15)
+                                                            bias_b1 lines vs the Python model: every UA0_MODE x BIAS_EN x IB_X2 master
+1609028.01ns INFO     cocotb.regression                  test_ctrl.test_bias_decode passed
+1609028.01ns INFO     cocotb.regression                  running test_ctrl.test_rt_passthrough (10/15)
+1619724.01ns INFO     cocotb.regression                  test_ctrl.test_rt_passthrough passed
+1619724.01ns INFO     cocotb.regression                  running test_ctrl.test_lif_enable_and_tick (11/15)
+                                                             LIF_EN reaches the LIF through a 2-FF sync; one 1-clk tick per ui_in[7]
+1649224.01ns INFO     cocotb.regression                  test_ctrl.test_lif_enable_and_tick passed
+1649224.01ns INFO     cocotb.regression                  running test_ctrl.test_lif_event_sources (12/15)
+                                                             SRC 0/1/3 route stim A / stim B / analog neuron 0 (spk_in[0], also with OUT_BANK = 1) to the LIF input
+1859624.01ns INFO     cocotb.regression                  test_ctrl.test_lif_event_sources passed
+1859624.01ns INFO     cocotb.regression                  running test_lif.test_lif_trajectory_dc (13/15)
+3790724.01ns INFO     cocotb.tb                          DC trajectory: 300 ticks, 12 spikes, bit-exact
+3790724.01ns INFO     cocotb.regression                  test_lif.test_lif_trajectory_dc passed
+3790724.01ns INFO     cocotb.regression                  running test_lif.test_lif_trajectory_pulses (14/15)
+                                                             Input pulses on ui_in[3] (stimulus A), weight added once per pulse.
+4409324.01ns INFO     cocotb.tb                          pulse trajectory: 84 ticks, 30 inputs, 8 spikes
+4409324.01ns INFO     cocotb.regression                  test_lif.test_lif_trajectory_pulses passed
+4409324.01ns INFO     cocotb.regression                  running test_lif.test_lif_rate_vs_input (15/15)
+7621024.01ns INFO     cocotb.tb                          w=  5 ticks=500 rtl=0 port=0 pin=0 reference=0
+10831724.01ns INFO     cocotb.tb                          w= 15 ticks=500 rtl=0 port=0 pin=0 reference=0
+14042424.01ns INFO     cocotb.tb                          w= 24 ticks=500 rtl=17 port=17 pin=17 reference=17
+17253124.01ns INFO     cocotb.tb                          w= 30 ticks=500 rtl=26 port=26 pin=26 reference=26
+20463824.01ns INFO     cocotb.tb                          w= 40 ticks=500 rtl=35 port=35 pin=35 reference=38
+23674524.01ns INFO     cocotb.tb                          w= 60 ticks=500 rtl=55 port=55 pin=55 reference=55
+26885224.01ns INFO     cocotb.tb                          w= 90 ticks=500 rtl=71 port=71 pin=71 reference=71
+26885224.01ns INFO     cocotb.regression                  test_lif.test_lif_rate_vs_input passed
+26885224.01ns INFO     cocotb.regression                  ***********************************************************************************************
+                                                          ** TEST                                   STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                          ***********************************************************************************************
+                                                          ** test_ctrl.test_reset_defaults           PASS        2900.00           0.00     704680.01  **
+                                                          ** test_ctrl.test_cfg_write_all            PASS       98680.00           0.11     897963.70  **
+                                                          ** test_ctrl.test_load_glitch_free         PASS       27900.00           0.04     695974.08  **
+                                                          ** test_ctrl.test_latch_reset_and_no_clk   PASS       18900.00           0.02    1025449.14  **
+                                                          ** test_ctrl.test_config_echo              PASS        3400.00           0.00     874295.48  **
+                                                          ** test_ctrl.test_spike_pins_and_out_mux   PASS        8552.00           0.01     626698.02  **
+                                                          ** test_ctrl.test_out_reg_and_unused       PASS      454396.00           1.35     337561.57  **
+                                                          ** test_ctrl.test_probe_decode             PASS      162900.00           0.20     803930.06  **
+                                                          ** test_ctrl.test_bias_decode              PASS      831400.00           1.04     802716.73  **
+                                                          ** test_ctrl.test_rt_passthrough           PASS       10696.00           0.01     757642.34  **
+                                                          ** test_ctrl.test_lif_enable_and_tick      PASS       29500.00           0.01    3015646.31  **
+                                                          ** test_ctrl.test_lif_event_sources        PASS      210400.00           0.06    3418483.68  **
+                                                          ** test_lif.test_lif_trajectory_dc         PASS     1931100.00           0.66    2915186.22  **
+                                                          ** test_lif.test_lif_trajectory_pulses     PASS      618600.00           0.17    3680973.08  **
+                                                          ** test_lif.test_lif_rate_vs_input         PASS    22475900.00           7.75    2898519.29  **
+                                                          ***********************************************************************************************
+                                                          ** TESTS=15 PASS=15 FAIL=0 SKIP=0                  26885224.01          11.45    2347585.07  **
+                                                          ***********************************************************************************************
+VCD info: dumpfile tb.vcd opened for output.
+make[1]: Leaving directory '/work/test'
+SUMMARY: 15 passed, 0 failed []
+tests rc=0
+JOB_DONE
