@@ -64,7 +64,9 @@ GF, CF = sb.GFAC.get(CELL, 1.0), sb.CFAC.get(CELL, 1.0)
 RHEO, TAU = b.rheo * GF, b.tau * CF / GF
 TREF = sb.TREF_BIO / S
 KS = [1.1, 1.5, 2, 3, 5, 8]
-TAG = f"{CELL}_{corner}_{temp}_S{S:g}" + (f"_EL{sb.EL:.2f}" if DEL else "") + (f"_vthc{VTHC}" if VTHC else "") + (f"_iprb{IPRB}" if IPRB else "") + os.environ.get("FI_TAG", "")
+SEED = int(os.environ.get("FI_SEED", "0"))      # MIL-319 CMP Monte Carlo: per-instance mismatch with this seed
+MMKW = dict(mismatch=True, seed=SEED) if SEED else {}
+TAG = f"{CELL}_{corner}_{temp}_S{S:g}" + (f"_EL{sb.EL:.2f}" if DEL else "") + (f"_vthc{VTHC}" if VTHC else "") + (f"_iprb{IPRB}" if IPRB else "") + os.environ.get("FI_TAG", "") + (f"_mc{SEED}" if SEED else "")
 HAS_SPK = "spk" in sb.PORTS[CELL]
 
 
@@ -77,7 +79,7 @@ def tran(k):
     tstop = (25 if k > 1.2 else 30) * TAU
     body = sb.slot_body(CELL, b, VSRC, iin=Iin, i_syn=1e-15, code=8)
     r = run(deck(body + f".ic v(vm)={sb.EL}\n", f"tran {TAU / 300} {tstop} uic",
-                 ["v(vm)", "v(spk)", "i(vdd)"], corner=corner, temp=temp), f"fi_{TAG}_k{k:g}")
+                 ["v(vm)", "v(spk)", "i(vdd)"], corner=corner, temp=temp, **MMKW), f"fi_{TAG}_k{k:g}")
     t, vm, spk = r["_x"], r["v(vm)"], r["v(spk)"]
     up = crossings(t, spk, 1.65)
     dn = crossings(t, spk, 1.65, rising=False)
@@ -105,7 +107,7 @@ def tran(k):
 def rheo_dc():
     body = sb.slot_body(CELL, b, VSRC, i_syn=1e-15, code=8, vm_src=sb.EL)
     r = run(deck(body, f"dc Vvm {sb.EL - 0.05:.3f} {sb.VTH + 0.15:.3f} 0.5m", ["i(vvm)", "v(spk)"],
-                 corner=corner, temp=temp), f"fidc_{TAG}")
+                 corner=corner, temp=temp, **MMKW), f"fidc_{TAG}")
     v, i, s = r["_x"], r["i(vvm)"], r["v(spk)"]
     trip = crossings(v, s, 1.65)
     global G_EL
