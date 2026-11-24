@@ -95,3 +95,24 @@
   - Step 3 = re-harden. Freeze all existing pin positions from the committed `pin_order.cfg` / `config_fp.json`
     and only add the new pins. Don't regenerate the others, because `mkpins` output already differs from the
     hardened macro.
+
+## Status 2026-11-24 ~21:45 UTC
+- **B1 final** (1049261): analog outputs on the west edge; VM r2b1f: route converged at iter 9; magic 0, KLayout 0,
+  LVS match, frame PASS 68/68.
+- **Top-level routes** (1049261; host `route.py`): r1_b0, v0_c0 and the 9 analog outputs rerouted. vbn_ax and
+  vbn_ref keep their shipped D1 Metal4 escapes (`route.KEEP`). Working order: … then `vbn_prb vbp_st vbp_syn el`
+  last. `route.py check` gives 0 illegal; conncheck: 193 tasks, 0 disconnected.
+- **VM jobs submitted 21:38–21:40** (one each):
+  - `r2b1top2/build`: full-chip LVS, DRC/antenna, precheck → `layout/top/work/vmr2/steps.log`.
+  - `r2b1pex/pex2`: B1 PEX DC on the final B1 → `sim/tb/bias/out/r2/pex3/summary.txt`.
+  - `c1spk/harden`: C1 re-harden (branch r2-c1-spk). E-edge pins are unconstrained, so check
+    `c1spk_results/pin_diff_lef.txt`.
+- **Fetch:** `cd /home/basil/tt-m3/r2b1 && bash /home/basil/tt-m3/vmwait.sh r2b1top2 build 2` (and
+  `r2b1pex pex2`); for C1, `cd /home/basil/tt-m3/c1spk && bash /home/basil/tt-m3/vmwait.sh c1spk harden 2`.
+  The VM self-stops, so resume it first if it is stopped and log the resume in vm.log.
+- **Then:**
+  - renders (`tools/render_labeled.py --gds gds/... --out docs/r2/renders`, host klayout
+    `PYTHONPATH=/tmp/b1r_kl`);
+  - the `b1-repack` doc and the Nov 26 verdict;
+  - the daily report `tiny-tapeout-2026-11-24`;
+  - VM-h on MIL-6.
