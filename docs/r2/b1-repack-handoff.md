@@ -52,3 +52,16 @@
   3. VM: `layout/top/vm_top3.sh` (LVS, KLayout/antenna, magic, TT precheck) plus B1 PEX DC with
      `sim/tb/bias/b1int_pex3.py` (new vs M3 PEX).
   4. Renders: `tools/render_labeled.py` from branch `renders` on the new GDS (before/after).
+
+## Route log (2026-11-24, VM bx_s2uyuv76)
+- DX=28, full corridor: stalled at 8 conflicts (iter 23); stopped. PYTHONHASHSEED does not change the run.
+- DX=25 and DX=22 (Xi1 y 82.3), 35 iters × 2 schedules: FAILED 5 / 6 nets. Metal2 congestion over the rails
+  (local y ~45 and ~51) under the Metal3-free corridor.
+- Fix (d06302a): the top level has no Metal3 in the corridor (R1 feed-throughs are Metal4 at tile x 276–296), so
+  B1's corridor keep-out is now only local y 42–43.5 (`B1_CORR_TOP`). `fp.B1_CORRIDOR` = (276, 54, 302, 55.5).
+- Running: `r2b1e28/route` and `r2b1e25/route` (40 iters × 2 schedules + chk_frame → `out/r2_chk_frame.txt`).
+  Fetch with `cd /home/basil/tt-m3/r2b1 && bash /home/basil/tt-m3/vmwait.sh r2b1e28 route`.
+- If both fail: run a fast tier first (3–4 variants, ROUTE_QUICK=10, one schedule) and abort any variant whose
+  conflict count isn't falling. Only then do a full route.
+- Knobs: `B1_R2DX` (trim), `B1_XI1_Y`, `B1_CORR_TOP`, `ROUTE_ITERS` / `ROUTE_NSCHED`. Floorplan B1_BOX x0 must equal
+  103 + DX (currently set for 28).
