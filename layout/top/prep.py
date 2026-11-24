@@ -145,18 +145,11 @@ def main():
         print(f"{cell:12s} {'FINAL' if d['final'] else 'PLACEHOLDER':11s} bbox {geo['bbox']} pins {len(geo['pins'])}"
               f" obs {sum(len(v) for v in geo['obs'].values())}")
     # std cells for the tie row and glue logic
-    pdk = os.environ["PDK_ROOT"] + "/" + os.environ["PDK"] + "/libs.ref/gf180mcu_fd_sc_mcu7t5v0/gds/gf180mcu_fd_sc_mcu7t5v0.gds"
-    lib = db.Layout(); lib.read(pdk)
     want = [C.SC + n for n in C.SC_W]
-    ly = db.Layout(); ly.dbu = lib.dbu
-    for n in want:
-        if n in macro_cells:
-            print("std cell from macro GDS:", n)
-            continue
-        src = lib.cell(n)
-        dst = ly.create_cell(n)
-        dst.copy_tree(src)
-    ly.write(str(GDIR / "stdcells.gds"))
+    if "PDK_ROOT" not in os.environ:          # host run without the PDK (route debug only; assembly needs it)
+        print("no PDK_ROOT: work/gds/stdcells.gds not written")
+    else:
+        _stdcells_gds(want, macro_cells)
     # std-cell pin rectangles (Metal1) from the PDK LEF subset
     import re
     t = (C.HERE / "stdcells" / "cells.lef").read_text()
@@ -175,6 +168,20 @@ def main():
         sc[n] = dict(pins=pins, obs=obs)
     (JDIR / "stdcells.json").write_text(json.dumps(sc))
     print("stdcells:", ", ".join(sc))
+
+
+def _stdcells_gds(want, macro_cells):
+    pdk = os.environ["PDK_ROOT"] + "/" + os.environ["PDK"] + "/libs.ref/gf180mcu_fd_sc_mcu7t5v0/gds/gf180mcu_fd_sc_mcu7t5v0.gds"
+    lib = db.Layout(); lib.read(pdk)
+    ly = db.Layout(); ly.dbu = lib.dbu
+    for n in want:
+        if n in macro_cells:
+            print("std cell from macro GDS:", n)
+            continue
+        src = lib.cell(n)
+        dst = ly.create_cell(n)
+        dst.copy_tree(src)
+    ly.write(str(GDIR / "stdcells.gds"))
 
 
 if __name__ == "__main__":

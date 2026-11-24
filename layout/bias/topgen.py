@@ -513,7 +513,17 @@ if R2:
     UA0 = (UA0[0] - R2_DX, UA0[1] - R2_DX)
     NB = None
     _OUTS = ("vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vth_cmp", "vbn_ax", "vbp_w", "ua0_stim_out")
-    PINS_REF = {n: (r if n in _OUTS else [r[0] - R2_DX, r[1], r[2] - R2_DX, r[3]]) for n, r in PINS_REF.items()}
+    PINS_REF = {n: [r[0] - R2_DX, r[1], r[2] - R2_DX, r[3]] for n, r in PINS_REF.items()}
+    # The 10 analog outputs leave on the WEST edge, local y 104.5-113.5 (tile y 116.5-125.5): above B1's top edge the
+    # Metal3 band y 127-140 is full, while the old top-west corner (tile x 101-131, y 116-126.5) is empty and opens
+    # into the bias channel. B1_R2_OUTPINS=top keeps them on the top edge (same local x as M3).
+    if os.environ.get("B1_R2_OUTPINS", "west") == "west":
+        for k, n in enumerate(_OUTS):
+            y = 113.5 - k * 1.0
+            PINS_REF[n] = [0.0, y - 0.2, 0.4, y + 0.2]
+    else:
+        PINS_REF.update({n: json.loads((HERE / "b1_pins_242.json").read_text())[n] for n in _OUTS})
+    (OUT / "b1_pins_r2.json").write_text(json.dumps(PINS_REF, indent=0))
     _E = lambda i: (PLACE_F[i][0] - R2_DX, PLACE_F[i][1], PLACE_F[i][2])
     PLACE_F = {
         "Xd2": (1.0 + 39.23, 1.0, 90), "Xd1": (1.0 + 38.58, 21.8, 90),

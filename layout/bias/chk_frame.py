@@ -46,7 +46,7 @@ for n in ("ua0", "vth_ref", "vreset_src", "ib_r1", "el", "vdd", "vss", "vbn_leak
 if M3:
     ref = json.loads(open("b1_pins_242.json").read())
     if R2:   # same tile positions (local - 28), except the analog outputs (same local x)
-        ref = {n: (r if n in OUTS else [r[0] - DX, r[1], r[2] - DX, r[3]]) for n, r in ref.items()}
+        ref = json.loads(open("out/b1_pins_r2.json").read())    # written by topgen.py (R2 pins, incl. west outputs)
     miss = []
     for n, r in ref.items():
         cx, cy = (r[0] + r[2]) / 2, (r[1] + r[3]) / 2
