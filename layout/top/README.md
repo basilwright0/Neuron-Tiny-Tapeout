@@ -79,6 +79,24 @@ floorplan box and keep its pins on the box edge (stubs are drawn 0.7 µm out of 
   asymptote), so the cause is a mV-level change local to the victim that the shared-line probes don't see. Still open;
   M3's 52.88 kHz is reproducible to 0.003 kHz and independent of the CMP code. Bench fix: `topnet.vcodes` used the
   pre-M3 vth_cmp mapping, so every M3 bench ran the CMP at code 31 (~1.655 V, DAC max); now code 26 at 1.58 V.
+- **MIL-309 (branch m3-spk, VM batch 00:13-01:21 UTC Nov 24, same M3 netlists):**
+  - *probe_sel_d1 -> D1 (item 2).* New kick-bench events (196 us SEL -> D1 with PROBE_EN 0, 200 / 210 us D1 enable
+    on / off; only probe_sel_d1 and its glue outputs D1 sel0 / en_b toggle). Edge (step) in mV, D1 vs / d1 / d2:
+    tt/27 on +5.74 (+4.8) / +2.67 (+2.4) / +4.81 (+4.1), off -6.87 (-5.1) / -4.04 (-2.8) / -6.63 (-4.8); ss/0 on
+    +6.26 (+5.0) / +2.61 (+2.8) / +4.83 (+4.5), off -7.64 (-5.7) / -4.20 (-3.4) / -6.89 (-5.6). Array, CMP, AdEx
+    <= 0.1 mV. This includes the in-block D1 select coupling (the static 4.36 mV is the top-added part only). Smaller
+    than the routine HOLD on / off kicks on D1 (+11 / -19 mV), only at a firmware probe change, and the two edges
+    nearly cancel. **Not shielded** (a re-route needs a full rebuild + LVS / DRC / precheck); firmware note in info.md.
+  - *CMP at the corrected code (Chief: re-check at code 26).* bias_spk on, r2 26, TEND 100 us: CMP 0 spike edges,
+    quiet vm p-p 2.1 mV (code 31: 2.1), vreset / vsrc at the CMP 89.0 / 64.7 mV p-p (code 31: 89.9 / 73.0). Kick
+    bench (S = 100, code 11 = 1.38 V): CMP edges tt / ss HOLD on +8.68 / +8.78, HOLD off -10.9 / -9.1, SUB +1.26 /
+    +1.31, stim A on +4.8 / +8.7 mV; no CMP spike. The victim's on-rate at TEND 100 us (58.23 kHz, 4 spikes) is not
+    comparable with the 160 us run (55.52 kHz +- 0.84 us ISI): with neighbours on the ISI beats, and the 100 us window
+    samples one phase. The TEND shortcut is only valid for the off case.
+  - *vth_cmp code window at S = 10000 (item 3, `sim/tb/speed/m3_codes.sh`, slot_cmp_h PEX):* codes 26 and 27 pass at
+    tt / ss / ff, 25 and 28 fail (table in docs/info.md). Code 26 with the x13/12 leak calibration: tt 0.78-0.85,
+    ss 0.75-0.88, ff 0.78-0.87 (pass). AH50 ss/0 1.38 is the uncalibrated leak code; calibrated 1.08-1.29
+    (`sim/results/gate10k/summary.txt`, same czslot_ah_50 PEX).
 
 ## Status (2026-11-20, τ cells rev B)
 

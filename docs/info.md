@@ -116,6 +116,8 @@ oscilloscope or ADC reads `ua[1]`.
 - **Change the probe in three steps:** disable it (PROBE_EN = 0 with the old SEL/SUB), change SEL/SUB, then re-enable.
   Wait at least 2.5 µs after re-enabling before sampling `ua[1]` (post-layout 1 % settling into 200 pF: 2.0 µs
   typical, 2.05 µs at ss / 0 °C).
+  Enabling or disabling the D1 probe kicks D1's compartments by up to +6 / −8 mV (post-layout, ss / 0 °C; the
+  two edges nearly cancel). Switch the D1 probe while D1 is at rest, not mid-measurement.
 - **Hold BIAS_EN = 0 while changing bias codes**, because a 5-bit code can straddle two bytes.
 - **Change digital-LIF parameters only while LIF_EN = 0**, and wait at least 3 clock cycles after clearing it.
 - **Stop `clk` during analog measurements.** The configuration latches, spike outputs and stimulus pass-throughs work
@@ -127,9 +129,26 @@ oscilloscope or ADC reads `ua[1]`.
   - From S = 1000 up to about 2000: stimulate at most ~4 array neurons at once, set IB_X2 and use the ÷1 `ua[0]` mode.
   - S = 10000 (M2 cells, level 3 + 4): use EL / Vreset 1.50 V and the high-speed leak-code rule (step 5.5). Every slot
     type passes the post-layout f–I gate (0.7–1.4 × ideal scaling) at tt / ss / ff, including ss / 0 °C. Limits: the
-    CMP slot needs vth_cmp ≈ 1.58 V (r2 code ≈ 26; M3 vth_cmp DAC range 1.23–1.64 V, R_base 60 sq); AH50 is
-    marginal at ss / 0 °C (1.38 of 1.4). The full chip has not been simulated
-    at S = 10000.
+    CMP slot needs the vth_cmp code window below; AH50 needs the step 5.5 leak calibration at ss / 0 °C (1.38 of 1.4
+    uncalibrated, 1.29 calibrated). The full chip has not been simulated at S = 10000.
+  - **CMP threshold code (vth_cmp, IDAC code 8 = r2, word bits 35–39 = byte 0x04 bits 3–7):** vth_cmp ≈
+    1.225 V + 13.7 mV × code (M3 DAC, 1.23–1.64 V). At S = 10000 only **codes 26 and 27** pass the f–I gate at every
+    corner (post-layout slot_cmp_h, EL 1.50 V; min–max of f/f_ideal, pass 0.7–1.4):
+
+    | code | vth_cmp | tt / 27 °C | ss / 0 °C | ff / 85 °C |
+    |---|---|---|---|---|
+    | 25 | ~1.567 V | 0.69–0.86 fail | 0.68–0.88 fail | 0.57–0.81 fail |
+    | 26 | ~1.580 V | 0.78–0.92 | 0.75–0.95 (calibrated leak 0.75–0.88) | 0.80–0.92 |
+    | 27 | ~1.594 V | 0.81–0.99 | 0.79–1.09 | 0.84–0.94 |
+    | 28 | ~1.608 V | 0.84–1.52 fail | no firing at 1.1 × rheobase | 0.86–0.99 |
+
+    Too low a code makes the CMP too slow at high drive (the comparator's trip falls with speed); too high a code stops
+    it firing near rheobase. Use **27** as the default at S = 10000 (it has more margin than 26 at ss). At S ≤ ~1000 set vth_cmp ≈ Vth:
+    code ≈ (Vth − 1.225 V) / 13.7 mV, e.g. 11 for 1.38 V, 26 for 1.58 V. Per die: with BIAS_EN = 0 write r2, set BIAS_EN = 1, drive
+    the CMP slot at 1.1 × and 8 × its rheobase, and compare the rates with the same run at S = 100. If 1.1 × fires too
+    fast or not at all, step r2 down by one; if 8 × is below ~0.75 × ideal scaling, step r2 up by one. Re-check after
+    the leak calibration (step 5.5), which moves the 1.1 × point. Die-to-die DAC and comparator offsets have not been
+    simulated (no Monte Carlo), so on some dies this procedure may land on 25 or 28.
 
 ## External hardware
 
