@@ -352,27 +352,52 @@ def stripe_at(net, xc):
 
 def blocks_power(F):
     I = C.instances()
-    # ---- B1 R2 (MIL-344, r2-b1-pack: 214 x 114.5 at (131, 12)). Power hookups from the B1 route (net-labelled wires in
-    # layout/bias/out/route_cache_bias_b1.json, local coordinates):
-    # east: vss Metal3 line local x 211.01-213.45, y 68.2-68.5 runs under the x 342.6 VGND stripe (local 211.6-212.4)
-    # -> 2 via3; vdd pin (local 213.15-213.45, 49.85-50.75) stubbed east to the x 345 VDPWR stripe.
+    # ---- B1 R2 (MIL-344, r2-b1-pack: 214 x 114.5 at (131, 12)). Power hookups are derived from the B1 route
+    # (net-labelled wires in layout/bias/out/route_cache_bias_b1.json, local coordinates), so a B1 re-route cannot
+    # leave a via3 on another net: two via3 cuts per stripe, each on one Metal3 wire of B1's vdd / vss.
     bx, by = I["b1"][1:]
     assert abs(bx - 131.0) < 1e-6 and abs(by - 12.0) < 1e-6, (bx, by)
     g = geo("bias_b1")["pins"]
-    for xx in (bx + 211.8, bx + 212.2):
-        F.p("via3", (xx - 0.14, by + 68.35 - 0.14, xx + 0.14, by + 68.35 + 0.14), "VGND")
+    b1w = json.loads((C.ROOT / "layout/bias/out/route_cache_bias_b1.json").read_text())["wires"]
+
+    def b1_cuts(net, x0, x1, n):
+        """n via3 cut x positions (local) inside [x0, x1] and the y of one B1 Metal3 wire of `net` covering them
+        (collinear wire pieces merged; 0.2 Metal3 margin around each cut centre, cuts >= 0.6 apart)."""
+        rows = {}
+        for l, r, nn in b1w:
+            if l == "m3" and nn == net and r[3] - r[1] < 0.35:
+                rows.setdefault(round((r[1] + r[3]) / 2, 3), []).append((r[0], r[2]))
+        for y, iv in sorted(rows.items()):
+            iv.sort(); merged = [list(iv[0])]
+            for a, b in iv[1:]:
+                if a <= merged[-1][1] + 1e-6:
+                    merged[-1][1] = max(merged[-1][1], b)
+                else:
+                    merged.append([a, b])
+            ok = [round(x0 + 0.2 + 0.02 * k, 3) for k in range(int((x1 - x0 - 0.4) / 0.02) + 1)]
+            ok = [c for c in ok if any(a <= c - 0.2 and b >= c + 0.2 for a, b in merged)]
+            if n == 1 and ok:
+                return [ok[len(ok) // 2]], y
+            for c in ok:
+                c2 = [d for d in ok if d >= c + 0.6]
+                if c2:
+                    return [c, c2[0]], y
+        raise ValueError(f"no B1 {net} Metal3 line under local x {x0}-{x1}")
+
+    hook = []
+    for snet, bnet, xc in (("VDPWR", "vdd", 186.72), ("VGND", "vss", 190.02), ("VDPWR", "vdd", 286.72),
+                           ("VGND", "vss", 290.02), ("VGND", "vss", 343.0)):
+        sx = [(x, w) for n, x, w in fp.STRIPES if n == snet and x <= xc <= x + w][0]
+        # 1.6 wide stripes: 2 cuts; the 0.8 wide east VGND stripe: 1 cut (two would violate via3 spacing)
+        cuts, y = b1_cuts(bnet, sx[0] + 0.1 - bx, sx[0] + sx[1] - 0.1 - bx, 2 if sx[1] > 1 else 1)
+        hook += [((c, y), snet) for c in cuts]
+    for (lx, ly), net in hook:
+        F.p("via3", (bx + lx - 0.14, by + ly - 0.14, bx + lx + 0.14, by + ly + 0.14), net)
+    # east vdd: pin (local 213.1-213.5, 49.8-50.2) stubbed east to the x 345 VDPWR stripe
     vy = by + 50.0
     xr = stripe_at("VDPWR", 345.4)
     F.p("metal3", (bx + 213.41, vy - 0.2, xr + 0.25, vy + 0.2), "VDPWR")
     F.via("via3", xr, vy, "VDPWR")
-    # B1 interior power entry (replaces the m2-rc1 west entry: the x 121 / 123.6 stripes no longer cross B1): via3 drops
-    # from the strap-pair-0 (tile x 185.92 / 189.22 = local 54.92 / 58.22) and strap-pair-2 (local 154.92 / 158.22)
-    # stripes onto B1's Metal3 power lines under them: vdd y 100.05-100.35 (x 54.15-56.85) and y 85.65-85.95
-    # (x 154.45-157.15); vss y 64.05-64.35 (x 57.65-59.65) and y 91.25-91.55 (x 154.45-160.35).
-    for (lx, ly), net in (((55.4, 100.2), "VDPWR"), ((56.0, 100.2), "VDPWR"), ((58.6, 64.2), "VGND"),
-                          ((59.2, 64.2), "VGND"), ((155.4, 85.8), "VDPWR"), ((156.0, 85.8), "VDPWR"),
-                          ((158.6, 91.4), "VGND"), ((159.2, 91.4), "VGND")):
-        F.p("via3", (bx + lx - 0.14, by + ly - 0.14, bx + lx + 0.14, by + ly + 0.14), net)
     # ---- R1: vdd/vss Metal3 rails extended down into CH_BOT, jogs to the strap-pair-2 / east stripes
     rx, ry = I["r1"][1:]
     gr = geo("r1_ua1")["pins"]

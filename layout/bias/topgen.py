@@ -580,6 +580,11 @@ def b1f(route=True):
     if PINS_REF:
         for net, r in PINS_REF.items():
             pin_at(c, net, tuple(r))
+        if R2:   # R2: keep B1's own Metal3 out of the top pin row between the pins (top-level stubs land there)
+            xs = sorted((r[0], r[2]) for r in PINS_REF.values() if r[3] >= FR_H - 0.6)
+            for (a0, a1), (b0, b1) in zip(xs, xs[1:]):
+                if b0 - a1 > 1.0:
+                    c.forbid_box(("m3",), (a1 + 0.35, FR_H - 1.6, b0 - 0.35, FR_H))
         failed = route_and_write(c, box, base=0.8)
         print(f"AREA {c.name} {FR_W:.2f} x {FR_H:.2f} = {FR_W * FR_H:.0f} um^2 (notches N1 + NB)")
         print("FAILED:", failed if failed else "none")
