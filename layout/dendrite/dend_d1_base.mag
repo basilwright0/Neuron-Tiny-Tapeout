@@ -10,27 +10,27 @@ use n_w2_l4  XS_XL_XMT
 timestamp 1795102897
 transform 1 0 4004 0 1 2520
 box -512 -268 512 268
-use n_w4_l1  XS_XL_XM1
+use n_w4_l0p5_k1  XS_XL_XM1
 timestamp 1795102897
 transform 1 0 368 0 1 2720
 box -212 -468 212 468
-use n_w4_l1  XS_XL_XD1_a
+use n_w4_l0p5_k1  XS_XL_XD1_a
 timestamp 1795102897
 transform 1 0 924 0 1 2720
 box -212 -468 212 468
-use n_w4_l1  XS_XL_XD1_b
+use n_w4_l0p5_k1  XS_XL_XD1_b
 timestamp 1795102897
 transform 1 0 1480 0 1 2720
 box -212 -468 212 468
-use n_w4_l1  XS_XL_XM2
+use n_w4_l0p5_k1  XS_XL_XM2
 timestamp 1795102897
 transform 1 0 3148 0 1 2720
 box -212 -468 212 468
-use n_w4_l1  XS_XL_XD2_a
+use n_w4_l0p5_k1  XS_XL_XD2_a
 timestamp 1795102897
 transform 1 0 2036 0 1 2720
 box -212 -468 212 468
-use n_w4_l1  XS_XL_XD2_b
+use n_w4_l0p5_k1  XS_XL_XD2_b
 timestamp 1795102897
 transform 1 0 2592 0 1 2720
 box -212 -468 212 468
@@ -130,27 +130,27 @@ use n_w2_l4  XL1_XMT
 timestamp 1795102897
 transform 1 0 4004 0 1 10400
 box -512 -268 512 268
-use n_w4_l1  XL1_XM1
+use n_w4_l0p5_k1  XL1_XM1
 timestamp 1795102897
 transform 1 0 368 0 1 10600
 box -212 -468 212 468
-use n_w4_l1  XL1_XD1_a
+use n_w4_l0p5_k1  XL1_XD1_a
 timestamp 1795102897
 transform 1 0 924 0 1 10600
 box -212 -468 212 468
-use n_w4_l1  XL1_XD1_b
+use n_w4_l0p5_k1  XL1_XD1_b
 timestamp 1795102897
 transform 1 0 1480 0 1 10600
 box -212 -468 212 468
-use n_w4_l1  XL1_XM2
+use n_w4_l0p5_k1  XL1_XM2
 timestamp 1795102897
 transform 1 0 3148 0 1 10600
 box -212 -468 212 468
-use n_w4_l1  XL1_XD2_a
+use n_w4_l0p5_k1  XL1_XD2_a
 timestamp 1795102897
 transform 1 0 2036 0 1 10600
 box -212 -468 212 468
-use n_w4_l1  XL1_XD2_b
+use n_w4_l0p5_k1  XL1_XD2_b
 timestamp 1795102897
 transform 1 0 2592 0 1 10600
 box -212 -468 212 468
@@ -206,27 +206,27 @@ use n_w2_l4  XL2_XMT
 timestamp 1795102897
 transform 1 0 4004 0 1 15480
 box -512 -268 512 268
-use n_w4_l1  XL2_XM1
+use n_w4_l0p5_k1  XL2_XM1
 timestamp 1795102897
 transform 1 0 368 0 1 15680
 box -212 -468 212 468
-use n_w4_l1  XL2_XD1_a
+use n_w4_l0p5_k1  XL2_XD1_a
 timestamp 1795102897
 transform 1 0 924 0 1 15680
 box -212 -468 212 468
-use n_w4_l1  XL2_XD1_b
+use n_w4_l0p5_k1  XL2_XD1_b
 timestamp 1795102897
 transform 1 0 1480 0 1 15680
 box -212 -468 212 468
-use n_w4_l1  XL2_XM2
+use n_w4_l0p5_k1  XL2_XM2
 timestamp 1795102897
 transform 1 0 3148 0 1 15680
 box -212 -468 212 468
-use n_w4_l1  XL2_XD2_a
+use n_w4_l0p5_k1  XL2_XD2_a
 timestamp 1795102897
 transform 1 0 2036 0 1 15680
 box -212 -468 212 468
-use n_w4_l1  XL2_XD2_b
+use n_w4_l0p5_k1  XL2_XD2_b
 timestamp 1795102897
 transform 1 0 2592 0 1 15680
 box -212 -468 212 468
@@ -310,27 +310,27 @@ use n_w2_l4  XA1_XA_XMT
 timestamp 1795102897
 transform 1 0 8496 0 1 2520
 box -512 -268 512 268
-use n_w4_l1  XA1_XA_XM1
+use n_w4_l0p5_k1  XA1_XA_XM1
 timestamp 1795102897
 transform 1 0 4860 0 1 2720
 box -212 -468 212 468
-use n_w4_l1  XA1_XA_XD1_a
+use n_w4_l0p5_k1  XA1_XA_XD1_a
 timestamp 1795102897
 transform 1 0 5416 0 1 2720
 box -212 -468 212 468
-use n_w4_l1  XA1_XA_XD1_b
+use n_w4_l0p5_k1  XA1_XA_XD1_b
 timestamp 1795102897
 transform 1 0 5972 0 1 2720
 box -212 -468 212 468
-use n_w4_l1  XA1_XA_XM2
+use n_w4_l0p5_k1  XA1_XA_XM2
 timestamp 1795102897
 transform 1 0 7640 0 1 2720
 box -212 -468 212 468
-use n_w4_l1  XA1_XA_XD2_a
+use n_w4_l0p5_k1  XA1_XA_XD2_a
 timestamp 1795102897
 transform 1 0 6528 0 1 2720
 box -212 -468 212 468
-use n_w4_l1  XA1_XA_XD2_b
+use n_w4_l0p5_k1  XA1_XA_XD2_b
 timestamp 1795102897
 transform 1 0 7084 0 1 2720
 box -212 -468 212 468
@@ -350,27 +350,27 @@ use n_w2_l4  XA1_XB_XMT
 timestamp 1795102897
 transform 1 0 7840 0 1 3880
 box -512 -268 512 268
-use n_w4_l1  XA1_XB_XM1
+use n_w4_l0p5_k1  XA1_XB_XM1
 timestamp 1795102897
 transform 1 0 4204 0 1 4080
 box -212 -468 212 468
-use n_w4_l1  XA1_XB_XD1_a
+use n_w4_l0p5_k1  XA1_XB_XD1_a
 timestamp 1795102897
 transform 1 0 4760 0 1 4080
 box -212 -468 212 468
-use n_w4_l1  XA1_XB_XD1_b
+use n_w4_l0p5_k1  XA1_XB_XD1_b
 timestamp 1795102897
 transform 1 0 5316 0 1 4080
 box -212 -468 212 468
-use n_w4_l1  XA1_XB_XM2
+use n_w4_l0p5_k1  XA1_XB_XM2
 timestamp 1795102897
 transform 1 0 6984 0 1 4080
 box -212 -468 212 468
-use n_w4_l1  XA1_XB_XD2_a
+use n_w4_l0p5_k1  XA1_XB_XD2_a
 timestamp 1795102897
 transform 1 0 5872 0 1 4080
 box -212 -468 212 468
-use n_w4_l1  XA1_XB_XD2_b
+use n_w4_l0p5_k1  XA1_XB_XD2_b
 timestamp 1795102897
 transform 1 0 6428 0 1 4080
 box -212 -468 212 468
@@ -398,27 +398,27 @@ use n_w2_l4  XA2_XA_XMT
 timestamp 1795102897
 transform 1 0 4004 0 1 17920
 box -512 -268 512 268
-use n_w4_l1  XA2_XA_XM1
+use n_w4_l0p5_k1  XA2_XA_XM1
 timestamp 1795102897
 transform 1 0 368 0 1 18120
 box -212 -468 212 468
-use n_w4_l1  XA2_XA_XD1_a
+use n_w4_l0p5_k1  XA2_XA_XD1_a
 timestamp 1795102897
 transform 1 0 924 0 1 18120
 box -212 -468 212 468
-use n_w4_l1  XA2_XA_XD1_b
+use n_w4_l0p5_k1  XA2_XA_XD1_b
 timestamp 1795102897
 transform 1 0 1480 0 1 18120
 box -212 -468 212 468
-use n_w4_l1  XA2_XA_XM2
+use n_w4_l0p5_k1  XA2_XA_XM2
 timestamp 1795102897
 transform 1 0 3148 0 1 18120
 box -212 -468 212 468
-use n_w4_l1  XA2_XA_XD2_a
+use n_w4_l0p5_k1  XA2_XA_XD2_a
 timestamp 1795102897
 transform 1 0 2036 0 1 18120
 box -212 -468 212 468
-use n_w4_l1  XA2_XA_XD2_b
+use n_w4_l0p5_k1  XA2_XA_XD2_b
 timestamp 1795102897
 transform 1 0 2592 0 1 18120
 box -212 -468 212 468
@@ -438,27 +438,27 @@ use n_w2_l4  XA2_XB_XMT
 timestamp 1795102897
 transform 1 0 8496 0 1 17920
 box -512 -268 512 268
-use n_w4_l1  XA2_XB_XM1
+use n_w4_l0p5_k1  XA2_XB_XM1
 timestamp 1795102897
 transform 1 0 4860 0 1 18120
 box -212 -468 212 468
-use n_w4_l1  XA2_XB_XD1_a
+use n_w4_l0p5_k1  XA2_XB_XD1_a
 timestamp 1795102897
 transform 1 0 5416 0 1 18120
 box -212 -468 212 468
-use n_w4_l1  XA2_XB_XD1_b
+use n_w4_l0p5_k1  XA2_XB_XD1_b
 timestamp 1795102897
 transform 1 0 5972 0 1 18120
 box -212 -468 212 468
-use n_w4_l1  XA2_XB_XM2
+use n_w4_l0p5_k1  XA2_XB_XM2
 timestamp 1795102897
 transform 1 0 7640 0 1 18120
 box -212 -468 212 468
-use n_w4_l1  XA2_XB_XD2_a
+use n_w4_l0p5_k1  XA2_XB_XD2_a
 timestamp 1795102897
 transform 1 0 6528 0 1 18120
 box -212 -468 212 468
-use n_w4_l1  XA2_XB_XD2_b
+use n_w4_l0p5_k1  XA2_XB_XD2_b
 timestamp 1795102897
 transform 1 0 7084 0 1 18120
 box -212 -468 212 468
@@ -506,10 +506,10 @@ use p_w1_l0p5  XP1_XDT_XPI
 timestamp 1795102897
 transform 1 0 7086 0 1 11740
 box -224 -230 224 230
-use n_w1_l1  XP1_XDT_XNI
+use n_w1_l0p5  XP1_XDT_XNI
 timestamp 1795102896
-transform 1 0 4688 0 1 9180
-box -212 -168 212 168
+transform 1 0 4738 0 1 9180
+box -162 -168 162 168
 use p_w1_l2  XP1_XDT_XS2
 timestamp 1795102897
 transform 1 0 7692 0 1 11740
@@ -622,10 +622,10 @@ use p_w1_l0p5  XP2_XDT_XPI
 timestamp 1795102897
 transform 1 0 7086 0 1 16820
 box -224 -230 224 230
-use n_w1_l1  XP2_XDT_XNI
+use n_w1_l0p5  XP2_XDT_XNI
 timestamp 1795102896
-transform 1 0 4688 0 1 14260
-box -212 -168 212 168
+transform 1 0 4738 0 1 14260
+box -162 -168 162 168
 use p_w1_l2  XP2_XDT_XS2
 timestamp 1795102897
 transform 1 0 7692 0 1 16820

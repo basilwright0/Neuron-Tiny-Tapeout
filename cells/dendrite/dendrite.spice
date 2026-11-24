@@ -27,7 +27,7 @@
 
 * --------------------------------------------------------------- ax_pair ---
 * Axial conductance between x and y: two back-to-back follower OTAs (leak_ota_deg, membrane.spice;
-* same devices incl. the 2026-11-19 headroom fix: inputs 4/1, degeneration diodes 8/1).
+* same devices incl. the 2026-11-19 headroom fix: inputs 4/1, degeneration diodes 8/1; level 4: inputs 4/0.5, diodes 8/0.5).
 * I(into x) = Iax*tanh((Vy-Vx)/VL), and the mirror image into y: a symmetric conductance
 * g_ax = 6.2 S/A * Iax for |Vx-Vy| < ~80 mV, saturating at +-Iax beyond ~150 mV.
 * Hold: each OTA output reaches its compartment through a pfet switch (off while hold = 1), as the
@@ -36,10 +36,10 @@
 * output pfet leaking pA into the node).
 .subckt ax_ota_h out in vbn hold vdd vss
 XMT  t   vbn vss vss nfet_03v3 W=2u L=4u
-XM1  a   in  s1  vss nfet_03v3 W=4u L=1u
-XD1  s1  s1  t   vss nfet_03v3 W=8u L=1u
-XM2  o   o   s2  vss nfet_03v3 W=4u L=1u
-XD2  s2  s2  t   vss nfet_03v3 W=8u L=1u
+XM1  a   in  s1  vss nfet_03v3 W=4u L=0.5u
+XD1  s1  s1  t   vss nfet_03v3 W=8u L=0.5u
+XM2  o   o   s2  vss nfet_03v3 W=4u L=0.5u
+XD2  s2  s2  t   vss nfet_03v3 W=8u L=0.5u
 XP1  a   a   vdd vdd pfet_03v3 W=2u L=4u
 XP2  o   a   vdd vdd pfet_03v3 W=2u L=4u
 XHO  out hold o  vdd pfet_03v3 W=1u L=0.28u
@@ -52,14 +52,16 @@ XB y x vbn hold vdd vss ax_ota_h
 * ------------------------------------------------------------------ pdet ---
 * Plateau threshold detector: det_ah (lif.spice) without Cfb. Starved inverter on vd whose nfet
 * source sits on vsrc (the per-die calibrated AH threshold rail), so the plateau threshold tracks
-* the soma threshold; XNI is half the soma's W/L, which puts the trip ~20-25 mV above it
-* (~EL + 100 mV). Output xb is full swing, high while vd is above threshold. ~10 nA at rest.
+* the soma threshold. Level 3 (docs/m2-level3-proposal.md 2.2 D1): XNI is the soma's 1/0.5 (was 1/1,
+* half the W/L: trip +31-36 mV over the soma at S = 100, +89-110 mV at 10000; sim/results/level3_d1), so
+* the trip now tracks the soma's at every S; the plateau offset above the soma threshold comes from the
+* gap trims (nibbles 7/8). Output xb is full swing, high while vd is above threshold.
 * Trim hook (nibble 7): dend_d1 port vsrcp feeds this rail for both subunits (tied to vsrc until
 * the trim cell exists; the trim then supplies vsrc + offset). Trip moves ~1:1 with the rail.
 .subckt pdet vd xb vsrc vbp_st vdd vss
 XPS s   vbp_st vdd vdd pfet_03v3 W=1u L=2u
 XPI n1  vd  s   vdd pfet_03v3 W=1u L=0.5u
-XNI n1  vd  vsrc vss nfet_03v3 W=1u L=1u
+XNI n1  vd  vsrc vss nfet_03v3 W=1u L=0.5u
 XS2 s2  vbp_st vdd vdd pfet_03v3 W=1u L=2u
 XP2 p   n1  s2  vdd pfet_03v3 W=1u L=0.28u
 XN2 p   n1  vsrc vss nfet_03v3 W=0.22u L=2u
@@ -79,7 +81,7 @@ XQ  pb  p   vdd vdd pfet_03v3 W=0.22u L=4u
 XON xb  pb  vss vss nfet_03v3 W=0.5u L=0.28u
 XOP xb  pb  vdd vdd pfet_03v3 W=1u L=0.28u
 * hysteresis: while xb is high a second input nfet helps pull n1 down, so the detector releases
-* ~20 mV below its trip point (no re-trigger as the subunit decays through threshold)
+* below its trip point (no re-trigger as the subunit decays through threshold); XNH kept 1/1 while XNI is 1/0.5 (level 3; hysteresis 16/23/42 mV at S=100/1000/10000)
 XNH n1  vd  h   vss nfet_03v3 W=1u L=1u
 XNE h   xb  vsrc vss nfet_03v3 W=1u L=0.28u
 .ends pdet

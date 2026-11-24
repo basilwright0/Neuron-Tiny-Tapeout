@@ -15,6 +15,7 @@ sys.path.insert(0, str(HERE))
 from cellgen import Cell, snap, load_dev, need_mos   # noqa: E402
 
 RING = 0.60          # perimeter p-tap ring width
+NWTOP = 0.75        # idac_p: n-well top edge above the inverter pfet row (b1c re-pack)
 OUT = HERE / "out"
 
 
@@ -97,17 +98,18 @@ def idac(pol):
     rail = "vsn" if n else "vsp"
     c = Cell(f"idac_{pol}")
     W = 25.4
-    GAP = 1.00
+    GAP = 0.70 if n else 0.85
     XL, XR = RING + 0.8, W - RING - 0.8
     # ---- bottom pins (rev C: gate line + rail only; the range mux is gone) -------------------
     ypa = RING + 0.75
     for k, net in enumerate(["g", rail]):
         pin(c, net, W / 2 - 3.0 + k * 6.0, ypa)
     y = ypa + 0.2 + 0.7
-    # well tie at the bottom (n-tap for the idac_p n-well: DF.13 max 20 um tap distance)
-    c.tap("n" if not n else "p", (XL + 0.6, y, XR - 0.6, y + 0.6), "vss" if n else "vdd")
+    # M3 re-pack (b1c): no bottom well-tie row.  idac_n: the perimeter p-tap ring ties the substrate
+    # (every nfet is < 13 um from it).  idac_p: one n-tap row between the two unit row pairs keeps
+    # every pfet of the cell within 20 um of an n-tap (DF.13), replacing the bottom and top n-tap rows.
     nw0 = y - 0.5
-    y += 0.6 + 0.8
+    y += 0.0 if n else 0.0
     # ---- unit rows -------------------------------------------------------------------------
     rows = [("U4a", ["d4"] * 4), ("U4b", ["d4"] * 4), ("U3", ["d3"] * 4), ("U210", None)]
     d = ext(Pm, 2.0, 2.0, 8)
@@ -135,7 +137,12 @@ def idac(pol):
             c.mos(name, Pm, 2.0, 2.0, W / 2 - (0.0 if nf == 8 else 1.26), cyy, strips, "g", nf=nf, head=head,
                   rails={rail: yrail}, busses=busses)
         c.p("metal1", (XL + 0.6, yrail - 0.3, XR - 0.6, yrail + 0.3), rail, term=True)
-        y = ybus_a + 0.15 + (GAP if pr == 0 else 0.9)
+        if pr == 0 and not n:
+            yt = ybus_a + 0.15 + 0.1
+            c.tap("n", (XL + 0.6, yt, XR - 0.6, yt + 0.6), "vdd")
+            y = yt + 0.6 + 0.8
+        else:
+            y = ybus_a + 0.15 + (GAP if pr == 0 else 0.9)
     # ---- per-bit slices: SO/SD pair, inverter pairs ------------------------------------------
     if n:
         x1, x2 = [f"bd{b}" for b in range(5)], [f"bc{b}" for b in range(5)]
@@ -147,9 +154,6 @@ def idac(pol):
     for b in range(5):
         c.mos(f"SW{b}", Pm, 0.5, 0.5, xs_[b], cy, ["out", f"d{b}", "dump"], [f"bc{b}", f"bd{b}"], nf=2, head="top")
     y = cy + e[3] + GAP
-    if n:
-        y += 0.5
-        c.tap("p", (XL + 0.6, y - 0.95, XR - 0.6, y - 0.35), "vss")
     inv_rows = [("nfet", 0.5, "vss" if n else "vcas"), ("pfet", 1.0, "vcas" if n else "vdd")]
     if not n:
         inv_rows.reverse()
@@ -166,12 +170,13 @@ def idac(pol):
                   [f"b{b}", x1[b]], nf=2, head="alt")
         y = cy + e[3]
         if model == "pfet":
-            c.tap("n", (XL + 0.6, y + 0.85, XR - 0.6, y + 1.45), "vcas" if n else "vdd")
             if n:
+                c.tap("n", (XL + 0.6, y + 0.85, XR - 0.6, y + 1.45), "vcas")
                 c.p("nwell", (XL - 0.4, nwb, XR + 0.4, y + 2.05))
+                y += 2.05 + GAP
             else:
-                c.p("nwell", (XL - 0.4, nw0, XR + 0.4, y + 2.05))
-            y += 2.05 + GAP
+                c.p("nwell", (XL - 0.4, nw0, XR + 0.4, y + NWTOP))
+                y += NWTOP + GAP
         else:
             y += GAP
     # ---- top pins ---------------------------------------------------------------------------

@@ -36,11 +36,15 @@ LIB = {
     "adex_a1":     dict(gds="layout/tier2/out/adex_a1.gds", lvs="layout/tier2/adex_a1_lvs.spice",
                         prefix="ax_", final=True, size=(38.0, 73.0)),
 }
-_SLOT_FINAL = {"slot_ah": True, "slot_ah_h": True, "slot_ah_p": True, "slot_ah_f": True, "slot_cmp_h": True,
-               "slot_ah_50": True, "slot_ah_800": True, "slot_ref": True, "slot_dummy": True}
+# M2 regrouped array: tall trimmed cells from layout/slot (45.74 um per row), compact cells from
+# layout/compact/final (29.42 / 34.29 um; copies of the clean layout/compact/out builds, which are git-ignored).
+_SLOT_FINAL = {"slot_ah_h": True, "slot_ah_p": True, "slot_cmp_h": True, "slot_ref": True,
+               "cslot_ah": True, "cslot_ah_f": True, "czslot_ah_f": True, "czslot_ah_50": True, "czslot_ah_400": True}
 for _i, (_c, _f) in enumerate(_SLOT_FINAL.items()):
-    LIB[_c] = dict(gds=f"layout/slot/out/{_c}.gds", lvs=f"layout/slot/{_c}_lvs.spice", prefix=f"s{_i}_",
-                   final=_f, size=(fp.SLOT_W, fp.SLOT_H * (2 if _c == fp.SLOT_CELL["CMP"] else 1)))
+    _h = fp.COMPACT_CELLS[_c] if _c in fp.COMPACT_CELLS else fp.TALL_H * (2 if _c == fp.SLOT_CELL["CMP"] else 1)
+    _d = "layout/compact/final" if _c in fp.COMPACT_CELLS else "layout/slot"
+    LIB[_c] = dict(gds=f"{_d}/{'' if _c in fp.COMPACT_CELLS else 'out/'}{_c}.gds", lvs=f"{_d}/{_c}_lvs.spice",
+                   prefix=f"s{_i}_", final=_f, size=(fp.SLOT_W, _h))
 # Placeholder pin overrides (cell-local x ranges moved by dx; pins moved to a new edge position). Empty: the
 # D1 placeholder now uses the pins of the 70 x 104 D1 GDS as drawn by the D1 track (2026-11-19 16:12).
 PH_SHIFT = {}
@@ -216,13 +220,14 @@ def std_cells():
         x = round(round((px - 1.40) / 0.005) * 0.005, 3)
         S[f"tie{i}"] = ("tieh", x, fp.TIE_ROW_Y)
         S[f"tap{i}"] = ("filltie", x + SC_W["tieh"], fp.TIE_ROW_Y)
-    # glue row (west -> east)
-    x, y = fp.GLUE_ROW
-    for inst, cell in [("gtap0", "filltie"), ("g_or", "or4_1"), ("g_enb", "nor3_1"), ("g_in", "inv_1"),
-                       ("g_i0", "inv_1"), ("g_i1", "inv_1"), ("g_s0", "nor3_1"), ("g_s1", "nor3_1"),
-                       ("g_s2", "nor3_1"), ("gtap1", "filltie")]:
-        S[inst] = (cell, round(x, 3), y)
-        x += SC_W[cell]
+    # glue rows (west -> east), M3: split over the two rows in H3 (fp.GLUE_ROWS); same cells and nets
+    rows = [[("gtap0", "filltie"), ("g_or", "or4_1"), ("g_enb", "nor3_1"), ("g_in", "inv_1"),
+             ("g_i0", "inv_1"), ("g_i1", "inv_1"), ("gtap1", "filltie")],
+            [("gtap2", "filltie"), ("g_s0", "nor3_1"), ("g_s1", "nor3_1"), ("g_s2", "nor3_1"), ("gtap3", "filltie")]]
+    for (x, y), row in zip(fp.GLUE_ROWS, rows):
+        for inst, cell in row:
+            S[inst] = (cell, round(x, 3), y)
+            x += SC_W[cell]
     return S
 
 

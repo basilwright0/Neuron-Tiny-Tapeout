@@ -64,19 +64,29 @@ def pin_pt(cell, name):
 
 
 # ======================================================================== array
-TRK0, TRKP = 32.38, 0.56                       # slot row band: track k centre at slot y + 32.38 + 0.56 k
+TRKP = 0.56                                    # row band: track k centre at fp.row_y0(r) + fp.row_trk0(r) + 0.56 k
 SHARED = {0: "rt_out[0]", 1: "rt_out[1]", 2: "rt_out[2]", 3: "rt_out[3]", 5: "probe_sub", 6: "probe_sub_b"}
 SHARED_EAST_ROW = 2                            # row whose shared tracks continue east to the macro (rt_out y)
 PINTRK = {"sta": 0, "stb": 1, "hold": 2, "mreset": 3, "rsel": 4, "sub": 5, "sub_b": 6}
+# shared nets whose west join line sits outside all the others (x 3.11, 4.9 um off the array; the inner column at
+# x 7.31 holds a VGND shield). Stim A: M2 PEX, its join line 0.4 um off column 0 added 153 aF on P2 vm.
+# The line continues down to the array bottom, where its end is a router terminal for D1's sta branch.
+JOIN_OUTER = ("rt_out[0]",)
+
+
+def join_x(ax0):
+    ks = sorted(SHARED)
+    return {k: gx(ax0 - 0.69 - 0.7 * (len(ks) if SHARED[k] in JOIN_OUTER else j)) for j, k in enumerate(ks)}
 
 
 def array(F):
     grid = fp.slot_map()
     tn = fp.TRIM_NIBBLES
     ax0, ay0, ax1, ay1 = fp.BLOCKS["NA neuron array 4x4"]
-    jumps = {}
+    jumps, fan = {}, {}
+    xoff = 0                                # fan-out columns used by lower rows below AdEx's top (CH_NAE)
     for r in range(4):
-        y0 = ay0 + r * fp.SLOT_H
+        y0, TRK0 = fp.row_y0(r), fp.row_trk0(r)
         net_of = {k: n for k, n in SHARED.items()}
         net_of[4] = f"probe_rsel[{r}]"
         vias = []                                              # (k, x)
@@ -85,8 +95,8 @@ def array(F):
             """Pins of the cell covering (r, c) whose label lies on row r's band (double slots have two)."""
             rc, name = fp.cell_at(r, c)
             pins = geo(fp.slot_cell(name))["pins"]
-            off = (r - fp.slot_origin(rc)[0]) * fp.SLOT_H
-            return name, {pn: p for pn, p in pins.items() if off <= p[0]["pt"][1] < off + fp.SLOT_H}
+            off = fp.row_y0(r) - fp.row_y0(fp.slot_origin(rc)[0])
+            return name, {pn: p for pn, p in pins.items() if off <= p[0]["pt"][1] < off + fp.ROW_H[r]}
         trims = [c for c in range(4) if "t0" in here(c)[1] and (here(c)[0] != "CMP" or C.CMP_TRIM)]
         for c in range(4):
             name, pins = here(c)
@@ -106,8 +116,19 @@ def array(F):
                     vias.append((base + j, sx + pins[f"t{j}"][0]["pt"][0]))
         # tracks: west end (shared: to the join line), east end (to the fan-out)
         east = [k for k in sorted(net_of) if k not in SHARED or r == SHARED_EAST_ROW]
-        xe = {k: gx(ax1 + 0.71 + 0.7 * j) for j, k in enumerate(east)}
-        xw = {k: gx(ax0 - 0.69 - 0.7 * j) for j, k in enumerate(sorted(SHARED))}
+        past = fp.row_y0(r + 1) < fp.BLOCKS["A1 AdEx"][3]  # this row's lines run north past AdEx (CH_NAE)
+        pitch = 0.56 if past else 0.7          # CH_NAE: 16 lines (rsel, 3 spk, 12 trim) at the Metal2 minimum pitch
+        xe = {k: gx(ax1 + 0.71 + xoff + pitch * j) for j, k in enumerate(east)}
+        if past:                                # keep the columns (xoff is a distance here)
+            xoff += pitch * len(east)
+            assert ax1 + 0.71 + xoff - pitch + 0.14 <= fp.BLOCKS["A1 AdEx"][0] + 0.85 - 0.5, "CH_NAE overflow"
+        if past:                                # staircase levels for the east lines (see below)
+            y, lim, ylev = gy(fp.BLOCKS["A1 AdEx"][3] + 1.0), fp.row_y0(r + 1) + fp.row_trk0(r + 1) + TRKP * 4 - 0.56, []
+            while len(ylev) < len(east):
+                if lim < y < fp.row_y0(r + 2) + 0.7:
+                    y = gy(fp.row_y0(r + 2) + 0.7)
+                ylev.append(y); y = round(y + 0.56, 3)
+        xw = join_x(ax0)
         for k, net in net_of.items():
             ty = y0 + TRK0 + TRKP * k
             xa = xw[k] - 0.2 if k in SHARED else ax0 + 0.3
@@ -115,14 +136,22 @@ def array(F):
             F.p("metal3", (xa, ty - 0.14, xb, ty + 0.14), net)
             if k in xe:              # east fan-out: via2 + Metal2 to the terminal (row 0 up, rows 1-3 down)
                 F.p("via2", (xe[k] - 0.14, ty - 0.14, xe[k] + 0.14, ty + 0.14), net)
-                if r == 0:
-                    yt = gy(y0 + 44.2)
-                    F.p("metal2", (xe[k] - 0.14, ty - 0.2, xe[k] + 0.14, yt + 0.14), net)
-                    F.term(net, [("metal2", (xe[k] - 0.14, yt - 0.42, xe[k] + 0.14, yt + 0.14))])
+                if past:                # up past AdEx's top (the router keeps 0.42 off AdEx: no room east of it)
+                    # no router via fits inside a 0.56 bundle (0.38 pads), so step the columns up in a staircase
+                    # (east-most lowest, 0.56 apart) and drop the via2 here (0.28 wide, legal at this pitch); the
+                    # router starts from a Metal3 stub, free to run east over the lower columns.  Metal3 is free
+                    # below row 1's first east track (k 4) and again above row 1's band.
+                    yt = ylev[len(east) - 1 - east.index(k)]
+                    F.p("metal2", (xe[k] - 0.14, ty - 0.2, xe[k] + 0.14, yt + 0.19), net)
+                    F.p("via2", (xe[k] - 0.14, yt - 0.14, xe[k] + 0.14, yt + 0.14), net)
+                    F.p("metal3", (xe[k] - 0.19, yt - 0.14, xe[k] + 0.42, yt + 0.14), net)
+                    F.term(net, [("metal3", (xe[k] - 0.14, yt - 0.14, xe[k] + 0.42, yt + 0.14))])
                 else:
-                    yt = gy(y0 + 31.0)
+                    yt = gy(y0 + TRK0 - 1.38)
                     F.p("metal2", (xe[k] - 0.14, yt - 0.14, xe[k] + 0.14, ty + 0.2), net)
                     F.term(net, [("metal2", (xe[k] - 0.14, yt - 0.14, xe[k] + 0.14, yt + 0.42))])
+                    if net in JOIN_OUTER:            # same group: the west join end (drawn below) is this terminal too
+                        fan[net] = F.terms[net][-1]
             if k in SHARED:
                 F.p("via2", (xw[k] - 0.14, ty - 0.14, xw[k] + 0.14, ty + 0.14), net)
         for k, x in vias:
@@ -153,7 +182,7 @@ def array(F):
         xa = max(xa, kb)
     hops.append((xa, ax1 - 0.6))
     for r in range(4):
-        jy = round(ay0 + r * fp.SLOT_H + TRK0, 3)
+        jy = round(fp.row_y0(r) + fp.row_trk0(r), 3)
         idx = [i for i, (lay, rr, net) in enumerate(F.shapes) if lay == "metal3" and rr[1] == round(jy - 0.14, 3)]
         assert len(idx) == 1, (r, idx)
         lay, rr, net = F.shapes.pop(idx[0])
@@ -172,21 +201,32 @@ def array(F):
                 F.p("metal3", (cx - 0.3, jy - 0.14, cx + 0.3, jy + 0.14), net)
                 F.p("via3", q, net)
     # west join lines (Metal2) of the shared nets, row 0 track -> row 3 track
-    xw = {k: gx(ax0 - 0.69 - 0.7 * j) for j, k in enumerate(sorted(SHARED))}
+    xw = join_x(ax0)
     d1y = C.instances()["d1"][2]
     for k, net in SHARED.items():
-        ya = ay0 + TRK0 + TRKP * k
+        ya = ay0 + fp.row_trk0(0) + TRKP * k
         if k <= 3 and C.PH_MOVE.get("dend_d1"):     # rt_out joins continue down to west-edge D1 inputs
             ya = d1y + 99.5
-        yb = ay0 + 3 * fp.SLOT_H + TRK0 + TRKP * k
+        if net in JOIN_OUTER:                       # down to the array bottom (above the bias channel)
+            ya = gy(ay0 + 0.6)
+            fan[net].append(("metal2", R(xw[k] - 0.14, ya - 0.14, xw[k] + 0.14, ya + 0.42)))
+        yb = fp.row_y0(3) + fp.row_trk0(3) + TRKP * k
         F.p("metal2", (xw[k] - 0.14, ya - 0.2, xw[k] + 0.14, yb + 0.2), net)
+    # VGND shield in the vacated inner join column, along the array's west edge (whatever join line is innermost
+    # couples to column 0: local PEX with rt_out[1] innermost, P2 vm +102 aF); via1 onto the row-3 VSS strip
+    xs = gx(ax0 - 0.69)
+    assert xs not in xw.values()
+    F.p("metal2", (xs - 0.14, ay0 + 1.8, xs + 0.14, ay1 + 0.45), "VGND")   # above rt_out[1]'s via (y 141.3)
+    F.p("metal1", (xs - 0.2, ay1 - 0.1, ax0 + 0.3, ay1 + 0.6), "VGND")
+    F.via("via1", xs, ay1 + 0.25, "VGND", pads=("lo",))      # Metal2 pad east only (rt_out[1] runs at x 6.89)
+    F.p("metal2", (xs - 0.14, ay1 + 0.05, xs + 0.26, ay1 + 0.45), "VGND")
     # column-bottom terminals (row 0 cells): column lines enter from below on Metal2
     for c in range(4):
         cell = fp.slot_cell(fp.cell_at(0, c)[1])
         pins = geo(cell)["pins"]
         sx = ax0 + c * fp.SLOT_W
         # en_c enters at the TOP of the array (keeps the bias channel for the analog lines)
-        q = [q for q in geo(fp.slot_cell(fp.cell_at(3, c)[1]))["pins"]["en"][0]["rects"] if q[3] >= fp.SLOT_H - 0.01][0]
+        q = [q for q in geo(fp.slot_cell(fp.cell_at(3, c)[1]))["pins"]["en"][0]["rects"] if q[3] >= fp.ROW_H[3] - 0.01][0]
         yt3 = ay1
         F.p("metal2", (sx + q[0], yt3 - 0.02, sx + q[2], yt3 + 0.7), f"en_c{c}")
         F.term(f"en_c{c}", [("metal2", (sx + q[0], yt3 + 0.42, sx + q[2], yt3 + 0.7))])
@@ -202,7 +242,9 @@ def array(F):
     # ---- power above the array: Metal1 VSS strip on the row-3 ring, vdd column stubs, Metal3 buses
     yt = ay1
     F.p("metal1", (ax0, yt - 0.1, ax1, yt + 0.6), "VGND")
-    VDDB, VSSB = (315.1, 315.9), (316.2, 317.0)
+    # M3 (TOP-1): buses right above the routed en_c / rt_out lines that hug the array top (y <= 300.06 in m2-rc1),
+    # so the strip above them (fp.RESERVED "RT") is one free rectangle. Was (315.1, 315.9), (316.2, 317.0).
+    VDDB, VSSB = (300.5, 301.3), (301.6, 302.4)
     F.p("metal3", (1.3, VDDB[0], 125.0, VDDB[1]), "VDPWR")
     F.p("metal3", (4.3, VSSB[0], 125.0, VSSB[1]), "VGND")
     for c in range(4):
@@ -235,26 +277,33 @@ def stdcells(F, VDDB, VSSB):
     x0, x1 = min(xs), max(x for (cell, x, y) in S.values() if y == ty) + C.SC_W["filltie"]
     F.p("metal1", (x0, ty - 0.3, x1, ty + 0.3), "VGND")
     F.p("metal1", (x0, ty + 3.62, x1, ty + 4.22), "VDPWR")
+    # M3 (TOP-1): no drops into the array buses (they crossed the array-top strip); the rails are tied to the
+    # x 50.0 VDPWR / 52.6 VGND stripes: VSS stack at the uio_oe[4] tieh's west end (on the stripe), VDD rail
+    # (above the stripes' top end 320.36) via1 -> Metal2 down -> via2/via3 onto the stripe at y 319.8.
+    xv = S["tie4"][1] + 0.40
+    assert 52.8 <= xv <= 54.0, xv
+    F.stack(xv, ty, "VGND")
+    xd = stripe_at("VDPWR", 50.8)
+    assert all(not (x - 0.5 < xd < x + C.SC_W["tieh"] + C.SC_W["filltie"] + 0.5) for (cell, x, y) in S.values() if y == ty and cell == "tieh")
+    F.via("via1", xd, ty + 3.92, "VDPWR")
+    F.p("metal2", (xd - 0.2, 319.6, xd + 0.2, ty + 4.12), "VDPWR")
+    F.via("via2", xd, 319.8, "VDPWR")
+    F.via("via3", xd, 319.8, "VDPWR")
     for i in range(8):
         _, x, _ = S[f"tie{i}"]
-        xv = x + 0.40                                            # VSS drop (tieh west end)
-        F.via("via1", xv, ty, "VGND")
-        F.p("metal2", (xv - 0.14, sum(VSSB) / 2 - 0.2, xv + 0.14, ty + 0.2), "VGND")
-        F.via("via2", xv, sum(VSSB) / 2, "VGND")
-        xd = x + C.SC_W["tieh"] + 0.84                          # VDD drop (filltie)
-        F.via("via1", xd, ty + 3.92, "VDPWR")
-        F.p("metal2", (xd - 0.14, sum(VDDB) / 2 - 0.2, xd + 0.14, ty + 4.12), "VDPWR")
-        F.via("via2", xd, sum(VDDB) / 2, "VDPWR")
         landing(F, sc, "tieh", x, ty, "Z", f"uio_oe[{i}]", (1.40, 2.85))
     # ---- glue row: rails, stacks to the macro strap-pair stripes, pin landing pads
-    gx0, gy0 = fp.GLUE_ROW
-    gxs = [x + C.SC_W[cell] for (cell, x, y) in S.values() if y == gy0]
-    gx1 = max(gxs)
-    F.p("metal1", (gx0, gy0 - 0.3, gx1, gy0 + 0.3), "VGND")
-    F.p("metal1", (gx0, gy0 + 3.62, gx1, gy0 + 4.22), "VDPWR")
-    for net, x, w in fp.STRIPES:
-        if gx0 + 0.5 < x + w / 2 < gx1 - 0.5:
-            F.stack(x + w / 2, gy0 + (3.92 if net == "VDPWR" else 0.0), net)
+    glue_y = {gy0 for gx0, gy0 in fp.GLUE_ROWS}
+    for gx0, gy0 in fp.GLUE_ROWS:
+        gx1 = max(x + C.SC_W[cell] for (cell, x, y) in S.values() if y == gy0)
+        F.p("metal1", (gx0, gy0 - 0.3, gx1, gy0 + 0.3), "VGND")
+        F.p("metal1", (gx0, gy0 + 3.62, gx1, gy0 + 4.22), "VDPWR")
+        n = 0
+        for net, x, w in fp.STRIPES:
+            if gx0 + 0.5 < x + w / 2 < gx1 - 0.5:
+                F.stack(x + w / 2, gy0 + (3.92 if net == "VDPWR" else 0.0), net)
+                n += 1
+        assert n == 2, (gx0, gy0, n)
     nets = C.nets()
     conn = {}
     for net, lst in nets.items():
@@ -264,7 +313,7 @@ def stdcells(F, VDDB, VSSB):
             "nor3_1": {"A3": (0.80, 1.975), "A2": (1.96, 2.9), "A1": (3.08, 1.9), "ZN": (3.69, 2.95)},
             "inv_1": {"I": (0.87, 1.7), "ZN": (1.43, 2.9)}}
     for inst, (cell, x, y) in S.items():
-        if y != gy0 or cell not in PICK:
+        if y not in glue_y or cell not in PICK:
             continue
         for pin, pt in PICK[cell].items():
             landing(F, sc, cell, x, y, pin, conn[(inst, pin)], pt)
@@ -303,23 +352,27 @@ def stripe_at(net, xc):
 
 def blocks_power(F):
     I = C.instances()
-    # ---- B1: VGND stripe over its east vss pin (Metal3), vdd pin stubbed east to the VDPWR stripe
+    # ---- B1 (M3 + vth_cmp DAC shift, m3-vdac 01254de; 242 x 114.5 at (103, 12)). Power hookups from a KLayout net
+    # trace of layout/bias/out/bias_b1.gds (local coordinates):
+    # east: vss Metal3 local x 240.41-241.45, y 39.465-39.765 (pad 240.41-240.81 x 39.415-39.815) next to the x 342.6
+    # VGND stripe -> Metal4 jumper from the stripe + 2 via3; vdd pin (local 241.1-241.5, 49.8-50.2) stubbed east to the
+    # x 345 VDPWR stripe.
     bx, by = I["b1"][1:]
+    assert abs(bx - 103.0) < 1e-6 and abs(by - 12.0) < 1e-6, (bx, by)
     g = geo("bias_b1")["pins"]
-    vss = g["vss"][0]["rects"]; vdd = g["vdd"][0]["rects"]
-    # its vss pin is a 0.3 um Metal3 wire at local x 262.45-262.75 (tile 342.45-342.75), y 58.75-64.8
-    vx = bx + 262.6
-    F.p("metal4", (vx - 0.25, by + 58.9, stripe_at("VGND", 343.0), by + 64.6), "VGND")
-    for yy in (by + 59.5, by + 61.0, by + 62.5, by + 64.0):
-        F.p("via3", (vx - 0.14, yy - 0.14, vx + 0.14, yy + 0.14), "VGND")
-    vy = by + (vdd[0][1] + vdd[0][3]) / 2
+    vy = by + 39.615
+    F.p("metal4", (stripe_at("VGND", 343.0) - 0.4, vy - 0.25, bx + 241.45, vy + 0.25), "VGND")
+    for xx in (bx + 240.61, bx + 241.21):
+        F.p("via3", (xx - 0.14, vy - 0.14, xx + 0.14, vy + 0.14), "VGND")
+    vy = by + 50.0
     xr = stripe_at("VDPWR", 345.4)
-    F.p("metal3", (bx + 263.41, vy - 0.2, xr + 0.25, vy + 0.2), "VDPWR")
+    F.p("metal3", (bx + 241.41, vy - 0.2, xr + 0.25, vy + 0.2), "VDPWR")
     F.via("via3", xr, vy, "VDPWR")
-    # B1 west power entry (PEX IR drop: receivers ~22 mV / 14 mV off with east-edge-only power): via3 drops from the
-    # x 121.0 VDPWR / 123.6 VGND stripes onto B1's 0.4 um Metal3 via pads under them (net trace of the 946cd68 GDS)
-    for (lx, ly), net in (((41.6, 28.2), "VDPWR"), ((41.6, 33.0), "VDPWR"), ((44.55, 37.65), "VGND"),
-                          ((44.2, 43.7), "VGND")):
+    # B1 west power entry (m2-rc1 PEX IR drop fix, kept for M3): via3 drops from the x 121.0 VDPWR / 123.6 VGND
+    # stripes onto B1's Metal3 power lines under them: vdd local y 78.9-79.2 (x 17.65-22.7), vss y 72.05-72.35
+    # (x 19.25-22.7)
+    for (lx, ly), net in (((18.6, 79.05), "VDPWR"), ((19.2, 79.05), "VDPWR"), ((20.8, 72.2), "VGND"),
+                          ((21.4, 72.2), "VGND"), ((22.0, 72.2), "VGND")):
         F.p("via3", (bx + lx - 0.14, by + ly - 0.14, bx + lx + 0.14, by + ly + 0.14), net)
     # ---- R1: vdd/vss Metal3 rails extended down into CH_BOT, jogs to the strap-pair-2 / east stripes
     rx, ry = I["r1"][1:]
@@ -360,6 +413,13 @@ def blocks_power(F):
         if p["layer"] == "metal1":
             m1stub("d1", p["pt"][1], "VDPWR")
     m1stub("d1", 0.3, "VGND")
+    # VGND shield (Metal2) along D1's west edge, where stim A ran until run 4 (M2 PEX: 206 aF on vs from that line;
+    # the router now keeps rt_out[0] 3 um off D1, route.NET_KO): rt_out[1] behind it keeps its shielded environment.
+    # Joined to the VGND stack of the m1stub above (x 5.0), up to the bias channel.
+    cell, x0, y0 = I["d1"]
+    xd, ys = round(x0 - 1.22, 3), y0 + 0.3
+    F.p("metal2", (stripe_at("VGND", 5.0) - 0.2, ys - 0.2, xd + 0.14, ys + 0.2), "VGND")
+    F.p("metal2", (xd - 0.14, ys - 0.2, xd + 0.14, fp.B1_BOX[3] - 1.0), "VGND")
     cell, x0, y0 = I["tau0"]                                   # tau0: off its EAST edge to the x 53.4 stack
     F.p("metal1", (x0 + 36.7, y0 + 0.0, stripe_at("VGND", 53.4) + 0.3, y0 + 0.6), "VGND")
     m1stub("tau2", 0.3, "VGND")

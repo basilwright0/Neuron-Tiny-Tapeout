@@ -16,21 +16,28 @@ sys.path.insert(0, "/work/sim/tb/speed")
 from common import RESULTS  # noqa: E402
 
 import subprocess  # noqa: E402
+import os  # noqa: E402
+# level-3 step 0 overrides (defaults = original bench): BT_INC = bias_all include (e.g. a /tmp copy with the
+# rx swap), BT_CODE_REF = nominal S = 100 vbn_ref code, BT_TAG = output suffix, BT_CASES = "tt:27,ss:0"
+INC = os.environ.get("BT_INC", "/work/cells/bias/bias_all.spice")
+TAG = os.environ.get("BT_TAG", "")
 
 P = "/foss/pdks/gf180mcuD/libs.tech/ngspice"
 CORN = {"tt": ("typical", "res_typical", "typical"), "ss": ("ss", "res_ss", "ss"), "ff": ("ff", "res_ff", "ff"),
         "sf": ("sf", "res_typical", "typical"), "fs": ("fs", "res_typical", "typical")}
-CODES = {0: 9, 1: 14, 2: 16, 3: 9, 4: 8}
+CODES = {0: 9, 1: int(os.environ.get("BT_CODE_REF", "14")), 2: 16, 3: 9, 4: 8}
 IREFS = [1e-6, 3e-6, 10e-6, 30e-6, 100e-6]
 LINES = ["leak", "ref", "syn", "ax", "w", "st"]
 CASES = [("tt", 27), ("ss", 0), ("ff", 85), ("sf", 0), ("fs", 85), ("ss", 85)]
+if os.environ.get("BT_CASES"):
+    CASES = [(x.split(":")[0], int(x.split(":")[1])) for x in os.environ["BT_CASES"].split(",")]
 
 
 def deck(c, t, code_over=None):
     mos, res, dio = CORN[c]
     L = [f"* bias top {c} {t}", f".include {P}/design.ngspice", f".lib {P}/sm141064.ngspice {mos}",
          f".lib {P}/sm141064.ngspice {res}", f".lib {P}/sm141064.ngspice diode_{dio}",
-         ".include /work/cells/bias/bias_all.spice", f".temp {t}",
+         f".include {INC}", f".temp {t}",
          ".option gmin=1e-18 abstol=1e-17 reltol=1e-5 itl1=1000 itl6=1000", "Vdd vdd 0 3.3",
          "Iref 0 pad DC 1u"]
     dig = []
@@ -66,7 +73,7 @@ def deck(c, t, code_over=None):
 
 
 def sim(c, t, code_over=None):
-    tag = f"biastop_{c}_{t}_{'nom' if code_over is None else code_over}"
+    tag = f"biastop_{c}_{t}_{'nom' if code_over is None else code_over}{TAG}"
     cir = RESULTS / f"{tag}.cir"
     cir.write_text(deck(c, t, code_over))
     p = subprocess.run(["ngspice", "-b", str(cir)], capture_output=True, text=True, cwd=RESULTS)
@@ -95,4 +102,4 @@ for c, t in CASES:
                  + " | " + " ".join(f"{x:5.2f}" for x in head) + " | " + " ".join(f"{v:.2f}" for v in nom[i][6:]))
 txt = "\n".join(L)
 print(txt)
-(RESULTS / "bias_top_summary.txt").write_text(txt + "\n")
+(RESULTS / f"bias_top_summary{TAG}.txt").write_text(txt + "\n")

@@ -4,48 +4,52 @@ magscale 1 10
 timestamp 0
 use vdacr_vc  Xd2
 timestamp 0
-transform 0 -1 7811 1 0 200
-box 0 0 6200 7506
+transform 0 -1 8046 1 0 200
+box 0 0 3960 7846
 use vdacr_vr  Xd1
 timestamp 0
-transform 0 -1 7916 1 0 6800
-box 0 0 6200 7716
+transform 0 -1 7916 1 0 4560
+box 0 0 3960 7716
 use vdacr_el  Xd0
 timestamp 0
-transform 0 -1 7690 1 0 13400
-box 0 0 6200 7264
-use idac_n  Xi4
-timestamp 0
-transform 1 0 8600 0 1 200
-box 0 0 5080 7020
+transform 0 -1 7690 1 0 8920
+box 0 0 4680 7264
 use rx_n4  Xx0
 timestamp 0
-transform 1 0 8880 0 1 7460
+transform 1 0 480 0 1 14000
 box 0 0 4528 1520
 use rx_n2  Xx1
 timestamp 0
-transform 1 0 8600 0 1 9200
+transform 1 0 200 0 1 15740
 box 0 0 2720 1520
 use rx_n1  Xx3
 timestamp 0
-transform 1 0 11560 0 1 9200
+transform 1 0 3160 0 1 15740
 box 0 0 1816 1520
 use rx_p24  Xx2
 timestamp 0
-transform 1 0 8600 0 1 10940
+transform 1 0 200 0 1 17480
 box 0 0 1816 2000
 use rx_p05  Xxst
 timestamp 0
-transform 1 0 10720 0 1 10940
+transform 1 0 2320 0 1 17480
 box 0 0 1816 1800
 use rx_p05  Xx4
 timestamp 0
-transform 1 0 8600 0 1 13160
+transform 1 0 200 0 1 19700
 box 0 0 1816 1800
+use idac_n  Xi4
+timestamp 0
+transform 1 0 8600 0 1 200
+box 0 0 5080 6400
+use idac_p  Xi3
+timestamp 0
+transform 1 0 8600 0 1 7200
+box 0 0 5080 6452
 use idac_n  Xi2
 timestamp 0
-transform 1 0 8600 0 1 15200
-box 0 0 5080 7020
+transform 1 0 8600 0 1 14260
+box 0 0 5080 6400
 use bias_vi  Xvi
 timestamp 0
 transform 1 0 14400 0 1 200
@@ -56,26 +60,22 @@ transform 1 0 15200 0 1 9480
 box 0 0 9600 12052
 use idac_p  Xi0
 timestamp 0
-transform 1 0 26200 0 1 200
-box 0 0 5080 6982
+transform 1 0 26200 0 1 8636
+box 0 0 5080 6452
 use idac_p  Xi1
 timestamp 0
-transform 1 0 26200 0 1 7580
-box 0 0 5080 6982
-use idac_p  Xi3
-timestamp 0
-transform 1 0 26200 0 1 14960
-box 0 0 5080 6982
+transform 1 0 26200 0 1 15488
+box 0 0 5080 6452
 use bias_rails  Xr
 timestamp 0
-transform 1 0 36600 0 1 8800
-box 0 0 6200 9512
+transform 1 0 32000 0 1 8800
+box 0 0 6200 7534
 use bias_master  Xm
 timestamp 0
-transform 1 0 46300 0 1 200
+transform 1 0 41700 0 1 200
 box 0 0 6400 12466
 use vdacr_vt  Xd3
 timestamp 0
-transform 0 -1 52792 1 0 13260
-box 0 0 7280 8012
+transform 0 -1 48192 1 0 13260
+box 0 0 6440 8012
 << end >>

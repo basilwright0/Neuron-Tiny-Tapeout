@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 cell = sys.argv[1]
-alias = "bias_b1" if cell.startswith("bias_b1_") else cell      # the two B1 shapes share one schematic
+alias = "bias_b1" if cell.startswith("bias_b1_") else {"bias_rails_c": "bias_rails"}.get(cell, cell)      # the two B1 shapes share one schematic
 sub = {}
 for f in sorted((ROOT / "cells" / "bias").glob("bias_*.spice")):
     if f.name == "bias_all.spice":
@@ -36,5 +36,8 @@ while todo:
                 todo.append(m)
 out = Path(__file__).resolve().parent / "out" / f"ref_{cell}.spice"
 out.parent.mkdir(exist_ok=True)
-out.write_text("\n".join(l for c in reversed(need) for l in sub[c]) + "\n")
+txt = "\n".join(l for c in reversed(need) for l in sub[c]) + "\n"
+if cell == "bias_rails_c":
+    txt = txt.replace(".subckt bias_rails ", ".subckt bias_rails_c ")
+out.write_text(txt)
 print(out)

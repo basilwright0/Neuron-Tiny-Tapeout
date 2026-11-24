@@ -18,6 +18,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import flatten                      # noqa: E402
 from router import Router, HW, PAD  # noqa: E402
+import keptdev                      # noqa: E402
 
 import os
 CELL = os.environ.get("SLOT_CELL", "slot_ah")   # slot_ah (S), slot_ah_h (H: + gap trim), slot_ah_p (P: + trim, EL from aux)
@@ -41,7 +42,10 @@ def has(net):
 U = 200                              # magic internal units per um in device files (magscale 1 10)
 
 # ============================================================================ cell frame
-W, H1 = 28.0, 43.5                   # H1: one slot row
+W = 28.0
+# H1: one slot row. M2 regrouped array (2026-11-21): the tall rows use SLOT_H1=45.74 with NTRACK=23 (4 extra
+# trim tracks for a third trimmed slot per row); the defaults reproduce the Latin-square cells.
+H1 = float(os.environ.get("SLOT_H1", "43.5"))
 H = 2 * H1 if DOUBLE else H1
 RING = 0.60                          # p-tap (VSS) ring width, on the cell edge (merges with neighbours)
 
@@ -53,10 +57,10 @@ COLS = [("vbp_syn", 19.05, 0.30), ("vdd", 19.85, 0.60), ("el", 20.65, 0.30), ("a
 # VSS needs no Metal2 column: the p-tap ring's Metal1 left/right edges abut top-to-bottom.
 # Metal3 feed-through band (row digital lines): no cell metal3 inside, vm kept out of it.
 # 19 tracks at the Metal3 minimum pitch (0.28 + 0.28): centres 32.38 + 0.56 k, k = 0..18 (top 42.46).
-NTRACK = 19
+NTRACK = int(os.environ.get("NTRACK", "19"))
 TRACK_PITCH = 0.56
 TRACK_Y0 = 32.38
-BAND = (0.0, round(TRACK_Y0 - 0.14, 3), W, 42.60)
+BAND = (0.0, round(TRACK_Y0 - 0.14, 3), W, round(TRACK_Y0 + TRACK_PITCH * (NTRACK - 1) + 0.14, 3))
 BANDS = [BAND] + ([(0.0, BAND[1] + H1, W, BAND[3] + H1)] if DOUBLE else [])
 # Fixed track assignment of the row signals (docs: layout/slot/README.md):
 #   k = 0 sta, 1 stb, 2 hold, 3 mreset (rt_out, shared by every slot), 4 rsel (probe row select),
@@ -85,7 +89,7 @@ if TRIM:
 STRAP_Y = (BAND[1], BAND[3] - 0.1)
 # a strap only spans the tracks its signal may be assigned to (spk: k 7..10, trim bits: k 11..18)
 STRAP_BOTTOM = {n: (31.95 if n.startswith("t") else round(track_y(7) - 0.2, 3)) for n, _ in STRAPS}
-STRAP_TOP = {n: round(track_y(10 if n == "spk" else 18) + 0.2, 3) for n, _ in STRAPS}
+STRAP_TOP = {n: round(track_y(10 if n == "spk" else NTRACK - 1) + 0.2, 3) for n, _ in STRAPS}
 KEEPOUT = {}       # the former trim / synapse keep-outs now hold the synapse and the gap trim
 # n-well island for all PMOS, with its own n-tap (VDD) ring; VDD rail = ring's bottom edge
 NWELL = (0.90, 21.20, 21.60, 29.80)
@@ -191,15 +195,30 @@ if CMP:
         "XD.Xi1.XN": (8.60, 17.60), "XD.Xi2.XN": (10.30, 17.60), "XR.Xi.XN": (12.00, 17.60),
         "XD.XN1": (14.60, 17.60), "XD.XN2": (18.00, 17.60), "XD.XH2": (4.84, 19.85),
     })
+    # Level 3 (2026-11-22, cells/neuron/slot.spice): det_cmp's vbp is the local vbp_cmp leg, XNC (nfet 1/2 on
+    # vbn_prb) into the diode XPC (pfet 1/2). XPC takes the inv3s starve XD.Xi1.XS's row-B spot, right next to
+    # its mirror partner XPT (same device, same orientation); Xi1.XS moves to the free left end of row A, above
+    # XH2 and two slots left of its inverter Xi1.XP. XNC sits in the free nfet area right of the leak tail XMT,
+    # under XR.XNR, below the vbn_prb column (drain stripe flipped to the left, towards the n-well).
+    # 2026-11-22 (10000x gate ss/0 fix): XNC 1/2 -> 2/2 (1 uA tail). Grown downwards: centre 16.00 -> 15.50, so its
+    # gate head (pad at 16.95) and the stripe tops stay where they were; the diffusion now spans 14.50-16.50.
+    PLACE.update({
+        "XPC": (14.20, 27.10), "XD.Xi1.XS": (4.40, 22.90),
+        "XNC": (21.60, 15.50),
+    })
 HEAD_DOWN = {"XC2.XC"}                # devices whose gate head is drawn below the diffusion
+# Kept-slot devices (keptdev.py): name -> footprint L. Level 4 (cells aabada4): the leak OTA inputs XM1/XM2 and
+# diodes XD1/XD2 (drawn as halves XD1a/b, XD2a/b) went L 1 -> 0.5 um, same W. They are drawn in their old L = 1 um
+# footprint (same diffusion, stripes, centres), so the placement, pin access and the cached routes stay valid.
+KEPT_L = {f"XL.{m}": 1.0 for m in ("XM1", "XM2", "XD1", "XD2")}
 # Metal1 vss shield plates (AH800: over XC2, from above its gate head to the top ring)
 # y0 30.66: the plate is "wide metal" (> 10 um), so M1.2b needs 0.30 um to the XC2 gate-head pad (top 30.34)
-PLATES = [(0.60, 30.66, 13.48, 43.50)] if CELL == "slot_ah_800" else []
+PLATES = [(0.60, 30.66, 13.48, H1)] if CELL == "slot_ah_800" else []
 FLIP = {"XPM.XSW", "XPR.XSW", "XR.XNR", "XS.XWA", "XS.XWB", "XS.XPH", "XS.XQA", "XS.XQB"}
 if PROBE_CHAIN:
     FLIP |= {"XPM.XSC", "XPM.XSB", "XPR.XSB"}
 if CMP:
-    FLIP |= {"XD.XN1"}
+    FLIP |= {"XD.XN1", "XNC"}
 if TRIM:
     FLIP |= {f"XT.X{t}{k}" for t in ("P", "N", "L") for k in range(4)}
 
@@ -216,8 +235,20 @@ if os.environ.get("MAX_SCHED"):            # try only the first n schedules (wit
 
 # ============================================================================ device library
 def devcell(d):
+    if d.get("slot"):
+        return keptdev.kept_name(d["model"], d["W"], d["L"], d["slot"])
     f = lambda v: ("%g" % v).replace(".", "p")
     return f"{d['model'][0]}_w{f(d['W'])}_l{f(d['L'])}"
+
+
+def mark_kept(devs):
+    """Tag kept-slot devices (KEPT_L, only when shorter than their slot) with d['slot'] = footprint L."""
+    return [dict(d, slot=KEPT_L[d["name"]]) if KEPT_L.get(d["name"], 0) > d["L"] + 1e-9 else d for d in devs]
+
+
+def footprint(d):
+    """The device as placed and routed: kept-slot devices at their footprint L (route-cache key, devlist)."""
+    return dict(d, L=d["slot"], slot=0) if d.get("slot") else d
 
 
 def load_dev(name):
@@ -281,14 +312,18 @@ class Layout:
 
 def build():
     ports, devs, caps = flatten.write_lvs(HERE / f"{CELL}_lvs.spice", CELL)
-    devs = split_devs(devs)
+    devs = split_devs(mark_kept(devs))
     DEVNAMES.clear()
     DEVNAMES.update(d["name"] for d in devs)
-    DEVS_KEY[:] = [repr(sorted((d["name"], d["model"], d["d"], d["g"], d["s"], d["W"], d["L"]) for d in devs))]
+    # key on the footprint: a kept-slot L change leaves every routed shape valid (build.sh reuse replays the cache)
+    DEVS_KEY[:] = [repr(sorted((d["name"], d["model"], d["d"], d["g"], d["s"], d["W"], d["L"])
+                               for d in map(footprint, devs)))]
     lib = {}
     for d in devs:
         c = devcell(d)
         if c not in lib:
+            if d.get("slot"):
+                keptdev.make(HERE / "devices", d["model"], d["W"], d["L"], d["slot"])
             lib[c] = load_dev(c)
     L = Layout()
     insts = []
@@ -737,7 +772,7 @@ def write_devlist():
     """One PDK device cell per unique (model, W, L) over all slot variants (input to gen_devices.tcl)."""
     sizes = {}
     for cell in SLOTS + ("trim_el4", "trim_tau4"):
-        for d in split_devs(flatten.flatten(cell)[1]):
+        for d in map(footprint, split_devs(mark_kept(flatten.flatten(cell)[1]))):   # kept-slot: footprint cell
             sizes[devcell(d)] = d
     (HERE / "devices" / "devlist.tcl").write_text("".join(
         f"mk {c} {d['model']} [dict merge $common {{w {d['W']:g} l {d['L']:g}}}]\n" for c, d in sorted(sizes.items())))

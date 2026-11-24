@@ -26,13 +26,13 @@ XP0 vm b0 o0 vdd pfet_03v3 W=1u L=0.28u
 .ends trim_gap4w
 
 * leak_ota_dega: leak_ota_deg (membrane.spice) with its el-side mirror node a as a port (trim hook);
-* devices identical (same as the slot's leak_ota_degx).
+* devices identical (same as the slot's leak_ota_degx; level 4: inputs 4/0.5, diodes 8/0.5).
 .subckt leak_ota_dega vm el a vbn vdd vss
 XMT  t   vbn vss vss nfet_03v3 W=2u L=4u
-XM1  a   el  s1  vss nfet_03v3 W=4u L=1u
-XD1  s1  s1  t   vss nfet_03v3 W=8u L=1u
-XM2  vm  vm  s2  vss nfet_03v3 W=4u L=1u
-XD2  s2  s2  t   vss nfet_03v3 W=8u L=1u
+XM1  a   el  s1  vss nfet_03v3 W=4u L=0.5u
+XD1  s1  s1  t   vss nfet_03v3 W=8u L=0.5u
+XM2  vm  vm  s2  vss nfet_03v3 W=4u L=0.5u
+XD2  s2  s2  t   vss nfet_03v3 W=8u L=0.5u
 XP1  a   a   vdd vdd pfet_03v3 W=2u L=4u
 XP2  vm  a   vdd vdd pfet_03v3 W=2u L=4u
 .ends leak_ota_dega

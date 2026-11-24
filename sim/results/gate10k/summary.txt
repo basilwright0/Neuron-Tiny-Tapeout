@@ -1,0 +1,38 @@
+10000x gate (cell level, PEX, EL 1.5): per k, (f/f_ideal at S=10000) / (f/f_ideal at S=100, same cell/corner, uncal).
+u = leak code nominal, c = Option 0 (leak master x code/12). Pass: every k in 0.7-1.4 and >= 3 spikes everywhere.
+cslot_ah       typical | u: 1.04-1.18 PASS [1.18 1.09 1.06 1.04 1.05 1.05] rheo 0.82 stuck 0 | c: 1.03-1.07 PASS [1.07 1.05 1.04 1.03 1.05 1.05] rheo 0.89 stuck 0
+cslot_ah       ss      | u: 1.05-1.28 PASS [1.28 1.13 1.08 1.05 1.05 1.05] rheo 0.83 stuck 0 | c: 1.04-1.17 PASS [1.17 1.09 1.06 1.04 1.05 1.05] rheo 0.89 stuck 0
+cslot_ah       ff      | u: 1.06-1.15 PASS [1.15 1.09 1.07 1.06 1.07 1.07] rheo 0.73 stuck 0 | c: 1.05-1.08 PASS [1.08 1.06 1.05 1.05 1.07 1.07] rheo 0.79 stuck 0
+cslot_ah_f     typical | u: 1.05-1.19 PASS [1.19 1.11 1.07 1.05 1.05 1.05] rheo 0.81 stuck 0 | c: 1.04-1.08 PASS [1.08 1.06 1.05 1.04 1.04 1.04] rheo 0.88 stuck 0
+cslot_ah_f     ss      | u: 1.04-1.21 PASS [1.21 1.11 1.08 1.05 1.04 1.05] rheo 0.81 stuck 0 | c: 1.03-1.09 PASS [1.09 1.07 1.05 1.04 1.03 1.04] rheo 0.88 stuck 0
+cslot_ah_f     ff      | u: 1.06-1.19 PASS [1.19 1.11 1.08 1.07 1.06 1.06] rheo 0.76 stuck 1 | c: 1.05-1.10 PASS [1.10 1.08 1.06 1.06 1.05 1.06] rheo 0.82 stuck 0
+czslot_ah_f    typical | u: 1.06-1.21 PASS [1.21 1.12 1.09 1.07 1.06 1.06] rheo 0.81 stuck 1 | c: 1.05-1.10 PASS [1.10 1.08 1.06 1.05 1.05 1.05] rheo 0.88 stuck 0
+czslot_ah_f    ss      | u: 1.05-1.22 PASS [1.22 1.12 1.09 1.06 1.05 1.06] rheo 0.81 stuck 0 | c: 1.05-1.11 PASS [1.11 1.08 1.06 1.05 1.05 1.05] rheo 0.88 stuck 1
+czslot_ah_f    ff      | u: 1.07-1.22 PASS [1.22 1.13 1.10 1.08 1.07 1.07] rheo 0.76 stuck 0 | c: 1.07-1.13 PASS [1.13 1.10 1.08 1.07 1.07 1.07] rheo 0.82 stuck 0
+czslot_ah_50   typical | u: 1.09-1.30 PASS [1.30 1.14 1.09 1.12 1.10 1.09] rheo 0.82 stuck 0 | c: 1.07-1.22 PASS [1.22 1.11 1.07 1.10 1.09 1.09] rheo 0.89 stuck 0
+czslot_ah_50   ss      | u: 1.09-1.38 PASS [1.38 1.16 1.09 1.13 1.09 1.09] rheo 0.83 stuck 0 | c: 1.08-1.29 PASS [1.29 1.13 1.08 1.12 1.09 1.09] rheo 0.89 stuck 0
+czslot_ah_50   ff      | u: 1.11-1.25 PASS [1.25 1.14 1.11 1.13 1.12 1.12] rheo 0.73 stuck 1 | c: 1.09-1.21 PASS [1.21 1.12 1.09 1.13 1.12 1.11] rheo 0.79 stuck 1
+czslot_ah_400  typical | u: 1.02-1.12 PASS [1.12 1.06 1.04 1.03 1.02 1.03] rheo 0.82 stuck 0 | c: 1.00-1.03 PASS [1.00 1.01 1.01 1.01 1.02 1.03] rheo 0.89 stuck 0
+czslot_ah_400  ss      | u: 1.03-1.23 PASS [1.23 1.10 1.07 1.04 1.03 1.04] rheo 0.83 stuck 0 | c: 1.02-1.12 PASS [1.12 1.06 1.05 1.03 1.02 1.03] rheo 0.89 stuck 0
+czslot_ah_400  ff      | u: 1.03-1.08 PASS [1.08 1.05 1.03 1.03 1.03 1.04] rheo 0.73 stuck 0 | c: 1.01-1.04 PASS [1.01 1.02 1.02 1.02 1.03 1.04] rheo 0.79 stuck 0
+slot_ah_h      typical | u: 1.05-1.12 PASS [1.12 1.07 1.06 1.05 1.05 1.06] rheo 0.79 stuck 0 | c: 1.03-1.06 PASS [1.03 1.04 1.04 1.04 1.05 1.06] rheo 0.86 stuck 0
+slot_ah_h      ss      | u: 1.05-1.19 PASS [1.19 1.10 1.07 1.05 1.05 1.06] rheo 0.81 stuck 0 | c: 1.04-1.09 PASS [1.09 1.06 1.05 1.04 1.05 1.06] rheo 0.87 stuck 0
+slot_ah_h      ff      | u: 1.07-1.13 PASS [1.13 1.09 1.08 1.07 1.07 1.08] rheo 0.70 stuck 0 | c: 1.06-1.08 PASS [1.07 1.07 1.06 1.06 1.07 1.08] rheo 0.76 stuck 0
+slot_ah_p      typical | u: 1.05-1.12 PASS [1.12 1.07 1.06 1.05 1.05 1.06] rheo 0.79 stuck 0 | c: 1.03-1.06 PASS [1.03 1.04 1.04 1.04 1.05 1.06] rheo 0.86 stuck 0
+slot_ah_p      ss      | u: 1.05-1.19 PASS [1.19 1.09 1.07 1.05 1.05 1.06] rheo 0.81 stuck 0 | c: 1.04-1.09 PASS [1.09 1.06 1.05 1.04 1.05 1.06] rheo 0.87 stuck 0
+slot_ah_p      ff      | u: 1.07-1.13 PASS [1.13 1.09 1.08 1.07 1.07 1.08] rheo 0.70 stuck 0 | c: 1.06-1.08 PASS [1.07 1.07 1.07 1.06 1.07 1.08] rheo 0.76 stuck 0
+slot_cmp_h     typical | u: 0.72-0.88 PASS [0.88 0.84 0.81 0.78 0.75 0.72] rheo 0.76 stuck 2 | c: 0.72-0.81 PASS [0.81 0.81 0.80 0.77 0.74 0.72] rheo 0.82 stuck 0
+slot_cmp_h     ss      | u: 0.68-0.90 FAIL [0.90 0.83 0.80 0.76 0.71 0.68] rheo 0.80 stuck 1 | c: 0.68-0.83 FAIL [0.83 0.81 0.79 0.75 0.71 0.68] rheo 0.86 stuck 1
+slot_cmp_h     ff      | u: 0.76-0.89 PASS [0.89 0.86 0.84 0.81 0.78 0.76] rheo 0.69 stuck 1 | c: 0.76-0.84 PASS [0.84 0.84 0.83 0.81 0.78 0.76] rheo 0.75 stuck 0
+
+Option 0 code: leak master x 13/12 at tt/ss/ff (rheobase-matched on cslot_ah PEX: rheo(10000)/(100 rheo(100)) 1.03/0.98/1.03, g/ files). c21/: ss code 21 from g-at-EL matching = over-corrected, FAIL (k=1.1 no fire).
+D1 (tb_d1.py D1_PEX, trim 3, EL 1.5):
+D1_pex_c S=10000 trim 3 ff       85: thr 80.1 mV>EL (rest -1.1, 303 pA@S100) plateau 1401 us d1>+250mV 1208 us d1max +724 soma max +158 mV spikes 16 burst 12970 Hz | atten soma/d1 0.496 (d1 +86.0 mV)
+D1_pex_u S=10000 trim 3 ff       85: thr 80.2 mV>EL (rest +0.6, 282 pA@S100) plateau 1532 us d1>+250mV 1296 us d1max +718 soma max +158 mV spikes 17 burst 13252 Hz | atten soma/d1 0.519 (d1 +93.0 mV)
+D1_pex_u S=100 trim 3 ff       85: thr 81.5 mV>EL (rest +10.9, 268 pA@S100) plateau 1411 us d1>+250mV 1244 us d1max +548 soma max +152 mV spikes 16 burst 12916 Hz | atten soma/d1 0.538 (d1 +89.7 mV)
+D1_pex_c S=10000 trim 3 ss        0: thr 81.0 mV>EL (rest -10.5, 334 pA@S100) plateau 1398 us d1>+250mV 1250 us d1max +1098 soma max +164 mV spikes 18 burst 13636 Hz | atten soma/d1 0.506 (d1 +84.7 mV)
+D1_pex_u S=10000 trim 3 ss        0: thr 81.0 mV>EL (rest -9.0, 315 pA@S100) plateau 1518 us d1>+250mV 1336 us d1max +1093 soma max +164 mV spikes 19 burst 14148 Hz | atten soma/d1 0.520 (d1 +87.8 mV)
+D1_pex_u S=100 trim 3 ss        0: thr 81.7 mV>EL (rest +5.9, 323 pA@S100) plateau 1405 us d1>+250mV 1292 us d1max +963 soma max +165 mV spikes 18 burst 13316 Hz | atten soma/d1 0.536 (d1 +71.9 mV)
+D1_pex_c S=10000 trim 3 typical  27: thr 80.7 mV>EL (rest -1.1, 332 pA@S100) plateau 1407 us d1>+250mV 1241 us d1max +933 soma max +161 mV spikes 17 burst 13344 Hz | atten soma/d1 0.513 (d1 +76.1 mV)
+D1_pex_u S=10000 trim 3 typical  27: thr 80.7 mV>EL (rest +0.3, 310 pA@S100) plateau 1533 us d1>+250mV 1328 us d1max +927 soma max +162 mV spikes 18 burst 13719 Hz | atten soma/d1 0.530 (d1 +79.6 mV)
+D1_pex_u S=100 trim 3 typical  27: thr 81.7 mV>EL (rest +7.8, 307 pA@S100) plateau 1402 us d1>+250mV 1270 us d1max +785 soma max +160 mV spikes 17 burst 13065 Hz | atten soma/d1 0.514 (d1 +76.4 mV)

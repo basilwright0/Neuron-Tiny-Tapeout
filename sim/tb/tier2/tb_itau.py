@@ -5,10 +5,13 @@ sys.path.insert(0, "/work/sim/tb/tier2")
 from t2common import *  # noqa
 import re, subprocess
 from ngs import header
+# level-3 step 0 overrides (defaults = original bench): ITAU_S scales Ib_leak = 324 pA * S/100, ITAU_CORNER/ITAU_TEMP
+S_ = float(os.environ.get("ITAU_S", "100")); CORN_ = os.environ.get("ITAU_CORNER", "typical")
+TEMP_ = int(os.environ.get("ITAU_TEMP", "27"))
 C = {"s6_05x10": [(0.5, 10)] * 6, "s8_022x5": [(0.22, 5)] * 8, "s4_022x10": [(0.22, 10)] * 4,
      "s3_022x15": [(0.22, 15)] * 3, "s4_05x10": [(0.5, 10)] * 4, "s4_022x5": [(0.22, 5)] * 4, "s5_05x9": [(0.5, 9)] * 5, "s3_05x10": [(0.5, 10)] * 3,
-     "s2_1x10": [(1, 10)] * 2, "one_022x5": [(0.22, 5)], "one_2x4": [(2, 4)], "s4_1x10": [(1, 10)] * 4}
-L = [header(), include("neuron/membrane.spice"), "Ibl 0 vb 324p", "Xbl vb 0 nmaster"]
+     "s2_1x10": [(1, 10)] * 2, "one_022x5": [(0.22, 5)], "one_2x4": [(2, 4)], "s4_1x10": [(1, 10)] * 4, "s4_1x16": [(1, 16)] * 4}
+L = [header(CORN_, TEMP_), include("neuron/membrane.spice"), f"Ibl 0 vb {324e-12 * S_ / 100:g}", "Xbl vb 0 nmaster"]
 for k, st in C.items():
     L.append(f"V{k} d{k} 0 0.45")
     n = f"d{k}"
@@ -17,7 +20,7 @@ for k, st in C.items():
         L.append(f"X{k}_{i} {n} vb {nxt} 0 nfet_03v3 W={w}u L={l}u")
         n = nxt
 txt = "\n".join(L) + "\n.control\nop\n" + "\n".join(f"print -i(V{k})" for k in C) + "\nprint v(vb)\nquit\n.endc\n.end\n"
-p = OUT / "itau.cir"; p.write_text(txt)
+p = OUT / ("itau.cir" if "ITAU_S" not in os.environ else f"itau_{CORN_}_{TEMP_}_S{S_:g}.cir"); p.write_text(txt)
 r = subprocess.run(["ngspice", "-b", str(p)], cwd=OUT, capture_output=True, text=True)
 for ln in r.stdout.splitlines():
     if "=" in ln and ("i(" in ln or "v(vb)" in ln):

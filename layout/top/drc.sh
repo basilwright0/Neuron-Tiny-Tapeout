@@ -10,7 +10,7 @@ DECK=$PDK_ROOT/$PDK/libs.tech/klayout/tech/drc/gf180mcu.drc
 for D in "main:all,-density,-antenna" "antenna:antenna"; do
     n=${D%%:*}; decks=${D#*:}
     klayout -b -r $DECK -rd input=$GDS -rd topcell=$TOP -rd report=$PWD/work/klayout_$n.lyrdb \
-        -rd variant=gf180mcuD -rd run_mode=deep -rd decks=$decks -rd threads=2 > work/klayout_$n.log 2>&1 || true
+        -rd variant=gf180mcuD -rd run_mode=deep -rd decks=$decks -rd threads=${DRC_THREADS:-2} > work/klayout_$n.log 2>&1 || true
     python3 - work/klayout_$n.lyrdb $n <<'PY'
 import sys, xml.etree.ElementTree as ET, collections
 t = ET.parse(sys.argv[1]).getroot()

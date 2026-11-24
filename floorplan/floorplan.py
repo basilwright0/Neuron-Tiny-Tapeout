@@ -38,13 +38,15 @@ MACRO_STRAPS = [(15.92, "VDD"), (19.22, "VSS"), (65.92, "VDD"), (69.22, "VSS"),
 EXTENDED_STRAP_PAIRS = (0, 2)            # macro strap pairs extended full height as tile power stripes
 
 # --------------------------------------------------------------------- blocks (x0, y0, x1, y1)
-# B1 is notched: its frame is the box minus B1_NOTCHES (R1 corner, tau-cell column 2).
-B1_BOX = (80.0, 12.0, 344.5, 126.5)                                   # bias_b1 264.5 x 114.5 at (80, 12)
-B1_NOTCHES = {"R1": (262.0, 12.0, 302.0, 54.0), "TAU2": (80.0, 116.0, 103.0, 126.5)}
+# B1 is notched: its frame is the box minus B1_NOTCHES (R1 corner N1, bottom pocket NB).
+# M3 (MIL-133, b1d/b1int): bias_b1 242 x 114.5 at (103, 12); the west trim removed notch N2 (tau col 2) and
+# frees tile x 80-103 (RESERVED "RW"); pocket NB (local x 131-159, y 0-40) is empty in the GDS (RESERVED "RB").
+B1_BOX = (103.0, 12.0, 345.0, 126.5)                                  # bias_b1 242 x 114.5 at (103, 12)
+B1_NOTCHES = {"R1": (262.0, 12.0, 302.0, 54.0), "NB": (234.0, 12.0, 262.0, 52.0)}
 B1_CORRIDOR = (276.0, 54.0, 302.0, 126.5)                             # Metal3-free in B1: R1 feed-throughs
 BLOCKS = {
     "C1 control macro":     (MACRO_X, MACRO_Y, MACRO_X + MACRO_S, MACRO_Y + MACRO_S),
-    "NA neuron array 4x4":  (8.0, 140.0, 120.0, 314.0),
+    "NA neuron array 4x4":  (8.0, 140.0, 120.0, 140.0 + 2 * 45.74 + 29.42 + 34.29),  # M2 layout B: 155.19 tall
     "D1 dendrite":          (8.0, 12.0, 78.0, 116.0),
     "B1 bias generator":    B1_BOX,
     "R1 readout corner":    (262.0, 14.0, 302.0, 54.0),
@@ -56,16 +58,16 @@ ABUT = {("B1 bias generator", "R1 readout corner")}                   # R1 sits 
 STRAP_UA1 = (280.64, 0.0, 286.64, 14.0)                               # r1_ua1: ua[1] Metal3 strap through CH_BOT
 EST = {  # measured areas (um^2) of what goes in each box
     "C1 control macro": 166 * 166,
-    "NA neuron array 4x4": 16 * 28.0 * 43.5,
+    "NA neuron array 4x4": 4 * 28.0 * (2 * 45.74 + 29.42 + 34.29),
     "D1 dendrite": 70 * 104,
-    "B1 bias generator": 264.5 * 114.5 - 40 * 42 - 23 * 10.5,
+    "B1 bias generator": 242.0 * 114.5 - 40 * 42 - 28 * 40,
     "R1 readout corner": 40 * 40,
     "A1 AdEx": 38 * 73,
     "TE0 tau trim col 0": 37 * 11.8,
     "TE2 tau trim col 2": 37 * 11.8,
 }
 CHANNELS = {  # routing-only regions (Metal2/Metal3; Metal4 may cross blocks between the stripes)
-    "CH_BOT ua entry, R1 power, glue row": (8.0, 0.0, 280.0, 11.5),
+    "CH_BOT ua entry, R1 power, D1 lines": (8.0, 0.0, 199.5, 11.5),
     "CH_BIAS B1 -> array columns, D1 lines": (8.0, 130.3, 120.0, 139.7),
     "CH_MID B1 codes <-> macro S edge": (167.5, 127.0, 344.5, 150.5),
     "CH_MIDW B1 bias outputs, D1/AdEx lines": (120.5, 127.0, 167.5, 139.5),
@@ -73,6 +75,15 @@ CHANNELS = {  # routing-only regions (Metal2/Metal3; Metal4 may cross blocks bet
     "CH_ROW array rows -> macro W edge": (120.5, 213.5, 169.5, 317.0),
     "CH_TOP_A array power buses, uio_oe ties": (8.0, 314.5, 120.0, 324.3),
     "CH_TOP_M TT pin jogs to the macro N edge": (120.5, 317.5, 344.5, 324.3),
+}
+
+# Free areas kept for later use (M3 decap / test structures): the router may not put Metal2-4 there and no block
+# may overlap them.  RW = B1's west trim, RB = pocket NB, RT = array-top strip (TOP-1), RG = CH_BOT west + H2 (TOP-4).
+RESERVED = {
+    "RW B1 west trim": (80.0, 12.0, 103.0, 116.0),
+    "RB B1 pocket NB": (234.0, 12.0, 262.0, 52.0),
+    "RT array-top strip": (8.0, 302.9, 120.0, 317.7),
+    "RG CH_BOT east of the D1 lines": (199.5, 0.0, 280.0, 12.0),
 }
 
 # --------------------------------------------------------------------- power stripes (Metal4, y 5 -> 320.36)
@@ -88,51 +99,64 @@ for p in EXTENDED_STRAP_PAIRS:                                 # macro straps (a
 
 # --------------------------------------------------------------------- std-cell rows (gf180mcu_fd_sc_mcu7t5v0)
 TIE_ROW_Y = 318.4      # uio_oe tie-high cells (one tieh + filltie under each uio_oe pin), rails drawn across
-GLUE_ROW = (170.0, 5.5)  # probe-enable / D1 tap-select glue (or4, 4x nor3, 3x inv, fillties), lower-left corner
+# probe-enable / D1 tap-select glue (or4, 4x nor3, 3x inv, fillties): M3 (TOP-4) two R0 rows in hole H3 (CH_MID east,
+# between the B1 code lines from the macro S edge (x <= 281.2) and bias_en (x 312)), lower-left corners; each row's
+# rails are tied to the strap-pair-2 stripes (x 286.72 / 290.02). Was one row in CH_BOT at (170, 5.5).
+GLUE_ROWS = [(282.6, 130.4), (282.6, 136.4)]
 
 # --------------------------------------------------------------------- NA slot map
-# Latin square over groups F(fixed geometry) S(shared bias) H(hybrid: shared + threshold trim)
-# P(programmable: gap trim + leak-tau trim); its diagonal is a transversal and holds the singles.
-# Row 0 is the bottom row of the array.
-SQUARE = ["FSHP", "HPFS", "PHSF", "SFPH"]
-SINGLES = {0: "REF", 1: "CMP", 2: "AH50", 3: "AH800"}
+# M2 regrouped array, layout B (user decisions 2026-11-21 14:32 and 19:24 UTC, MIL-36 `array-regroup-plan`): the
+# Latin square is replaced by two tall rows of trimmed slots at the bottom (layout/slot cells, 45.74 um per row,
+# 23-track band) and two compact rows on top (layout/compact cells, 19-track band): row 2 at 29.42 um, row 3 at
+# 34.29 um (AH400, MIL-127 N11: its extra cap sits in a 7.07 um cap row; it routes at CHAN 1.8 once its vr probe
+# tap is dropped, user decision 2026-11-21 22:33 UTC; F2/F3/AH50 are built at the same height, cz* cells).
+# Row 0 is the bottom row of the array. Tall rows at the bottom keep every neuron probeable: the macro's probe
+# decoder (rev E, fixed: SEL = row x column) reads REF at (0,0) (PROBE_SUB = 3) and never selects (0,3), so REF
+# (tall slot_ref) sits at (0,0) and the lower half of the CMP double slot at (0,3).
+# Cost: row 0's band (y ~172-185, below AdEx's top at 213) has 3 trimmed slots, so its east lines squeeze through
+# CH_NAE past AdEx.
+# CMP is a double slot: map position (1,3) (probe row 1 / column 3, its rsel pad on the row-1 band), its cell spans
+# rows 0-1 of column 3 (lower-left slot (0,3)); its other row pins (rt_out, sub/sub_b, spk, t0..t3) sit on the
+# row-0 band (BAND_ROW). P2/P3 keep columns 0/2 (tau-trim cells), CMP keeps column 3 (aux = vth_cmp).
+# The SEL -> neuron names follow this map (docs/regmap.md).
+MAP = {(3, 0): "F2", (3, 1): "F3", (3, 2): "AH50", (3, 3): "AH400",
+       (2, 0): "S1", (2, 1): "S2", (2, 2): "S3", (2, 3): "F1",
+       (1, 0): "P2", (1, 1): "H2", (1, 2): "H3", (1, 3): "CMP",
+       (0, 0): "REF", (0, 1): "H1", (0, 2): "P3"}
 SPIKE_CH = {"S1": 0, "F1": 1, "H1": 2, "ADEX": 3, "S2": 4, "F2": 5, "H2": 6, "P2": 7,
-            "S3": 8, "F3": 9, "H3": 10, "P3": 11, "CMP": 12, "D1": 13, "AH50": 14, "AH800": 15}
-# AdEx replaced P1 (docs/08 Updated Plan.md): it sits outside the array; P1's slot is a dummy S slot.
-DUMMY_SLOTS = {"P1"}
-# CMP double slot (2026-11-20): the trimmed CMP did not route in 28 x 43.5, so it takes the dummy slot's area.
-# CMP and the S slot at (1,3) swap: CMP's map position is (1,3) (probe row 1 / column 3, its rsel pad sits on
-# the row-1 band), its cell spans rows 0-1 of column 3 (lower-left slot (0,3)). Its other row pins (rt_out,
-# sub/sub_b, spk, trim bits t0..t3) sit on the row-0 band (BAND_ROW). Spike channels and trim nibbles unchanged.
-# The macro's probe decoder (rev E) is fixed: SEL 12 now reads S2 at (1,1) and SEL 4 reads CMP at (1,3).
-SWAP = ((1, 1), (1, 3))
+            "S3": 8, "F3": 9, "H3": 10, "P3": 11, "CMP": 12, "D1": 13, "AH50": 14, "AH400": 15}
 DOUBLE = {"CMP": (0, 3)}             # name -> lower-left slot of a 2-row cell
 BAND_ROW = {"CMP": 0}                # row band of a double slot's row pins other than rsel
-SPREAD_COL_EXEMPT = {"S"}            # after the swap S1 and S2 share column 1 (rows stay distinct)
 # Trim nibble assignment, fixed so it matches the control block's TRIM_MASK (nibbles 0,2-8,14,15).
 TRIM_NIBBLES = {"H1.VTH": 0, "H2.VTH": 2, "P2.VTH": 3, "H3.VTH": 4, "P3.VTH": 5, "CMP.VTH": 6,
                 "D1.PLAT1": 7, "D1.PLAT2": 8, "P2.TAU": 14, "P3.TAU": 15}
-SLOT_W, SLOT_H = 28.0, 43.5
-SLOT_CELL = {"S": "slot_ah", "F": "slot_ah_f", "H": "slot_ah_h", "P": "slot_ah_p", "REF": "slot_ref",
-             "CMP": "slot_cmp_h", "AH50": "slot_ah_50", "AH800": "slot_ah_800", "DUMMY": "slot_dummy"}
+SLOT_W = 28.0
+TALL_H, COMPACT_H, COMPACT_X_H = 45.74, 29.42, 34.29
+ROW_H = (TALL_H, TALL_H, COMPACT_H, COMPACT_X_H)
+ROW_NTRACK = (23, 23, 19, 19)        # row band tracks: 0-10 shared/spk, then 4 trim tracks per trimmed slot
+TRKP = 0.56
+SLOT_CELL = {"S": "cslot_ah", "F": "cslot_ah_f", "H": "slot_ah_h", "P": "slot_ah_p", "REF": "slot_ref",
+             "CMP": "slot_cmp_h", "F2": "czslot_ah_f", "F3": "czslot_ah_f", "AH50": "czslot_ah_50",
+             "AH400": "czslot_ah_400"}
+# compact cells (layout/compact/final) and their heights; the others are tall layout/slot cells
+COMPACT_CELLS = {"cslot_ah": COMPACT_H, "cslot_ah_f": COMPACT_H, "czslot_ah_f": COMPACT_X_H,
+                 "czslot_ah_50": COMPACT_X_H, "czslot_ah_400": COMPACT_X_H}
 TAU_COLS = {0: "TE0 tau trim col 0", 2: "TE2 tau trim col 2"}         # P2 in column 0, P3 in column 2
 
 
+def row_y0(r):
+    """Bottom of array row r (r = 4: top of the array)."""
+    return round(BLOCKS["NA neuron array 4x4"][1] + sum(ROW_H[:r]), 3)
+
+
+def row_trk0(r):
+    """Track-0 centre of row r's band above the row bottom: tall cells 32.38 (band 32.24-44.84), compact cells
+    H - 11.12 (band top 0.9 below the cell top, layout/compact/cgen.py)."""
+    return 32.38 if ROW_H[r] == TALL_H else round(ROW_H[r] - 11.12, 3)
+
+
 def slot_map():
-    count, grid = {}, {}
-    for r, row in enumerate(SQUARE):
-        for c, g in enumerate(row):
-            if r == c:
-                grid[(r, c)] = SINGLES[r]
-            else:
-                count[g] = count.get(g, 0) + 1
-                n = f"{g}{count[g]}"
-                grid[(r, c)] = "DUMMY" if n in DUMMY_SLOTS else n
-    a, b = SWAP
-    grid[a], grid[b] = grid[b], grid[a]
-    for n, rc in DOUBLE.items():     # the lower half of a double slot is not a map position
-        del grid[rc]
-    return grid
+    return dict(MAP)
 
 
 def slot_origin(rc):
@@ -158,12 +182,12 @@ def cell_box(rc):
     n = slot_map()[rc]
     r0, c0 = slot_origin(rc)
     b = slot_box(r0, c0)
-    return b[0], b[1], b[2], b[1] + slot_rows(n) * SLOT_H
+    return b[0], b[1], b[2], row_y0(r0 + slot_rows(n))
 
 
 def slot_box(r, c):
-    x0, y0 = BLOCKS["NA neuron array 4x4"][:2]
-    return x0 + c * SLOT_W, y0 + r * SLOT_H, x0 + (c + 1) * SLOT_W, y0 + (r + 1) * SLOT_H
+    x0 = BLOCKS["NA neuron array 4x4"][0]
+    return x0 + c * SLOT_W, row_y0(r), x0 + (c + 1) * SLOT_W, row_y0(r + 1)
 
 
 def slot_cell(name):
@@ -192,9 +216,9 @@ def overlap(a, b, gap=0.0):
 def b1_rects():
     """B1 frame as rectangles (box minus notches)."""
     x0, y0, x1, y1 = B1_BOX
-    n1, n2 = B1_NOTCHES["R1"], B1_NOTCHES["TAU2"]
-    return [(x0, y0, n1[0], n2[1]), (n2[2], n2[1], n1[0], y1), (n1[0], n1[3], n1[2], y1),
-            (n1[2], y0, x1, y1)]
+    n1, nb = B1_NOTCHES["R1"], B1_NOTCHES["NB"]
+    assert nb[2] == n1[0] and nb[1] == n1[1] == y0
+    return [(x0, y0, nb[0], y1), (nb[0], nb[3], n1[0], y1), (n1[0], n1[3], n1[2], y1), (n1[2], y0, x1, y1)]
 
 
 def frames():
@@ -216,6 +240,10 @@ def checks():
                 for rb in fr[b]:
                     if (gap == 0.0 and overlap(ra, rb, -1e-9)) or (gap > 0 and overlap(ra, rb, gap)):
                         errs.append(f"{a} and {b} closer than {gap or 0} um")
+    for rn, rb in RESERVED.items():
+        for n, rs in fr.items():
+            if any(overlap(r, rb, -1e-9) for r in rs):
+                errs.append(f"{n} overlaps reserved area {rn}")
     for cn, cb in CHANNELS.items():
         for n, rs in fr.items():
             if any(overlap(r, cb, -1e-9) for r in rs):
@@ -263,11 +291,16 @@ def checks():
     for (r, c), n in grid.items():
         if n[0] in "FSHP" and n[1:].isdigit():
             groups.setdefault(n[0], []).append((r, c))
-    for g, cells in groups.items():
-        k = 2 if g == "P" else 3
-        ncol = len({c for _, c in cells}) if g not in SPREAD_COL_EXEMPT else k
-        if len(cells) != k or len({r for r, _ in cells}) != k or ncol != k:
-            errs.append(f"group {g} not spread over its own rows and columns: {cells}")
+    for g, k in {"S": 3, "F": 3, "H": 3, "P": 2}.items():
+        if len(groups.get(g, [])) != k:
+            errs.append(f"group {g} has {len(groups.get(g, []))} slots, not {k}")
+    if abs(row_y0(4) - BLOCKS["NA neuron array 4x4"][3]) > 1e-6:
+        errs.append(f"array box top {BLOCKS['NA neuron array 4x4'][3]} != rows top {row_y0(4)}")
+    for (r, c), n in grid.items():   # a row's cells share its height (column lines abut through them)
+        h = COMPACT_CELLS.get(slot_cell(n), TALL_H)
+        for rr in range(slot_origin((r, c))[0], slot_origin((r, c))[0] + slot_rows(n)):
+            if abs(h - ROW_H[rr]) > 1e-6:
+                errs.append(f"{n} ({slot_cell(n)}) in row {rr} of height {ROW_H[rr]}")
     ti = trim_index()
     if len(ti) > 16 or max(ti.values()) > 15 or len(set(ti.values())) != len(ti):
         errs.append("trim nibbles collide or exceed NTRIM=16")
@@ -286,11 +319,11 @@ def checks():
         errs.append(f"array position {e} not covered by a slot")
     if "CMP" in grid and grid_col(grid, "CMP") in TAU_COLS:
         errs.append("CMP's aux line (vth_cmp) would collide with a tau-trim column")
-    for r in range(4):     # row band: at most 2 trimmed slots (8 trim tracks)
+    for r in range(4):     # row band: tracks 11.. carry 4 trim bits per trimmed slot
         nt = sum(1 for rc, n in grid.items()
                  if ((n[0] in "HP" and n[1:].isdigit()) or n == "CMP") and BAND_ROW.get(n, rc[0]) == r)
-        if nt > 2:
-            errs.append(f"row {r} has {nt} trimmed slots (> 2)")
+        if 11 + 4 * nt > ROW_NTRACK[r]:
+            errs.append(f"row {r} has {nt} trimmed slots (> {(ROW_NTRACK[r] - 11) // 4})")
     return errs
 
 
@@ -314,6 +347,8 @@ def svg(path):
                                       f'height="{(b[3]-b[1])*s:.1f}" fill="{fill}" {extra}/>')
     for n, b in CHANNELS.items():
         o.append(rect(b, "#f4f4ff", 'stroke="#aab" stroke-dasharray="4 3"'))
+    for n, b in RESERVED.items():
+        o.append(rect(b, "#dff5df", 'stroke="#4a4" stroke-dasharray="2 2"'))
     for n, rs in frames().items():
         for b in rs:
             o.append(rect(b, COL[n[:2]], 'stroke="#333"'))

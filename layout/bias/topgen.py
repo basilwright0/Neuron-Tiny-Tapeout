@@ -11,6 +11,7 @@ touching it) carries the pin's net.  vss: a via1 + Metal2 pad on each leaf's p-t
 The 64 VDAC taps in bias_vblk are straight Metal3 lines through the stacked vdac6 cells.
 """
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -450,6 +451,49 @@ PLACE_F = {   # inst: (x, y, rot)  (rot 90: x is the right edge of the rotated f
     # east column: master (ua[0] at the bottom), vth_ref DAC rotated above it
     "Xm": (231.5, 1.0, 0), "Xd3": (263.96, 66.3, 90),
 }
+# M3 proposal (b1d): west trim.  The west edge moves east by WT (default 23 um = the N2 notch width), so the
+# block becomes tile x 103-345 (242 x 115) and N2 disappears; tile x 80-103, y 12-127 is freed as one rectangle.
+# The east group (rails, master, vth_ref DAC), N1, the corridor, ua[0] and every pin keep their tile positions;
+# the west columns (C1-C4) keep their old local x, i.e. they move east by WT and close the empty column at
+# old local x 156-183.  B1_WT=0 rebuilds the rev C frame.
+WT = float(os.environ.get("B1_WT", "23.0"))
+if WT:
+    _EAST = ("Xr", "Xm", "Xd3")
+    PLACE_F = {i: ((x - WT if i in _EAST else x), y, r) for i, (x, y, r) in PLACE_F.items()}
+    FR_W = FR_W - WT
+    N1 = (N1[0] - WT, N1[1], N1[2] - WT, N1[3])
+    CORR = (CORR[0] - WT, CORR[1], CORR[2] - WT, CORR[3])
+    UA0 = (UA0[0] - WT, UA0[1] - WT)
+    N2 = None if WT >= N2[2] else (N2[0], N2[1], N2[2] - WT, N2[3])
+
+# M3 integration (b1int, MIL-133): all re-packed leaves (vdacr_* packed, bias_rails compact, idac_p/_n shorter)
+# in the 242 x 115 frame, plus a bottom pocket NB west of N1 (local x 131-159, y 0-40; tile x 234-262, y 12-52).
+# Together with N1 it gives the integrator one free rectangle tile x 234-302, y 12-52 (N1 keeps its 42 um height).
+#   C1: the 3 rotated resistor DACs (now 63 um tall) + the six receivers on top (under the analog output pins)
+#   C2: idac_n (vbp_w), idac_p Xi3 (vbn_ax, moved from C4), idac_n (vbp_syn)
+#   C3: V-to-I + ladder (unchanged);  C4: Xi0 / Xi1 only, lifted above the pocket.
+# Every pin is drawn at its b1d position (b1_pins_242.json), i.e. the tile positions are unchanged.
+# B1_M3=0 rebuilds the b1d placement (needs the M2 leaves: VDACR_PACK=0 RAILS_C=0 and the old idacs).
+M3 = os.environ.get("B1_M3", "1") == "1" and WT == 23.0
+NB = None
+PINS_REF = None
+if M3:
+    NB = (131.0, 0.0, N1[0], 40.0)
+    PINS_REF = json.loads((HERE / "b1_pins_242.json").read_text())
+    _rx0 = (1.0 - 43.0, 70.0 - 37.3)          # receiver group: same relative layout as in the old C2
+    PLACE_F = {
+        "Xd2": (1.0 + 39.23, 1.0, 90),     # M3 vdac: vdacr_vc R_base 60 sq -> 39.23 tall, west edge at x 1.0
+        "Xd1": (1.0 + 38.58, 22.8, 90),
+        "Xd0": (1.0 + 38.58 - (38.58 - 36.32) / 2, 44.6, 90),
+        "Xx0": (44.4 + _rx0[0], 37.3 + _rx0[1], 0), "Xx1": (43.0 + _rx0[0], 46.0 + _rx0[1], 0),
+        "Xx3": (57.8 + _rx0[0], 46.0 + _rx0[1], 0), "Xx2": (43.0 + _rx0[0], 54.7 + _rx0[1], 0),
+        "Xxst": (53.6 + _rx0[0], 54.7 + _rx0[1], 0), "Xx4": (43.0 + _rx0[0], 65.8 + _rx0[1], 0),
+        "Xi4": (43.0, 1.0, 0), "Xi3": (43.0, 36.0, 0), "Xi2": (43.0, 71.3, 0),
+        "Xvi": (72.0, 1.0, 0), "Xg": (76.0, 47.4, 0),
+        "Xi0": (131.0, 43.18, 0), "Xi1": (131.0, 77.44, 0),
+        "Xr": (160.0, 44.0, 0),
+        "Xm": (208.5, 1.0, 0), "Xd3": (240.96, 66.3, 90),
+    }
 
 
 def pin_at(c, net, r):
@@ -471,10 +515,14 @@ def b1f(route=True):
     def ov(a, b):
         return a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
     bad = [i for i, b in boxes.items() if b[0] < 0.5 or b[1] < 0.5 or b[2] > FR_W - 0.5 or b[3] > FR_H - 0.5
-           or ov(b, N1) or ov(b, N2)]
+           or ov(b, N1) or (N2 and ov(b, N2)) or (NB and ov(b, (NB[0] - 1.0, NB[1], NB[2], NB[3] + 1.0)))]
     bad += [f"{i}/{j}" for i in boxes for j in boxes if i < j and ov(boxes[i], boxes[j])]
+    nb_a = (NB[2] - NB[0]) * (NB[3] - NB[1]) if NB else 0.0
     print(f"PLACE bias_b1 frame {FR_W} x {FR_H} = {FR_W * FR_H:.0f} um^2 (minus notches "
-          f"{FR_W * FR_H - 40 * 42 - 29.5 * 11:.0f}); leaf cells {leaf:.0f} um^2; problems: {bad or 'none'}")
+          f"{FR_W * FR_H - 40 * 42 - (N2[2] * 11 if N2 else 0) - nb_a:.0f}); leaf cells {leaf:.0f} um^2; problems: {bad or 'none'}")
+    if not route:
+        for i, b in sorted(boxes.items(), key=lambda kv: kv[1]):
+            print(f"  {i:5s} {conns[i][0]:12s} x {b[0]:6.2f}-{b[2]:6.2f}  y {b[1]:6.2f}-{b[3]:6.2f}")
     if not route or bad:
         return bad
     for inst, (x, y, rot) in PLACE_F.items():
@@ -482,8 +530,18 @@ def b1f(route=True):
     box = (0, 0, FR_W, FR_H)
     # keep-outs
     c.forbid_box(("m2", "m3"), (N1[0] - 0.3, 0, N1[2] + 0.3, N1[3]))
-    c.forbid_box(("m2", "m3"), (0, N2[1], N2[2] + 0.3, FR_H))
+    if N2:
+        c.forbid_box(("m2", "m3"), (0, N2[1], N2[2] + 0.3, FR_H))
     c.forbid_box(("m3",), CORR)
+    if NB:
+        c.forbid_box(("m2", "m3"), (NB[0] - 0.3, 0, NB[2], NB[3] + 0.3))
+    if PINS_REF:
+        for net, r in PINS_REF.items():
+            pin_at(c, net, tuple(r))
+        failed = route_and_write(c, box, base=0.8)
+        print(f"AREA {c.name} {FR_W:.2f} x {FR_H:.2f} = {FR_W * FR_H:.0f} um^2 (notches N1 + NB)")
+        print("FAILED:", failed if failed else "none")
+        return failed
     # pins
     ports = [p_ for p_ in SUB["bias_b1"]["ports"] if p_ not in ("vdd", "vss")]
     dig, ana = ports[:52], ports[52:]
@@ -503,18 +561,18 @@ def b1f(route=True):
     # analog outputs: top edge, west (east of N2)
     outs = ["vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vth_cmp", "vbn_ax", "vbp_w", "ua0_stim_out"]
     for k, net in enumerate(outs):
-        x = 26.0 + k * 2.6
+        x = 26.0 - WT + k * 2.6
         pin_at(c, net, (x - 0.2, yt[0], x + 0.2, yt[1]))
     # digital codes: top edge east, ordered by target x; mode lines east of the corridor
     mode = ["ua0_s0", "ua0_s1", "ua0_stim", "ua0_int", "bias_en", "ib_x2"]
     codes = sorted([n for n in dig if n not in mode], key=lambda n: target[n][0])
-    lo, hi = 100.0, 194.0
+    lo, hi = 100.0 - WT, 194.0 - WT
     step = (hi - lo) / (len(codes) - 1)
     for k, net in enumerate(codes):
         x = snap(lo + k * step)
         pin_at(c, net, (x - 0.2, yt[0], x + 0.2, yt[1]))
     for k, net in enumerate(sorted(mode, key=lambda n: target[n][0])):
-        x = 232.0 + k * 6.0
+        x = 232.0 - WT + k * 6.0
         pin_at(c, net, (x - 0.2, yt[0], x + 0.2, yt[1]))
     # power on the east edge
     for net, y in (("vdd", 50.0), ("vss", 56.0)):

@@ -31,3 +31,6 @@ layout/*/out/pex/
 # trial routes and precheck copies
 layout/slot/out/o2r*/
 gds/*.v
+
+# compact-cell library (layout B) incl. post-layout f-I logs
+!layout/compact/final/*.log

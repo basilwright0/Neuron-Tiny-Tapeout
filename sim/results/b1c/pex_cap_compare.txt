@@ -1,0 +1,13 @@
+node   base fF   new fF   (all extracted C touching the node, leaf only)
+idac_p out       4.05     4.17
+idac_p g        16.84    17.26
+idac_p dump      3.50     2.83
+idac_p vsp       7.80     7.94
+idac_p b4        1.84     1.38
+idac_p b0        1.19     1.38
+idac_n out       4.77     3.96
+idac_n g        17.43    16.62
+idac_n dump      5.93     6.74
+idac_n vsn       7.72     7.85
+idac_n b4        1.49     1.06
+idac_n b0        1.12     1.04

@@ -116,13 +116,21 @@ The neuron array is 4 rows × 4 columns (row 0 = bottom). PROBE_SEL keeps meanin
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | (row, col) | 0,1 | 1,2 | 0,2 | — | 1,3 | 2,3 | 1,0 | 2,0 | 3,0 | 3,1 | 2,1 | 3,2 | 1,1 | — | 2,2 | 3,3 |
 
-Slot (0,0) is REF (no spike channel); PROBE_SUB = 3 selects it whatever SEL is. **Slot (0,3)** (a dummy until 2026-11-20,
-now the lower half of the CMP double slot; no tap): no SEL/SUB combination selects it (tested exhaustively).
+Slot (0,0) is REF (no spike channel); PROBE_SUB = 3 selects it whatever SEL is. Slot (0,3) is the lower half
+of the CMP double slot (no tap): no SEL/SUB combination selects it (tested exhaustively).
 
-**CMP double slot (2026-11-20, after the macro was hardened):** CMP moved to (1,3) and S2 to (1,1). The table above is
-the macro's decoder and is unchanged, so **SEL 4 now probes CMP and SEL 12 probes S2**; spike channels are unchanged
-(CMP is still spike channel 12). `test/regmap.py` keeps this decoder table as `SLOT` and checks the floorplan against it
-with channels 4 and 12 swapped (`PHYS`).
+**M2 layout B (2026-11-21, `floorplan/floorplan.py` `MAP`):** the array is regrouped into two tall rows of trimmed
+slots at the bottom and two compact rows on top. The decoder above is unchanged, so **PROBE_SEL now reads the neuron
+at the decoded position, which is generally not spike channel SEL.** Probe map (PROBE_SUB 0/1 = vm/vr tap; S, F,
+AH50 and AH400 have no vr tap since M2, so PROBE_SUB = 1 reads nothing on them; the vr tap remains on H, P and CMP):
+
+| PROBE_SEL | 0 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 14 | 15 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| neuron | H1 | H3 | P3 | CMP | F1 | P2 | S1 | F2 | F3 | S2 | AH50 | H2 | S3 | AH400 |
+
+`test/regmap.py` checks that every decoded position holds a neuron and every neuron is decoded (`PROBE_NAME`).
+Spike channels are unchanged (`SPIKE_CH`); channel 15 is AH400 since M2 (MIL-127 N11: AH800 became AH400, so the
+capacitance sweep is AH50 / S / AH400 = 0.25 / 1 / 2×).
 
 | Port | Value |
 |---|---|

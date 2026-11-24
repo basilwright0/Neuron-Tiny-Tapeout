@@ -4,8 +4,10 @@
 #   bash sim/tb/top/run_batch.sh smoke    # fast environment check: static coupling + bias DC op (~15 min)
 #   bash sim/tb/top/run_batch.sh full     # every remaining check, at most $JOBS at once
 #   bash sim/tb/top/run_batch.sh ramp     # probe DC transfer as ramps (replaces the full-chip DC sweeps)
+#   bash sim/tb/top/run_batch.sh pex      # M2 VM set (sim/tb/top/vm_pex.sh): static coupling + kick transient for
+#                                         # every neuron, probe step, bias DC / spiking neighbours; no DC sweeps
 #
-# Env: JOBS (default 5)  STOP_SELF=1 to stop this Boat VM when the batch ends (any outcome)
+# Env: JOBS (default 5)  FORCE=1 reruns jobs that already have a .ok marker  STOP_SELF=1 to stop this Boat VM when the batch ends (any outcome)
 #      WAIT_PATTERN=<pgrep -f pattern> to wait for other jobs on the VM before stopping.
 # Logs and the summary go to sim/results/top/batch/ ; per-bench results to sim/results/top/ (as before).
 set -u
@@ -16,11 +18,15 @@ OUT=sim/results/top/batch
 mkdir -p "$OUT"
 SUMMARY="$OUT/summary_${MODE}.txt"
 
-run() {  # name, command (run inside the container from /work)
-  local name="$1"; shift
+run() {  # name, command (run inside the container from /work); a finished job leaves $OUT/<name>.ok and is skipped
+  local name="$1"; shift                               # on a rerun (FORCE=1 reruns everything)
+  if [ -e "$OUT/$name.ok" ] && [ "${FORCE:-0}" != 1 ]; then
+    printf '%-28s skipped (done earlier, %s)\n' "$name" "$(cat "$OUT/$name.ok")" >> "$SUMMARY"; return 0
+  fi
   local t0=$(date +%s)
-  scripts/eda.sh "nice -n 15 $*" > "$OUT/$name.log" 2>&1
+  bash scripts/eda.sh "nice -n 15 $*" > "$OUT/$name.log" 2>&1
   local rc=$?
+  [ $rc = 0 ] && date -u '+%F %T' > "$OUT/$name.ok"
   printf '%-28s rc=%-3s %5d min   %s\n' "$name" "$rc" $(( ($(date +%s) - t0) / 60 )) "$*" >> "$SUMMARY"
   return $rc
 }
@@ -32,6 +38,15 @@ if [ "$MODE" = ramp ]; then      # probe-chain DC transfer as up/down ramps, one
   for c in "typical 27" "ss 0"; do for k in 0 1 2 3; do
     JOBLIST+=("probe_ramp_${c// /}_tap$k|python3 sim/tb/top/tb_top_probe.py ramp $c $k")
   done; done
+elif [ "$MODE" = pex ]; then      # longest first (kick: 210 us transient); no full-chip DC sweeps (M1: OOM)
+  JOBLIST=(
+    "kick_typ27|python3 sim/tb/top/tb_top_kick.py typical 27"
+    "probe_step_typ27|python3 sim/tb/top/tb_top_probe.py step typical 27"
+    "coupling|python3 sim/tb/top/tb_top_coupling.py"
+    "bias_dc_S100|python3 sim/tb/top/tb_top_bias.py dc 100"
+    "bias_spk_on|python3 sim/tb/top/tb_top_bias.py spk on"
+    "bias_spk_off|python3 sim/tb/top/tb_top_bias.py spk off"
+  )
 elif [ "$MODE" = smoke ]; then
   JOBLIST=(
     "smoke_coupling|python3 sim/tb/top/tb_top_coupling.py"
@@ -52,10 +67,11 @@ else
   )
 fi
 
-{
+{                                                        # appended: a rerun keeps the earlier jobs' lines
+  echo
   echo "PEX batch '$MODE' on $(hostname), $(nproc) CPUs, $(free -g | awk '/Mem/{print $2}') GB RAM, JOBS=$JOBS"
   echo "started $(date -u '+%F %T') UTC"
-} > "$SUMMARY"
+} >> "$SUMMARY"
 
 printf '%s\n' "${JOBLIST[@]}" | xargs -P "$JOBS" -I{} bash -c 'j="{}"; run "${j%%|*}" "${j#*|}"'
 
@@ -64,7 +80,7 @@ if [ -n "${WAIT_PATTERN:-}" ]; then
   while pgrep -f "$WAIT_PATTERN" > /dev/null; do sleep 60; done
   echo "waited for '$WAIT_PATTERN' until $(date -u '+%F %T') UTC" >> "$SUMMARY"
 fi
-FAILS=$(grep -c ' rc=[1-9]' "$SUMMARY")
+FAILS=$(awk '/^PEX batch/{f=0} / rc=[1-9]/{f++} END{print f+0}' "$SUMMARY")   # this run's failures only
 {
   echo "finished $(date -u '+%F %T') UTC; failed jobs: $FAILS"
   echo

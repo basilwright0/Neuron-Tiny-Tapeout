@@ -1,0 +1,40 @@
+rev cc6b7d7 Sun Nov 22 10:17:04 AM UTC 2026
+build: 28 min
+placement issues: 0
+FAILED: none
+MAGIC_DRC_COUNT 0
+Final result: Circuits match uniquely.
+KLAYOUT_DRC_COUNT 4
+      4  ANT.16_i_ANT.3
+2782 parasitic capacitors in dend_d1_pex.spice
+Cfb  (spk-vs coupling, MOM + routing) = 8.12 fF   (target 8 fF +-25 %: 6.0 .. 10.0)
+vs   total wiring capacitance =  22.73 fF; largest couplings: spk 8.12, vss 4.78, vdd 0.85, vsrc 0.72, a_4096_6334# 0.72, a_3272_6334# 0.59, vbn_leak 0.44, en 0.39, a_488_5520# 0.36, el 0.34, abus 0.32, a_5524_5520# 0.31, mreset 0.29, a_4660_4480# 0.28, sel0 0.2
+d1   total wiring capacitance =  23.10 fF; largest couplings: vss 5.01, vdd 2.60, a_268_18520# 1.81, el 1.68, vbn_leak 1.15, vbp_st 0.92, a_5268_9138# 0.85, a_3136_4480# 0.50, a_6672_9234# 0.46, a_5524_11840# 0.43, a_2592_8154# 0.42, hold 0.41, a_4588_8588# 0.38
+XXS_XD_XNI XS.XD.n1 vs vsrc vss nfet_03v3 W=1u L=0.5u
+XXP1_XDT_XNI XP1.XDT.n1 d1 vsrcp vss nfet_03v3 W=1u L=0.5u
+XXP2_XDT_XNI XP2.XDT.n1 d2 vsrcp vss nfet_03v3 W=1u L=0.5u
+benches: 3 min
+== bench_cnode_pex.log
+PEX vs: C = 274.3 fF, d1: C = 248.0 fF, d2: C = 236.9 fF
+== bench_synapse_pex.log
+[typical_27] N=2 clustered  : d1 peak +   60 mV, d2 peak +   12 mV, plateau d1=False d2=False, soma spikes 0
+[typical_27] N=2 distributed: d1 peak +   43 mV, d2 peak +   46 mV, plateau d1=False d2=False, soma spikes 0
+[typical_27] N=3 clustered  : d1 peak +  716 mV, d2 peak +   22 mV, plateau d1=True d2=False, soma spikes 17
+[typical_27] N=3 distributed: d1 peak +   51 mV, d2 peak +   53 mV, plateau d1=False d2=False, soma spikes 0
+[typical_27] N=4 clustered  : d1 peak +  716 mV, d2 peak +   22 mV, plateau d1=True d2=False, soma spikes 17
+[typical_27] N=4 distributed: d1 peak +   56 mV, d2 peak +  716 mV, plateau d1=False d2=True, soma spikes 17
+[typical_27] N=5 clustered  : d1 peak +  716 mV, d2 peak +   22 mV, plateau d1=True d2=False, soma spikes 17
+[typical_27] N=5 distributed: d1 peak +  714 mV, d2 peak +  715 mV, plateau d1=True d2=True, soma spikes 30
+[typical_27] N=6 clustered  : d1 peak +  716 mV, d2 peak +   22 mV, plateau d1=True d2=False, soma spikes 17
+[typical_27] N=6 distributed: d1 peak +  714 mV, d2 peak +  715 mV, plateau d1=True d2=True, soma spikes 30
+== bench_synapse_sch.log
+[typical_27] N=1 clustered  : d1 peak +   55 mV, d2 peak +    8 mV, plateau d1=False d2=False, soma spikes 0
+[typical_27] N=1 distributed: d1 peak +   37 mV, d2 peak +   38 mV, plateau d1=False d2=False, soma spikes 0
+[typical_27] N=2 clustered  : d1 peak +  714 mV, d2 peak +   22 mV, plateau d1=True d2=False, soma spikes 18
+[typical_27] N=2 distributed: d1 peak +   52 mV, d2 peak +   54 mV, plateau d1=False d2=False, soma spikes 0
+[typical_27] N=3 clustered  : d1 peak +  714 mV, d2 peak +   22 mV, plateau d1=True d2=False, soma spikes 18
+[typical_27] N=3 distributed: d1 peak +  714 mV, d2 peak +  714 mV, plateau d1=True d2=True, soma spikes 32
+[typical_27] N=4 clustered  : d1 peak +  714 mV, d2 peak +   22 mV, plateau d1=True d2=False, soma spikes 18
+[typical_27] N=4 distributed: d1 peak +  714 mV, d2 peak +  714 mV, plateau d1=True d2=True, soma spikes 32
+[typical_27] N=6 clustered  : d1 peak +  742 mV, d2 peak +   22 mV, plateau d1=True d2=False, soma spikes 18
+[typical_27] N=6 distributed: d1 peak +  714 mV, d2 peak +  714 mV, plateau d1=True d2=True, soma spikes 32

@@ -19,6 +19,17 @@ import numpy as np
 sys.path.insert(0, "/work/sim/tb/speed")
 from common import RESULTS, sb  # noqa: E402
 from ngs import deck, run, crossings, rate  # noqa: E402
+import ngs  # noqa: E402
+
+# level-3 overrides (defaults = original bench): FI_RESULTS = output dir, FI_SLOTLIB = absolute path of an
+# alternative slot.spice (before/after and sweep copies of slot_cmp_h), FI_TAG = output-name suffix
+import os as _os
+if _os.environ.get("FI_RESULTS"):
+    from pathlib import Path as _P
+    RESULTS = ngs.RESULTS = _P(_os.environ["FI_RESULTS"])
+    RESULTS.mkdir(parents=True, exist_ok=True)
+if _os.environ.get("FI_SLOTLIB"):
+    sb.LIBS = tuple(_os.environ["FI_SLOTLIB"] if x == "neuron/slot.spice" else x for x in sb.LIBS)
 
 CELL, corner, temp, S = sys.argv[1], sys.argv[2], int(sys.argv[3]), float(sys.argv[4])
 NP = int(sys.argv[5]) if len(sys.argv) > 5 else 2
@@ -26,16 +37,36 @@ import os
 DEL = float(os.environ.get("FI_DEL", "0"))     # shift EL / Vth / Vreset together (operating-point test)
 if DEL:
     sb.EL, sb.VTH, sb.VRESET = sb.EL + DEL, sb.VTH + DEL, sb.VRESET + DEL
+if os.environ.get("FI_VRST"):                  # absolute Vreset (vreset_src code test; default EL + DEL)
+    sb.VRESET = float(os.environ["FI_VRST"])
 b = sb.Bias(S)
+b.i_ref *= float(os.environ.get("FI_IREF", "1"))   # vbn_ref code test: i_ref x code/14 (IDAC1 nominal code ~14)
+IBSCALE = float(os.environ.get("FI_IBSCALE", "1"))   # 10000x gate, Option 0: leak-code calibration = leak master x IBSCALE
+b.ib *= IBSCALE
+PEXF = os.environ.get("FI_PEX")                 # 10000x gate: absolute path of a <name>_pex.spice (DUT = that subckt)
+if PEXF:
+    import re as _re
+    _pn = os.path.basename(PEXF)[:-len("_pex.spice")]
+    _txt = _re.sub(r"\n\+", " ", open(PEXF).read())
+    _ports = _re.search(rf"^\.subckt\s+{_pn}\s+(.*)$", _txt, _re.M | _re.I).group(1).split()
+    _pinst = f".include {PEXF}\nXn " + " ".join(sb.nets(CELL)[p_] for p_ in _ports) + f" {_pn}"
+    _sb_body0 = sb.slot_body
+    sb.slot_body = lambda *a, **kw: _sb_body0(*a, **{**kw, "inst": _pinst, "include_libs": False})
 VTHC = os.environ.get("FI_VTHC")                # CMP only: vth_cmp level (re-calibration test)
 if VTHC:
     _sb_body = sb.slot_body
     sb.slot_body = lambda *a, **kw: _sb_body(*a, **kw).replace(f"Vthc vthc 0 {sb.VTH}", f"Vthc vthc 0 {VTHC}")
+IPRB = os.environ.get("FI_IPRB")                # vbn_prb master current (default 1 uA; level 3: B1 value per corner)
+if IPRB:
+    _sb_body2 = sb.slot_body
+    sb.slot_body = lambda *a, **kw: _sb_body2(*a, **kw).replace("Ibp vdd vbp 1u", f"Ibp vdd vbp {IPRB}")
 GF, CF = sb.GFAC.get(CELL, 1.0), sb.CFAC.get(CELL, 1.0)
 RHEO, TAU = b.rheo * GF, b.tau * CF / GF
 TREF = sb.TREF_BIO / S
 KS = [1.1, 1.5, 2, 3, 5, 8]
-TAG = f"{CELL}_{corner}_{temp}_S{S:g}" + (f"_EL{sb.EL:.2f}" if DEL else "") + (f"_vthc{VTHC}" if VTHC else "")
+SEED = int(os.environ.get("FI_SEED", "0"))      # MIL-319 CMP Monte Carlo: per-instance mismatch with this seed
+MMKW = dict(mismatch=True, seed=SEED) if SEED else {}
+TAG = f"{CELL}_{corner}_{temp}_S{S:g}" + (f"_EL{sb.EL:.2f}" if DEL else "") + (f"_vthc{VTHC}" if VTHC else "") + (f"_iprb{IPRB}" if IPRB else "") + os.environ.get("FI_TAG", "") + (f"_mc{SEED}" if SEED else "")
 HAS_SPK = "spk" in sb.PORTS[CELL]
 
 
@@ -48,7 +79,7 @@ def tran(k):
     tstop = (25 if k > 1.2 else 30) * TAU
     body = sb.slot_body(CELL, b, VSRC, iin=Iin, i_syn=1e-15, code=8)
     r = run(deck(body + f".ic v(vm)={sb.EL}\n", f"tran {TAU / 300} {tstop} uic",
-                 ["v(vm)", "v(spk)", "i(vdd)"], corner=corner, temp=temp), f"fi_{TAG}_k{k:g}")
+                 ["v(vm)", "v(spk)", "i(vdd)"], corner=corner, temp=temp, **MMKW), f"fi_{TAG}_k{k:g}")
     t, vm, spk = r["_x"], r["v(vm)"], r["v(spk)"]
     up = crossings(t, spk, 1.65)
     dn = crossings(t, spk, 1.65, rising=False)
@@ -76,9 +107,11 @@ def tran(k):
 def rheo_dc():
     body = sb.slot_body(CELL, b, VSRC, i_syn=1e-15, code=8, vm_src=sb.EL)
     r = run(deck(body, f"dc Vvm {sb.EL - 0.05:.3f} {sb.VTH + 0.15:.3f} 0.5m", ["i(vvm)", "v(spk)"],
-                 corner=corner, temp=temp), f"fidc_{TAG}")
+                 corner=corner, temp=temp, **MMKW), f"fidc_{TAG}")
     v, i, s = r["_x"], r["i(vvm)"], r["v(spk)"]
     trip = crossings(v, s, 1.65)
+    global G_EL
+    G_EL = float(abs(np.interp(sb.EL + 0.01, v, i) - np.interp(sb.EL - 0.01, v, i)) / 0.02)   # leak g at vm = EL
     vt = float(trip[0]) if len(trip) else float("nan")
     k = np.where(v < vt - 1e-3)[0][-1] if len(trip) else len(v) - 1
     return vt, float(abs(i[k]))
@@ -87,14 +120,19 @@ def rheo_dc():
 if CELL == "slot_cmp_h":
     VSRC = 0.6
 else:
-    VSRC = sb.cal_vsrc(corner, temp, S, tag=f"spd_{corner}_{temp}_S{S:g}_d{DEL:g}")
+    VSRC = sb.cal_vsrc(corner, temp, S, tag=f"spd_{corner}_{temp}_S{S:g}_d{DEL:g}" + os.environ.get("FI_TAG", "") + (f"_{CELL}" if os.environ.get("FI_TAG") else ""))
 vtrip, rheo_m = rheo_dc()
+if os.environ.get("FI_GONLY"):                  # calibration probe: DC only (leak g at EL), no transients
+    (RESULTS / f"g_{TAG}.json").write_text(json.dumps(dict(cell=CELL, corner=corner, temp=temp, S=S, ibscale=IBSCALE,
+                                                           g_el=G_EL, g_nom=b.g * sb.GFAC.get(CELL, 1.0), vtrip=vtrip, rheo_meas=rheo_m)))
+    print(f"{TAG}: ibscale={IBSCALE:g} g_el={G_EL:.4g} S g_nom={b.g * sb.GFAC.get(CELL, 1.0):.4g} S")
+    sys.exit(0)
 with Pool(NP) as p:
     res = p.map(tran, KS)
 hi = res[-1]
 isi8 = 1 / hi["rate"] if hi["rate"] > 0 else float("nan")
 out = dict(cell=CELL, corner=corner, temp=temp, S=S, vsrc=VSRC, tau=TAU, rheo=RHEO, tref_nom=TREF,
-           vtrip=vtrip, rheo_meas=rheo_m, res=res, w_over_isi8=hi["w_spk"] / isi8)
+           vtrip=vtrip, rheo_meas=rheo_m, g_el=G_EL, ibscale=IBSCALE, pex=PEXF, res=res, w_over_isi8=hi["w_spk"] / isi8)
 (RESULTS / f"fi_{TAG}.json").write_text(json.dumps(out, indent=1))
 print(f"{TAG}: tau={TAU*1e6:.2f}us vsrc={VSRC:.3f} trip={vtrip:.3f} rheo nom/meas={RHEO*1e12:.0f}/{rheo_m*1e12:.0f}pA "
       f"t_ref nom/meas={TREF*1e9:.0f}/{hi['t_ref']*1e9:.0f}ns w_spk={hi['w_spk']*1e9:.1f}ns w/ISI8={out['w_over_isi8']:.3f}")

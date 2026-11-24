@@ -42,8 +42,8 @@ def res_extent(w, l):
 
 
 # ============================================================================ bias_rails
-def rails():
-    c = Cell("bias_rails")
+def rails(compact=False, name=None):
+    c = Cell(name or ("bias_rails_c" if compact else "bias_rails"))
     nodes = ["top", "vsp", "a1", "a2", "a3", "vgln", "b1", "vglp", "c1", "c2", "vsn", "vss"]
     named = {"top", "vsp", "vgln", "vglp", "vsn", "vss"}
     bb = res_extent(1.0, RUNIT_L)
@@ -75,7 +75,17 @@ def rails():
     # keep everything else 0.8 um away from the resistor bodies/heads (HRES spacing)
     rx1 = x0 + 10 * pitch + 0.5
     c.forbid_box(("m1",), (x0 - 1.3, RING + 0.8, rx1 + 0.8, ytop_res + 0.8), allowed=named)
-    # decaps and header below the resistor block
+    if compact:
+        # M3 re-pack (b1a): header pfet in the free column east of the string, decaps above, pins on top
+        e = c.mos_extent("pfet", 4.0, 0.5, 1, "top")
+        xh = snap(rx1 + 0.8 + 1.6 - e[0])
+        yh0 = RING + 2.4
+        cyh = yh0 + 1.2 - e[1]
+        c.mos("HDR", "pfet", 4.0, 0.5, xh, cyh, ["vdd", "top"], "en_b", head="top")
+        yt = cyh + e[3]
+        nw = (xh + e[0] - 1.0, yh0, xh + e[2] + 1.0, yt + 2.0)
+        c.p("nwell", nw)
+        c.tap("n", (nw[0] + 1.0, yt + 0.8, nw[2] - 1.0, yt + 1.4), "vdd")
     y = ytop_res + 2.0
     e1 = c.mos_extent("pfet", 10.0, 10.0, 1, "top")
     cyc = y + 1.4 - e1[1]
@@ -88,16 +98,19 @@ def rails():
         nw = (xc + e1[0] - 1.0, y, xc + e1[2] + 1.0, ytop + 2.0)
         c.p("nwell", nw)
         c.tap("n", (nw[0] + 1.0, ytop + 0.8, nw[2] - 1.0, ytop + 1.4), net)
-    y = ytop + 2.0 + 1.6
-    # header pfet in its own vdd n-well
-    e = c.mos_extent("pfet", 4.0, 0.5, 1, "top")
-    cyh = y + 1.2 - e[1]
-    c.mos("HDR", "pfet", 4.0, 0.5, W / 2 - 4, cyh, ["vdd", "top"], "en_b", head="top")
-    yt = cyh + e[3]
-    nw = (W / 2 - 4 + e[0] - 1.0, y, W / 2 - 4 + e[2] + 1.0, yt + 2.0)
-    c.p("nwell", nw)
-    c.tap("n", (nw[0] + 1.0, yt + 0.8, nw[2] - 1.0, yt + 1.4), "vdd")
-    y = yt + 2.0 + 0.8
+    if compact:
+        y = ytop + 2.0 + 1.0
+    else:
+        y = ytop + 2.0 + 1.6
+        # header pfet in its own vdd n-well
+        e = c.mos_extent("pfet", 4.0, 0.5, 1, "top")
+        cyh = y + 1.2 - e[1]
+        c.mos("HDR", "pfet", 4.0, 0.5, W / 2 - 4, cyh, ["vdd", "top"], "en_b", head="top")
+        yt = cyh + e[3]
+        nw = (W / 2 - 4 + e[0] - 1.0, y, W / 2 - 4 + e[2] + 1.0, yt + 2.0)
+        c.p("nwell", nw)
+        c.tap("n", (nw[0] + 1.0, yt + 0.8, nw[2] - 1.0, yt + 1.4), "vdd")
+        y = yt + 2.0 + 0.8
     pins = ["vsn", "vsp", "vgln", "vglp", "en_b", "vdd"]
     for k, net in enumerate(pins):
         pin(c, net, 2.5 + k * 3.8, y + 0.4, "power" if net == "vdd" else "signal")
@@ -487,6 +500,7 @@ def ladder():
 
 if __name__ == "__main__":
     name = sys.argv[1]
-    f = {"bias_rails": rails, "bias_master": master, "vref_string64": vref, "vdac6": vdac6, "bias_rangegen": rangegen,
-         "bias_ladder": ladder}[name]()
+    # M3 (b1int): bias_rails is the compact b1a re-pack by default (same ports / pin x); RAILS_C=0 = M2 cell
+    f = {"bias_rails": lambda: rails(__import__("os").environ.get("RAILS_C", "1") == "1", "bias_rails"), "bias_master": master, "vref_string64": vref, "vdac6": vdac6, "bias_rangegen": rangegen,
+         "bias_ladder": ladder, "bias_rails_c": lambda: rails(True)}[name]()
     sys.exit(1 if f else 0)

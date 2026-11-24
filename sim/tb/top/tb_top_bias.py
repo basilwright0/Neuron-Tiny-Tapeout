@@ -7,23 +7,26 @@
 Lines that have no R network in the extraction (extresist keeps only the nets whose R matters) are one node: their
 far end equals the driver end by construction; what can still differ is the local ground / supply of the mirror
 devices, which is the IR-drop result of pgrid.py (check 4).
-Writes sim/results/top/bias_<mode>_*.txt.
+spk also reports the ripple of every shared line at each array slot's own terminal, per neuron row (diagnosis of
+the victim rate shift with spiking neighbours).
+Writes sim/results/top/bias_<mode>_*.txt.   `--deck`: write the deck to $TOP_DECK_DIR (default /tmp/topdeck), no run.
 """
 import sys
 from collections import defaultdict
 
 import numpy as np
 
-sys.path.insert(0, "/work/sim/tb/top")
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 import topbench as B          # noqa: E402
 import topnet as T            # noqa: E402
 from ngs import crossings     # noqa: E402
 
-MODE = sys.argv[1] if len(sys.argv) > 1 else "dc"
+ARGV = [sys.argv[0]] + [a for a in sys.argv[1:] if not a.startswith("--")]
+MODE = ARGV[1] if len(ARGV) > 1 else "dc"
 LINES = ["vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vreset", "vreset_src", "vsrc", "vth_ref",
          "aux0", "aux2", "aux3", "vbn_ax", "vbp_w"]
 DRIVER = {"vsrc": "r1", "vreset": "r1"}            # others: b1
-FAR = ["s30", "s33", "ax", "d1", "tau0", "tau2"]    # far array column top (S3, AH800), AdEx, D1, tau cells
+FAR = ["s30", "s33", "ax", "d1", "tau0", "tau2"]    # array top row ends (M2 layout B: F2, AH400), AdEx, D1, tau cells
 lines = []
 
 
@@ -68,7 +71,7 @@ def ends(ln):
 
 
 if MODE == "dc":
-    S = float(sys.argv[2]) if len(sys.argv) > 2 else 100.0
+    S = float(ARGV[2]) if len(ARGV) > 2 else 100.0
     sv, keys = [], []
     for ln in LINES:
         drv, far = ends(ln)
@@ -99,7 +102,7 @@ if MODE == "dc":
     (B.OUT / f"bias_dc_S{S:g}.txt").write_text("\n".join(lines) + "\n")
 
 elif MODE == "step":
-    S = float(sys.argv[2]) if len(sys.argv) > 2 else 100.0
+    S = float(ARGV[2]) if len(ARGV) > 2 else 100.0
     c0 = B.op_point(S)
     c1 = {k: v - 4 for k, v in c0.items()}          # every DAC -4 codes (no wrap at the S >= 300 codes)
     TS, TEND = 40e-6 * 100 / S + 5e-6, 40e-6 * 100 / S + 5e-6 + 800e-6 * 100 / S
@@ -137,17 +140,29 @@ elif MODE == "step":
     (B.OUT / f"bias_step_S{S:g}.txt").write_text("\n".join(lines) + "\n")
 
 elif MODE == "spk":
-    ON = (sys.argv[2] if len(sys.argv) > 2 else "on") == "on"
+    ON = (ARGV[2] if len(ARGV) > 2 else "on") == "on"
     S = 1000.0
     g = 200e-15 * S / 10e-3
     rheo = g * 0.08
-    VICTIM, QUIET, SPIKERS = "s11", "s20", ["s01", "s10", "s12", "s21"]
+    # victim H2 (1,1) and its 4 neighbours H1 (0,1), P2 (1,0), H3 (1,2), S2 (2,1); quiet S1 (2,0) (M2 layout B)
+    VICTIM, QUIET = T.slot_inst("H2"), T.slot_inst("S1")
+    SPIKERS = [T.slot_inst(n) for n in ("H1", "P2", "H3", "S2")]
     src = {"vstim": "Vstim vstim 0 3.3", "Ivic": f"Ivic vstim {T.vnode(VICTIM + '.vm')} DC {2 * rheo:g}"}
     if ON:
         for k, s in enumerate(SPIKERS):
             src[f"Isp{k}"] = f"Isp{k} vstim {T.vnode(s + '.vm')} DC {4 * rheo:g}"
-    body = B.chip(S, ib_x2=1, sources=src)
-    TEND = 160e-6
+    # SPK_R2: override the vth_cmp code (CMP slot state A/B, MIL-298); SPK_TEND: shorter run (the ISI is steady from
+    # the first spike). Either one adds a suffix to the result names.
+    import os
+    codes = B.op_point(S)
+    tag = ""
+    if os.environ.get("SPK_R2"):
+        codes["r2"] = int(os.environ["SPK_R2"])
+        tag += f"_r2c{codes['r2']}"
+    TEND = float(os.environ.get("SPK_TEND", "160e-6"))
+    if "SPK_TEND" in os.environ:
+        tag += f"_t{TEND * 1e6:g}"
+    body = B.chip(S, codes=codes, ib_x2=1, sources=src)
     sh = ["vbn_leak", "vbn_ref", "vbp_st", "vbp_syn", "vbn_prb", "el", "vreset", "vsrc"]
     sv = [f"v({T.vnode(VICTIM + '.spk')})", f"v({T.vnode(VICTIM + '.vm')})", f"v({T.vnode(QUIET + '.vm')})"]
     near = {}
@@ -157,8 +172,21 @@ elif MODE == "spk":
         nn = sorted(term[gq].get(VICTIM, set())) or [T.net(ln)]
         near[ln] = nn[0]
         sv.append(f"v({T.san(nn[0])})")
-    sv += [f"v({T.vnode(s + '.spk')})" for s in SPIKERS]
-    r = B.go(B.deck(body, f"tran 5n {TEND:g} 0 5n", sorted(set(sv))), f"bias_spk_{'on' if ON else 'off'}")
+    # per-neuron ripple: each shared line at every array slot's own terminal (R-network lines; single-node lines
+    # give one node for all slots), to see whether the victim row / column sees more ripple than the others
+    SLOTS = [i for _, i, _ in T.neurons()]
+    at_slot = {}
+    for ln in sh:
+        gq = f(T.net(ln))
+        for s_ in SLOTS:
+            nn = sorted(term[gq].get(s_, set())) or [T.net(ln)]
+            at_slot[(ln, s_)] = nn[0]
+            sv.append(f"v({T.san(nn[0])})")
+    sv += [f"v({T.vnode(s + '.vm')})" for s in SLOTS]
+    CMP = T.slot_inst("CMP")
+    sv += [f"v({T.vnode(s + '.spk')})" for s in SPIKERS + [CMP]]
+    name = f"bias_spk_{'on' if ON else 'off'}{tag}"
+    r = B.go(B.deck(body, f"tran 5n {TEND:g} 0 5n", sorted(set(sv))), name)
     t = r["_x"]
     sp = crossings(t, r[f"v({T.vnode(VICTIM + '.spk')})".lower()], 1.65)
     sp = sp[sp > 30e-6]
@@ -170,6 +198,9 @@ elif MODE == "spk":
     for s in SPIKERS:
         n = len(crossings(t, r[f"v({T.vnode(s + '.spk')})".lower()], 1.65))
         log(f"  neighbour {s}: {n} spikes")
+    cs = r[f"v({T.vnode(CMP + '.spk')})".lower()]
+    log(f"  CMP {CMP} (vth_cmp code r2 = {codes['r2']}): {len(crossings(t, cs, 1.65))} spike edges, spk mean "
+        f"{cs[t > 30e-6].mean():.3f} V")
     m = t > 30e-6
     q = r[f"v({T.vnode(QUIET + '.vm')})".lower()][m]
     log(f"quiet neuron {QUIET} vm: mean {q.mean():.4f} V, p-p {1e3 * (q.max() - q.min()):.2f} mV")
@@ -177,4 +208,24 @@ elif MODE == "spk":
     for ln in sh:
         y = r[f"v({T.san(near[ln])})".lower()][m]
         log(f"  {ln:10s} {y.mean():.4f}  {1e3 * (y.max() - y.min()):8.2f}  {1e3 * y.std():7.3f}")
-    (B.OUT / f"bias_spk_{'on' if ON else 'off'}.txt").write_text("\n".join(lines) + "\n")
+    log("")
+    log("shared-line ripple per neuron, at each slot's own terminal of the line (after 30 us): p-p (mV) / mean - "
+        "mean at the victim (mV); rows = array rows (r0 bottom); * = victim, + = spiking neighbour")
+    log("slot   name    " + " ".join(f"{ln:>14s}" for ln in sh) + "   vm p-p (mV)")
+    names = {i: n for n, i, _ in T.neurons()}
+    for row_ in range(4):
+        rs = [s_ for s_ in SLOTS if s_[1] == str(row_)]
+        pp_row = {ln: 0.0 for ln in sh}
+        for s_ in rs:
+            tag = "*" if s_ == VICTIM else "+" if s_ in SPIKERS else " "
+            cells = ""
+            for ln in sh:
+                y = r[f"v({T.san(at_slot[(ln, s_)])})".lower()][m]
+                y0 = r[f"v({T.san(near[ln])})".lower()][m].mean()
+                pp = 1e3 * (y.max() - y.min())
+                pp_row[ln] = max(pp_row[ln], pp)
+                cells += f" {pp:6.2f}/{1e3 * (y.mean() - y0):+6.2f}"
+            v_ = r[f"v({T.vnode(s_ + '.vm')})".lower()][m]
+            log(f"{s_}{tag}  {names[s_]:6s} {cells}   {1e3 * (v_.max() - v_.min()):8.1f}")
+        log(f"row {row_} max p-p " + " ".join(f"{pp_row[ln]:14.2f}" for ln in sh))
+    (B.OUT / f"{name}.txt").write_text("\n".join(lines) + "\n")

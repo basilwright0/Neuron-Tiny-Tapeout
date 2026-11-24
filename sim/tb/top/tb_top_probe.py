@@ -3,7 +3,8 @@
   python3 sim/tb/top/tb_top_probe.py dc   [corner] [T]   # DC transfer of each tap, PEX vs schematic chain
   python3 sim/tb/top/tb_top_probe.py step [corner] [T]   # probe-select changes (firmware 3-step), 1 % settling
 
-Taps: far = S3 (s30, row 3 / column 0: the longest abus path to R1), near = H1 (s02, row 0 / column 2),
+Taps (from floorplan MAP): far = slot (3,0) (s30, row 3 / column 0: the longest abus path to R1; M2 layout B: F2),
+near = H1 (M2 layout B: s01, row 0 / column 1),
 D1 soma tap (sel0, PROBE_SUB 0), AdEx vm tap. The probed node is forced by an ideal source (the neuron's own
 circuit stays connected). Pad = the board node after the 500 ohm mux (what a scope sees); 200 pF.
 Results: sim/results/top/probe_<mode>_<corner>_<T>.txt
@@ -12,7 +13,7 @@ import sys
 
 import numpy as np
 
-sys.path.insert(0, "/work/sim/tb/top")
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 import topbench as B          # noqa: E402
 import topnet as T            # noqa: E402
 
@@ -20,9 +21,12 @@ MODE = sys.argv[1] if len(sys.argv) > 1 else "dc"
 CORNER = sys.argv[2] if len(sys.argv) > 2 else "typical"
 TEMP = int(sys.argv[3]) if len(sys.argv) > 3 else 27
 S = 100.0
+_FAR, _NEAR = (3, 0), T.slot_pos("H1")
+TAP_FAR = f"far {T.fp.slot_map()[_FAR]} ({_FAR[0]},{_FAR[1]})"
+TAP_NEAR = f"near H1 ({_NEAR[0]},{_NEAR[1]})"
 TAPS = {  # name: (forced node, probe config, schematic tap kind)
-    "far S3 (3,0)": ("s30.vm", dict(row=3, col=0, sub=0), "slot"),
-    "near H1 (0,2)": ("s02.vm", dict(row=0, col=2, sub=0), "slot"),
+    TAP_FAR: (f"s{_FAR[0]}{_FAR[1]}.vm", dict(row=_FAR[0], col=_FAR[1], sub=0), "slot"),
+    TAP_NEAR: (f"s{_NEAR[0]}{_NEAR[1]}.vm", dict(row=_NEAR[0], col=_NEAR[1], sub=0), "slot"),
     "D1 soma": ("d1.vs", dict(blk="d1", sub=0), "d1"),
     "AdEx vm": ("ax.vm", dict(blk="adex", sub=0), "adex"),
 }
@@ -116,8 +120,8 @@ elif MODE == "ramp":
 elif MODE == "step":
     # far(1.0) -> near(1.6) -> far(1.0) -> D1(1.3) -> AdEx(1.8) -> near(1.6); firmware 3-step move each time:
     # t0: PROBE_EN = 0 (old SEL), t0+0.5 us: new SEL/SUB, t0+1 us: PROBE_EN = 1; settle window 5 us.
-    seq = ["far S3 (3,0)", "near H1 (0,2)", "far S3 (3,0)", "D1 soma", "AdEx vm", "near H1 (0,2)"]
-    val = {"far S3 (3,0)": 1.0, "near H1 (0,2)": 1.6, "D1 soma": 1.3, "AdEx vm": 1.8}
+    seq = [TAP_FAR, TAP_NEAR, TAP_FAR, "D1 soma", "AdEx vm", TAP_NEAR]
+    val = {TAP_FAR: 1.0, TAP_NEAR: 1.6, "D1 soma": 1.3, "AdEx vm": 1.8}
     SEG, T0 = 6e-6, 10e-6
     codes = B.op_point(S)
     ev = [(0.0, T.config(codes=codes, probe=TAPS[seq[0]][1]))]

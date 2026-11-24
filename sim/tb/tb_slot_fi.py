@@ -1,9 +1,9 @@
 """Post-layout f-I check of the neuron-array slot cells: schematic vs magic-extracted netlist.
 
 usage: python3 sim/tb/tb_slot_fi.py [corner] [temp] [S] [cell]
-       cell = slot_ah | slot_ah_h | slot_ah_p | slot_ah_f | slot_cmp_h | slot_ah_50 | slot_ah_800 | slot_dummy
+       cell = slot_ah | slot_ah_h | slot_ah_p | slot_ah_f | slot_cmp_h | slot_ah_50 | slot_ah_400 | slot_ah_800 | slot_dummy
   Variants: input currents are multiples of the cell's own rheobase (F: half the leak g) and the run length
-  scales with its own tau (F: 2x; AH50 / AH800: C/200 fF). CMP: threshold on aux = VTH (1.38 V; vsrc unused).
+  scales with its own tau (F: 2x; AH50 / AH400 / AH800: C/200 fF). CMP: threshold on aux = VTH (1.38 V; vsrc unused).
   slot_dummy has no spk pin: spikes are counted as vm falling through (Vreset + Vth)/2 (the reset).
   sch : cells/neuron/slot.spice (ideal Cfb = 8 fF)
   pex : layout/slot/out/<cell>_pex.spice (magic extract, all coupling caps, Cfb = extracted MOM)
@@ -29,7 +29,9 @@ corner = sys.argv[1] if len(sys.argv) > 1 else "typical"
 temp = int(sys.argv[2]) if len(sys.argv) > 2 else 27
 S = float(sys.argv[3]) if len(sys.argv) > 3 else 100.0
 CELL = sys.argv[4] if len(sys.argv) > 4 else "slot_ah"
-PEX = Path(f"/work/layout/slot/out/{CELL}_pex.spice")
+# PEX_NAME=c<cell>: compact layout (layout/compact/out/<name>_pex.spice, M2)
+PEX_NAME = os.environ.get("PEX_NAME", CELL)
+PEX = Path(f"/work/layout/compact/out/{PEX_NAME}_pex.spice" if PEX_NAME != CELL else f"/work/layout/slot/out/{CELL}_pex.spice")
 
 b = sb.Bias(S)
 GF, CF = sb.GFAC.get(CELL, 1.0), sb.CFAC.get(CELL, 1.0)
@@ -45,9 +47,9 @@ def dut(kind):
     if kind == "sch":
         return True, None
     txt = re.sub(r"\n\+", " ", PEX.read_text())
-    m = re.search(rf"^\.subckt\s+{CELL}\s+(.*)$", txt, re.M | re.I)
+    m = re.search(rf"^\.subckt\s+{PEX_NAME}\s+(.*)$", txt, re.M | re.I)
     ports = m.group(1).split()
-    return False, f".include {PEX}\nXn " + " ".join(sb.nets(CELL)[p] for p in ports) + f" {CELL}"
+    return False, f".include {PEX}\nXn " + " ".join(sb.nets(CELL)[p] for p in ports) + f" {PEX_NAME}"
 
 
 out = {}

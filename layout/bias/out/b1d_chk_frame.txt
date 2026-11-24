@@ -1,0 +1,11 @@
+bbox 0.0 0.05 242.0 114.5
+Metal3 in corridor: none
+label vth_ref 42/10 161.0 42.2
+label vreset_src 42/10 163.6 42.2
+label ib_r1 42/10 171.3 42.2
+label ua0 42/10 224.3 0.8
+label vbn_leak 42/10 3.0 114.3
+label el 42/10 16.0 114.3
+label vth_cmp 42/10 18.6 114.3
+label vdd 42/10 241.3 50.0
+label vss 42/10 241.3 56.0

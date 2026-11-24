@@ -136,7 +136,27 @@ def main():
     routed = {}
     for l, r, n in shapes:
         routed.setdefault((l, n), []).append(r)
-    npatch = 0
+    # a patch reaches past both the stub and the wire it joins, into space the router never saw: keep it 0.28 um
+    # (Euclidean) from every other net's shape on its layer, earlier patches included (2026-11-21: the cfg_out[29]
+    # and [30] staircase-stub patches came 0.21 um apart corner to corner, M3.2a)
+    bins = {}
+    def bin_add(l, r, n):
+        for gx in range(int(r[0] // 5), int(r[2] // 5) + 1):
+            for gy in range(int(r[1] // 5), int(r[3] // 5) + 1):
+                bins.setdefault((l, gx, gy), []).append((r, n))
+    for l, r, n in shapes:
+        if l in ("metal2", "metal3", "metal4"):
+            bin_add(l, r, n)
+    def clear28(l, B, n):
+        for gx in range(int((B[0] - 0.28) // 5), int((B[2] + 0.28) // 5) + 1):
+            for gy in range(int((B[1] - 0.28) // 5), int((B[3] + 0.28) // 5) + 1):
+                for r, n2 in bins.get((l, gx, gy), ()):
+                    if n2 != n:
+                        dx = max(0.0, max(B[0], r[0]) - min(B[2], r[2])); dy = max(0.0, max(B[1], r[1]) - min(B[3], r[3]))
+                        if dx * dx + dy * dy < 0.28 ** 2 - 1e-6:
+                            return False
+        return True
+    npatch = nskip = 0
     for l, S, n in cands:
         hits = [r for r in routed.get((l, n), []) if r[0] < S[2] - 1e-6 and r[2] > S[0] + 1e-6
                 and r[1] < S[3] - 1e-6 and r[3] > S[1] + 1e-6 and r != S]
@@ -150,27 +170,39 @@ def main():
             # the 0.3 um band is centred on the overlap but kept inside the stub's own extent where the wire runs on
             # past the stub end (2026-11-20: a band poking 0.08 um out of a fan-out stub end came 0.2 um from a
             # neighbour's jog, M2.2a)
+            # band positions, preferred first; the first one clear of other nets is used
             def inside(c, a0, a1, w0, w1):
                 lo, hi = c - 0.15, c + 0.15
+                opts = []
                 if w1 > a1 + 1e-6 and hi > a1 and a1 - 0.3 >= a0 - 1e-6:
-                    lo, hi = a1 - 0.3, a1
+                    opts.append((a1 - 0.3, a1))
                 elif w0 < a0 - 1e-6 and lo < a0 and a0 + 0.3 <= a1 + 1e-6:
-                    lo, hi = a0, a0 + 0.3
-                return lo, hi
+                    opts.append((a0, a0 + 0.3))
+                return opts + [(lo, hi)]
             if 1e-6 < px <= 0.15 and (h[2] - h[0] <= 0.45 or h[3] - h[1] > h[2] - h[0]):
-                lo, hi = inside((oy0 + oy1) / 2, S[1], S[3], h[1], h[3])
-                Bs.append([ux0, max(uy0, lo), ux1, min(uy1, hi)])
+                Bs.append([[ux0, max(uy0, lo), ux1, min(uy1, hi)]
+                           for lo, hi in inside((oy0 + oy1) / 2, S[1], S[3], h[1], h[3])])
             if 1e-6 < py <= 0.15 and (h[3] - h[1] <= 0.45 or h[2] - h[0] > h[3] - h[1]):
-                lo, hi = inside((ox0 + ox1) / 2, S[0], S[2], h[0], h[2])
-                Bs.append([max(ux0, lo), uy0, min(ux1, hi), uy1])
-            for B in Bs:                  # stay in the outer part of the stub (away from the block edge)
-                if h[3] > S[3] + 1e-6 and h[1] >= S[1] - 1e-6: B[1] = max(B[1], S[3] - 0.3)
-                if h[1] < S[1] - 1e-6 and h[3] <= S[3] + 1e-6: B[3] = min(B[3], S[1] + 0.3)
-                if h[2] > S[2] + 1e-6 and h[0] >= S[0] - 1e-6: B[0] = max(B[0], S[2] - 0.3)
-                if h[0] < S[0] - 1e-6 and h[2] <= S[2] + 1e-6: B[2] = min(B[2], S[0] + 0.3)
-                if B[2] - B[0] >= 0.28 and B[3] - B[1] >= 0.28:
-                    shapes.append((l, tuple(round(v, 3) for v in B), n)); npatch += 1
-    print("terminal patches:", npatch, "dropped vias:", ndrop)
+                Bs.append([[max(ux0, lo), uy0, min(ux1, hi), uy1]
+                           for lo, hi in inside((ox0 + ox1) / 2, S[0], S[2], h[0], h[2])])
+            for opts in Bs:
+                ok = None
+                for B in opts:            # stay in the outer part of the stub (away from the block edge)
+                    if h[3] > S[3] + 1e-6 and h[1] >= S[1] - 1e-6: B[1] = max(B[1], S[3] - 0.3)
+                    if h[1] < S[1] - 1e-6 and h[3] <= S[3] + 1e-6: B[3] = min(B[3], S[1] + 0.3)
+                    if h[2] > S[2] + 1e-6 and h[0] >= S[0] - 1e-6: B[0] = max(B[0], S[2] - 0.3)
+                    if h[0] < S[0] - 1e-6 and h[2] <= S[2] + 1e-6: B[2] = min(B[2], S[0] + 0.3)
+                    B = tuple(round(v, 3) for v in B)
+                    if B[2] - B[0] >= 0.28 and B[3] - B[1] >= 0.28 and clear28(l, B, n):
+                        ok = B
+                        break
+                if ok is None:
+                    if any(B[2] - B[0] >= 0.28 and B[3] - B[1] >= 0.28 for B in opts):
+                        nskip += 1
+                        print("terminal patch skipped (no position 0.28 um clear of other nets):", l, n, S)
+                    continue
+                shapes.append((l, ok, n)); bin_add(l, ok, n); npatch += 1
+    print("terminal patches:", npatch, "skipped:", nskip, "dropped vias:", ndrop)
     # same-net notch fill: close every net's metal by 0.15 um (KLayout), paint the added area
     try:
         import klayout.db as kdb
@@ -195,7 +227,7 @@ def main():
                         if any(q[0] < t[2] + 0.5 and q[2] > t[0] - 0.5 and q[1] < t[3] + 0.5 and q[3] > t[1] - 0.5 for t in sts):
                             extra.setdefault((p["layer"], n), []).append(q)
         nfill = 0
-        layer_all = {}
+        layer_all, placed = {}, {}
         for (l, n), rs in groups.items():
             reg = kdb.Region()
             for r in rs:
@@ -209,12 +241,13 @@ def main():
                 reg.insert(kdb.Box(*[int(round(v * 1000)) for v in r]))
             reg.merge()
             fill = reg.sized(150).sized(-150) - reg
-            if not fill.is_empty():         # never bring a fill closer than 0.28 um to another net
+            if not fill.is_empty():         # never bring a fill closer than 0.28 um to another net (or its fills)
                 others = kdb.Region()
-                for nn, rr in layer_all[l]:
+                for nn, rr in layer_all[l] + placed.get(l, []):
                     if nn != n:
                         others += rr
                 fill = fill - others.sized(280)
+                placed.setdefault(l, []).append((n, fill.dup()))
             for poly in fill.each():
                 for t in poly.decompose_trapezoids():
                     b = t.bbox()
@@ -236,6 +269,7 @@ def main():
           f"ext2spice -p {C.WORK}/ext -o {C.WORK}/top_ext.spice", "quit -noprompt"]
     (C.WORK / "assemble.tcl").write_text("\n".join(T) + "\n")
     print("wrote", C.WORK / "assemble.tcl", len(T), "lines")
+    return shapes
 
 
 if __name__ == "__main__":

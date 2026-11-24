@@ -2,7 +2,7 @@
 
 Source: layout/top/work/pexr/top_rc_flat.spice, written by sim/tb/top/ext_rc.tcl (magic, final GDS flattened,
 `extract do resistance` + `extresist all`, all coupling C). R networks exist for VDPWR / VGND (every device
-terminal) and for the nets extresist keeps (vsrc, abus, el, vreset, stb, vm of s33, ...); every other net is a
+terminal) and for the nets extresist keeps (vsrc, abus, el, vreset, stb, ...); every other net is a
 single node with all its C. The analog blocks are therefore their own layout (same extraction as the block-level
 PEX), wired by the real top-level routing.
 
@@ -22,17 +22,56 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path("/work")
+ROOT = Path(__file__).resolve().parents[3]     # /work in the EDA container
 FLAT = ROOT / "layout/top/work/pexr/top_rc_flat.spice"
 RESEXT = ROOT / "layout/top/work/pexr/top_flat.res.ext"
 sys.path.insert(0, str(ROOT / "layout/top"))
+import config as _C                # noqa: E402  (layout/top/config.py; floorplan/floorplan.py as _C.fp)
+fp = _C.fp
 UNIT = 0.005                       # um per .ext / a_x_y unit (scale 1000 1 0.5 at 10 internal units / lambda)
-MACRO = (170.0, 151.0, 336.0, 317.0)
+MACRO = (fp.MACRO_X, fp.MACRO_Y, fp.MACRO_X + fp.MACRO_S, fp.MACRO_Y + fp.MACRO_S)
 GLUE = (169.5, 4.5, 204.5, 10.5)   # glue row box (keep its std cells)
 R_DRV = 1.5e3                      # macro output driver (buf_1-ish, 3.3 V)
 TR = 0.5e-9
 
 _cache = {}
+
+
+# ------------------------------------------------------------------ array map (floorplan/floorplan.py MAP)
+CAP_DENS = 4.0e-15                 # F / um^2 of the nfet_03v3 membrane caps (7.07 x 7.07 = 200 fF; slotbench.CFAC)
+
+
+def slot_pos(name):
+    """Map position (row, col) of an array neuron by name (the instance is s<row><col>; CMP: s13)."""
+    return next(rc for rc, n in fp.slot_map().items() if n == name)
+
+
+def slot_inst(name):
+    r, c = slot_pos(name)
+    return f"s{r}{c}"
+
+
+def neurons():
+    """[(name, instance, cell)] of every array neuron (REF excluded), bottom row first."""
+    return [(n, f"s{r}{c}", fp.slot_cell(n)) for (r, c), n in sorted(fp.slot_map().items()) if n != "REF"]
+
+
+def membrane_cap(cell):
+    """Membrane C of a slot cell: the nfet_03v3 MOS caps with gate on vm and d = s = b = vss in the cell's LVS
+    netlist (layout/top/config.LIB[cell]['lvs']), x CAP_DENS. They are devices, so not in the extracted C."""
+    key = "cm_" + cell
+    if key not in _cache:
+        txt = re.sub(r"\n\+", " ", (ROOT / _C.LIB[cell]["lvs"]).read_text())
+        txt = txt[txt.index(f".subckt {cell} "):]
+        txt = txt[:txt.index(".ends")]
+        a = 0.0
+        for l in txt.splitlines():
+            t = l.split()
+            if len(t) > 5 and t[0][0] in "Xx" and t[1:6] == ["vss", "vm", "vss", "vss", "nfet_03v3"]:
+                kv = dict(x.lower().split("=") for x in t[6:] if "=" in x)
+                a += _unit(kv["w"]) * _unit(kv["l"]) * 1e12
+        _cache[key] = a * CAP_DENS
+    return _cache[key]
 
 
 def san(n: str) -> str:
@@ -367,7 +406,9 @@ CODES_S100 = dict(i0=10, i1=14, i2=7, i3=9, i4=8)      # B1 report C.3 nominal c
 def vcodes(el=1.30, vreset=1.30, vth_cmp=1.38, vth_ref=0.505):
     r0 = round((el - 0.994) / 0.0201)
     r1 = round((vreset - 0.891) / 0.0201)
-    r2 = min(31, round((vth_cmp - 1.094) / 0.0133))
+    # M3 vth_cmp DAC (vdacr_vc R_base 60 sq): 1.231 .. 1.655 V; full-chip PEX gives 1.5261 V at code 22 (MIL-298).
+    # The pre-M3 mapping (1.094 + 13.3 mV / code) clipped 1.58 V at code 31, which the M3 DAC turns into 1.655 V.
+    r2 = min(31, round((vth_cmp - 1.2251) / 0.01368))
     v0 = round((vth_ref - 0.350) / 0.00635)
     return dict(r0=max(0, min(31, r0)), r1=max(0, min(31, r1)), r2=max(0, r2), v0=max(0, min(63, v0)))
 
@@ -433,6 +474,16 @@ def config(codes=None, probe=None, rt=(0, 0, 0, 0), bias_en=1, ib_x2=0, trims=8,
 
 
 if __name__ == "__main__":
+    if "--nodes" in sys.argv:          # check that every victim / probe node resolves in the flat R+C netlist
+        miss = 0
+        for nm, n in [(f"{a} ({i}, {c}, Cm {membrane_cap(c) * 1e15:.0f} fF)", f"{i}.vm") for a, i, c in neurons()] + \
+                [(x, x) for x in ("d1.vs", "d1.d1", "d1.d2", "ax.vm", "ax.vw", "abus", "en_b", "ua[1]")]:
+            try:
+                print(f"{nm:36s} {n:8s} -> {net(n)}")
+            except KeyError:
+                print(f"{nm:36s} {n:8s} -> MISSING")
+                miss += 1
+        sys.exit(1 if miss else 0)
     b = build(config(codes=dict(CODES_S100, **vcodes())))
     print(len(b.splitlines()), "lines; dropped", _cache["dropped"], "macro devices")
     print("\n".join(l for l in b.splitlines() if l.startswith(("Rpdn", "Vsup"))))

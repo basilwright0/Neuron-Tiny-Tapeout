@@ -17,14 +17,17 @@ from common import RESULTS  # noqa: E402
 from ngs import deck, run, include, CORNERS, TEMPS  # noqa: E402
 
 import os
-VIN, NN = 1.30, 20
+VIN, NN = float(os.environ.get("VR_VIN", "1.30")), 20
 IB = float(os.environ.get("VR_IB", "4e-6"))     # ib_r1 (ib_x2 = 1 doubles it to ~8 uA)
+WSW = os.environ.get("VR_WSW", "")              # per-neuron reset switch W (refrac default 0.5u; slots 1u)
+IRX = float(os.environ.get("VR_IREF_X", "1"))
+TAG = (f"_wsw{WSW}" if WSW else "") + (f"_irx{IRX:g}" if IRX != 1 else "") + (f"_vin{VIN:g}" if "VR_VIN" in os.environ else "")
 
 
 def case(arg):
     c, T, S = arg
     tref = 2e-3 / S
-    i_ref = 50e-15 * 1.35 / tref
+    i_ref = 50e-15 * 1.35 / tref * IRX              # IRX: vbn_ref recalibration factor (EL 1.5: t_ref ~0.5-0.66x)
     tstop = 0.5e-6 + max(1.2 * tref, 0.5e-6)
     L = [include('neuron/membrane.spice', 'neuron/lif.spice', 'vreset/vreset_buf.spice'), f"""Vdd vdd 0 3.3
 Ib vbp 0 {IB}
@@ -37,10 +40,10 @@ Rl vout vline 300
 Cl vline 0 250f
 Vspk spk 0 PWL(0 0 0.5u 0 0.502u 3.3 0.52u 3.3 0.522u 0)"""]
     for k in range(NN):
-        L.append(f"Xm{k} vm{k} 0 mcap wl={'14.1u' if k == 0 else '7.07u'}\nXr{k} spk vm{k} vr{k} vline vbnr vdd 0 refrac")
+        L.append(f"Xm{k} vm{k} 0 mcap wl={'14.1u' if k == 0 else '7.07u'}\nXr{k} spk vm{k} vr{k} vline vbnr vdd 0 refrac" + (f" wsw={WSW}" if WSW else ""))
     L.append(".ic " + " ".join(f"v(vm{k})={VIN + 0.2}" for k in range(NN)))
     sv = ["v(vline)", "v(vm0)", "v(vm1)", "v(vr1)"]
-    r = run(deck("\n".join(L) + "\n", f"tran 0.5n {tstop}", sv, corner=c, temp=T), f"vreset_{c}_{T}_S{S}_ib{IB:g}")
+    r = run(deck("\n".join(L) + "\n", f"tran 0.5n {tstop}", sv, corner=c, temp=T), f"vreset_{c}_{T}_S{S}_ib{IB:g}{TAG}")
     t, v = r["_x"], r["v(vline)"]
     v0 = np.interp(0.49e-6, t, v)
     after = t > 0.5e-6
@@ -66,7 +69,7 @@ if __name__ == "__main__":
     cases = [(c, T, S) for S in SS for c in CORNERS for T in TEMPS]
     with Pool(NP) as p:
         res = p.map(case, cases)
-    Ls = [f"ib_r1 = {IB*1e6:g} uA. Vreset buffer: 20 membranes reset from vin + 0.2 V (vin 1.30 V), errors in mV vs the settled line (line / worst membrane)",
+    Ls = [f"ib_r1 = {IB*1e6:g} uA, wsw {WSW or '0.5u (default)'}, I_ref x{IRX:g}. Vreset buffer: 20 membranes reset from vin + 0.2 V (vin {VIN:.2f} V), errors in mV vs the settled line (line / worst membrane)",
           "     S corner  T  t_ref(ns) t5mV(ns) peak(mV) offset | @0.5 t_ref line/vm | @0.9 t_ref line/vm | t_release(ns)"]
     for r in res:
         Ls.append(f" {r['S']:5.0f} {r['c']:7s} {r['T']:3d} {r['tref']*1e9:7.0f} {r['t5']:7.0f}  {r['pk']:7.1f}  {r['off']:+6.2f} | "
@@ -77,4 +80,4 @@ if __name__ == "__main__":
                   f"at 0.9 t_ref {max(r['e90'][1] for r in rs):.2f} mV, at 0.5 t_ref {max(r['e50'][1] for r in rs):.2f} mV")
     txt = "\n".join(Ls)
     print(txt)
-    (RESULTS / ("vreset_summary.txt" if IB == 4e-6 else f"vreset_summary_ib{IB:g}.txt")).write_text(txt + "\n")
+    (RESULTS / ("vreset_summary.txt" if IB == 4e-6 and not TAG else f"vreset_summary_ib{IB:g}{TAG}.txt")).write_text(txt + "\n")

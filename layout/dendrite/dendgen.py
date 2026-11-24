@@ -19,6 +19,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import flatten                      # noqa: E402
 from router import Router           # noqa: E402
+sys.path.append(str(HERE.parent / "slot"))
+import keptdev                      # noqa: E402  (layout/slot/keptdev.py)
 
 CELL = "dend_d1"
 U = 200
@@ -153,6 +155,11 @@ NO_M3 = {f"t{s}{k}" for s in "ab" for k in range(4)}
 SYN_LOCAL = [f"XY{k}.{n}" for k in (1, 2) for n in ("da", "db", "h")]
 NO_M3 |= set(SYN_LOCAL)
 ROUTE_FIRST = SYN_LOCAL + ["vs", "d1", "d2", "spk"]
+# Gates reached on Metal3 only (antenna ANT.16_i_ANT.3, Metal2 perimeter / gate area <= 400): XS.XR.Xi.XN
+# (0.5/0.28, 0.14 um^2) on spk sat on a 134 um Metal2 island (MOM bottom plate, spine stub y 1-20, routing)
+# with no spk drain on it after the level-3 region-0 re-route: ratio 518. Through a via2 its island is one pad.
+ANT_M3_GATES = set(__import__("os").environ.get("D1_ANT_GATES", "XS.XR.Xi.XN").split(",")) - {""}
+ANT_FORBID = []          # (net, rect): no Metal1/Metal2 of that net here (filled by build())
 ROUTE_LAST = ["vdd", "vss"]
 ITERS = 40
 SCHEDULES = [(1.3, 0.5), (1.6, 0.3), (1.2, 0.7), (1.45, 0.4), (1.3, 0.3)]
@@ -161,6 +168,8 @@ BIGCAPS = {"XS.XC.XC": "vs", "XC1.XC": "d1", "XC2.XC": "d2"}
 
 # ============================================================================ device library
 def devcell(d):
+    if d.get("slot"):
+        return keptdev.kept_name(d["model"], d["W"], d["L"], d["slot"])
     f = lambda v: ("%g" % v).replace(".", "p")
     return f"{d['model'][0]}_w{f(d['W'])}_l{f(d['L'])}"
 
@@ -213,8 +222,28 @@ def split_wide(devs):
     return out
 
 
+# Fixed-slot devices: name -> gate length of the slot they keep. A shorter device is right-aligned in that slot (pad
+# on its left), so its drain stripe and every later device in the row stay where they were. Level 3 (schematic
+# 387f708): the plateau detector input XNI went 1/1 -> 1/0.5; packing it tight shifted XN2..XNE 0.5 um west, and the
+# region-1 trial route then stalled on a d1/vdd conflict (route_try.py 1), which the kept slot avoids.
+SLOT_L = {f"{p}.XDT.XNI": 1.0 for p in ("XP1", "XP2")}
+# Kept-footprint devices (layout/slot/keptdev.py): name -> footprint L. Unlike SLOT_L (a shorter PDK cell
+# right-aligned in the old slot: its source stripe moves), the gate is narrowed inside the old cell, so diffusion,
+# stripes and pin access are unchanged and the route cache replays. Level 4 (cells aabada4): the 3 leak OTAs
+# (soma XS.XL, dendrite leaks XL1/XL2) and the 4 axial OTAs (XA1/XA2 . XA/XB): inputs XM1/XM2 and diodes XD1/XD2
+# (drawn as halves _a/_b) L 1 -> 0.5 um, same W, in their L = 1 um footprints.
+KEPT_L = {f"{p}.{m}": 1.0 for p in ("XS.XL", "XL1", "XL2", "XA1.XA", "XA1.XB", "XA2.XA", "XA2.XB")
+          for m in ("XM1", "XM2", "XD1", "XD2")}
+
+
+def mark_kept(devs):
+    """Tag kept-footprint devices (KEPT_L, only when shorter than their footprint) with d['slot'] = footprint L."""
+    return [dict(d, slot=KEPT_L[d["name"]]) if KEPT_L.get(d["name"], 0) > d["L"] + 1e-9 else d for d in devs]
+
+
 def placement(lib, devs):
     by = {d["name"]: lib[devcell(d)] for d in devs}
+    dl_by = {d["name"]: d["L"] for d in devs}
     place = {}
     for row in ROWS:
         yb, x0, names = row[0], row[1], row[-1]
@@ -223,6 +252,7 @@ def placement(lib, devs):
         for n in names:
             lc = by[n]
             dl, db, dr, dt = lc["diff"]
+            x += max(0.0, SLOT_L.get(n, 0.0) - dl_by[n])     # diffusion length grows 1:1 with L
             cx = snap(x - dl)
             cy = snap(yb - db)
             place[n] = (cx, cy)
@@ -254,11 +284,14 @@ PLACE = {}
 
 def build():
     ports, devs, caps = flatten.write_lvs(HERE / f"{CELL}_lvs.spice", CELL)
-    devs = split_wide(devs)
+    devs = split_wide(mark_kept(devs))
+    ANT_FORBID.clear()
     lib = {}
     for d in devs:
         c = devcell(d)
         if c not in lib:
+            if d.get("slot"):
+                keptdev.make(HERE / "devices", d["model"], d["W"], d["L"], d["slot"])
             lib[c] = load_dev(c)
     PLACE.clear()
     PLACE.update(placement(lib, devs))
@@ -283,7 +316,21 @@ def build():
         L.p("metal1", pad)
         L.p("polycontact", shift((-0.115, hcy - 0.115, 0.115, hcy + 0.115), cx, cy))
         obst.append(("m1", pad, d["g"]))
-        L.term(d["g"], [("m1", pad)])
+        if d["name"] in ANT_M3_GATES:
+            # antenna: reach this gate on Metal3 only (stacked via1 + via2 on its pad); the router may not put
+            # this net's Metal1/Metal2 near the pad, so the gate's Metal2 island is just the 0.4 um landing pad
+            x, y = (pad[0] + pad[2]) / 2, (pad[1] + pad[3]) / 2
+            p4 = (x - 0.2, y - 0.2, x + 0.2, y + 0.2)
+            for lay, r in (("metal1", p4), ("metal2", p4), ("metal3", p4),
+                           ("via1", (x - 0.13, y - 0.13, x + 0.13, y + 0.13)),
+                           ("via2", (x - 0.14, y - 0.14, x + 0.14, y + 0.14))):
+                L.p(lay, r, d["g"])          # metal3/via2 also become router obstacles through L.m3
+                if lay in ("metal1", "metal2", "via1"):
+                    obst.append(({"metal1": "m1", "metal2": "m2", "via1": "v1"}[lay], r, d["g"]))
+            ANT_FORBID.append((d["g"], (x - 0.6, y - 0.6, x + 0.6, y + 0.6)))
+            L.term(d["g"], [("m3", p4)])
+        else:
+            L.term(d["g"], [("m1", pad)])
 
     c = (RING - 0.23) / 2
     # ------------------------------------------------------------------ VDD rails (n-tap at well bottoms)
@@ -520,6 +567,8 @@ def add_forbids(R, mom):
         R.add_forbid(("m1",), r, allowed={"vss"})
     for r in ((0, 0, W, RING), (0, H - RING, W, H), (0, 0, RING, H), (W - RING, 0, W, H)):
         R.add_forbid(("m2",), r)
+    for net, r in ANT_FORBID:
+        R.add_forbid(("m1", "m2"), r, only={net})
 
 
 def route(L, obst, mom):
@@ -785,7 +834,8 @@ def check_overlaps(insts):
 
 def write_devlist():
     ports, devs, caps = flatten.flatten(CELL)
-    devs = split_wide(devs)
+    # kept-footprint devices: list their footprint cell (keptdev.make derives the short-gate cell from it)
+    devs = [dict(d, L=d["slot"], slot=0) if d.get("slot") else d for d in split_wide(mark_kept(devs))]
     (HERE / "devices").mkdir(exist_ok=True)
     (HERE / "devices" / "devlist.tcl").write_text("".join(
         f"mk {c} {d['model']} [dict merge $common {{w {d['W']:g} l {d['L']:g}}}]\n"
@@ -802,7 +852,7 @@ def main():
     if "place" in sys.argv:
         preview(L, insts, [], HERE / "preview_place.png")
         return 0
-    key = hashlib.sha1(repr((PLACE, COLS, M3LINES, M3INT, M3X, BRIDGES, FEEDS, REGIONS, KEEPOUT, NWELLS, VSS_STRIPES, MOM, W, H, PINS,
+    key = hashlib.sha1(repr((PLACE, COLS, M3LINES, M3INT, M3X, BRIDGES, FEEDS, REGIONS, KEEPOUT, NWELLS, VSS_STRIPES, MOM, W, H, PINS, sorted(ANT_M3_GATES),
                              open(HERE / "router.py").read())).encode()).hexdigest()
     cache = HERE / "out" / f"route_cache_{CELL}.json"
     (HERE / "out").mkdir(exist_ok=True)

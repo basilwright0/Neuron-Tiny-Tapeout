@@ -3,10 +3,10 @@
 .subckt adex_a1 vm vw spk sel_adex sub0 sub1 sta stb hold mreset vbp_syn el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb vbp_w en abus vdd vss
 XXC_XC vss vm vss vss nfet_03v3 W=7.07u L=7.07u
 XXL_XMT XL.t vbn_leak vss vss nfet_03v3 W=2u L=4u
-XXL_XM1 XL.a el XL.s1 vss nfet_03v3 W=4u L=1u
-XXL_XD1 XL.s1 XL.s1 XL.t vss nfet_03v3 W=8u L=1u
-XXL_XM2 vl vl XL.s2 vss nfet_03v3 W=4u L=1u
-XXL_XD2 XL.s2 XL.s2 XL.t vss nfet_03v3 W=8u L=1u
+XXL_XM1 XL.a el XL.s1 vss nfet_03v3 W=4u L=0.5u
+XXL_XD1 XL.s1 XL.s1 XL.t vss nfet_03v3 W=8u L=0.5u
+XXL_XM2 vl vl XL.s2 vss nfet_03v3 W=4u L=0.5u
+XXL_XD2 XL.s2 XL.s2 XL.t vss nfet_03v3 W=8u L=0.5u
 XXL_XP1 XL.a XL.a vdd vdd pfet_03v3 W=2u L=4u
 XXL_XP2 vl XL.a vdd vdd pfet_03v3 W=2u L=4u
 XXD_XPS XD.s vbp_st vdd vdd pfet_03v3 W=1u L=2u
@@ -41,13 +41,15 @@ XXA_Xi_XP XA.vrb vr XA.Xi.s vdd pfet_03v3 W=1u L=0.28u
 XXA_Xi_XN XA.vrb vr vss vss nfet_03v3 W=0.5u L=0.28u
 XXA_XPS XA.t XA.vrb vdd vdd pfet_03v3 W=1u L=0.28u
 XXA_XPW XA.s vbp_w XA.t vdd pfet_03v3 W=1u L=2u
-XXA_XPA vw vw XA.s vdd pfet_03v3 W=0.5u L=1u
-XXA_XPB vss vbn_leak XA.s vdd pfet_03v3 W=4u L=0.5u
-XXA_XT1 vw vbn_leak XA.m1 vss nfet_03v3 W=0.22u L=15u
-XXA_XT2 XA.m1 vbn_leak XA.m2 vss nfet_03v3 W=0.22u L=15u
-XXA_XT3 XA.m2 vbn_leak vss vss nfet_03v3 W=0.22u L=15u
+XXA_XPA vw vw XA.s vdd pfet_03v3 W=0.5u L=2u
+XXA_XPB vss vbn_leak XA.s vdd pfet_03v3 W=32u L=0.5u
+XXA_XT1 vw vbn_leak XA.m1 vss nfet_03v3 W=0.5u L=10u
+XXA_XT2 XA.m1 vbn_leak XA.m2 vss nfet_03v3 W=0.5u L=10u
+XXA_XT3 XA.m2 vbn_leak XA.m3 vss nfet_03v3 W=0.5u L=10u
+XXA_XT4 XA.m3 vbn_leak XA.m4 vss nfet_03v3 W=0.5u L=10u
+XXA_XT5 XA.m4 vbn_leak vss vss nfet_03v3 W=0.5u L=10u
 XXA_XCW vdd vw vdd vdd pfet_03v3 W=7.07u L=7.07u
-XXA_XW vl vw vss vss nfet_03v3 W=0.22u L=8u
+XXA_XW vl vw vss vss nfet_03v3 W=4u L=1u
 XXA_XR1 vw mreset XA.r vss nfet_03v3 W=0.22u L=2u
 XXA_XR2 XA.r mreset vss vss nfet_03v3 W=0.22u L=2u
 XXE_XE1 XE.e vm vsrc vss nfet_03v3 W=0.22u L=8u

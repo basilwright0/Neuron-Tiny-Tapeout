@@ -1,0 +1,35 @@
+magic
+tech gf180mcuD
+magscale 1 10
+timestamp 1795063674
+<< checkpaint >>
+rect -2212 -2468 2212 2468
+<< pwell >>
+rect -212 -468 212 468
+<< nmos >>
+rect -50 -400 50 400
+<< ndiff >>
+rect -188 -400 -100 -387
+rect -100 -400 -50 400
+rect 50 -400 100 400
+rect 100 -400 188 -387
+rect -188 -387 -175 387
+rect -129 -387 -100 387
+rect 100 -387 129 387
+rect 175 -387 188 387
+rect -188 387 -100 400
+rect 100 387 188 400
+<< ndiffc >>
+rect -175 -387 -129 387
+rect 129 -387 175 387
+<< polysilicon >>
+rect -50 -444 50 -400
+rect -50 400 50 444
+<< metal1 >>
+rect -175 -398 -129 -387
+rect 129 -398 175 -387
+rect -175 387 -129 398
+rect 129 387 175 398
+<< properties >>
+string kept_slot w 4 l 0.5 slot 1 from n_w4_l1
+<< end >>

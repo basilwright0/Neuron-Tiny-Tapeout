@@ -12,13 +12,15 @@
 *              Cut path: build with P_AS_H=1 (layout/slot/build.sh) -> P positions use slot_ah_h.
 *   slot_ah_f  F slot: as slot_ah, leak OTA tail XL.XMT W/L halved (1/4 instead of 2/4) on the same
 *              vbn_leak line, so tau_F = 2 tau_S by geometry (NH EXP-46 "etch tau variants").
-*   slot_cmp_h CMP slot: comparator LIF (det_cmp of lif_cmp, starve/tail on vbp_st) + 4-bit gap trim (t0..t3,
+*   slot_cmp_h CMP slot: comparator LIF (det_cmp of lif_cmp; since level 3 its tail/hysteresis/starve sit on a
+*              local fixed ~0.5 uA leg off vbn_prb, not on vbp_st) + 4-bit gap trim (t0..t3,
 *              nibble 6). Since 2026-11-20 a DOUBLE slot (28 x 87 um, column 3, rows 0-1, the former dummy
 *              slot's area): the trimmed version did not route in 28 x 43.5. The trimless fallback is kept
 *              as slot_cmp_h_notrim. Its threshold vth_cmp arrives on the aux column line (array column 3:
 *              there aux has no tau-trim cell, so the integrator connects B1's vth_cmp to column 3's aux).
 *              vsrc feeds through.
 *   slot_ah_50  AH50: as slot_ah with a 50 fF membrane (mcap 3.54 x 3.54).
+*   slot_ah_400 AH400: as slot_ah_800 with mcap_r 7.07 x 9.6 (~270 fF; fits the 7.07 cap row), ~470 fF total (M2 array).
 *   slot_ah_800 AH800: as slot_ah with 200 fF + ~540 fF (mcap_r 11.7 x 11.6 in the former trim space,
 *              Metal1 vss shield over it) = ~740 fF; the hold switch moves into the main n-well.
 *   slot_ref   REF slot (0,0): one prb_tap on el (sb = sub; PROBE_SUB = 3 -> row 0, column 0, sub = 1),
@@ -73,8 +75,8 @@ XSW mc  sel m   vss nfet_03v3 W=1u L=0.28u
 XSB m   sb  abus vss nfet_03v3 W=1u L=0.28u
 .ends prb_tap
 
-* leak_ota_deg with the mirror diode node a as a port (identical devices and names).
-.subckt leak_ota_degx vm el a vbn vdd vss wi=4u li=1u wt=2u lt=4u wl=2u ll=4u wd=8u ld=1u
+* leak_ota_deg with the mirror diode node a as a port (identical devices and names; level 4: inputs and diodes L 0.5 um).
+.subckt leak_ota_degx vm el a vbn vdd vss wi=4u li=0.5u wt=2u lt=4u wl=2u ll=4u wd=8u ld=0.5u
 XMT  t   vbn vss vss nfet_03v3 W={wt} L={lt}
 XM1  a   el  s1  vss nfet_03v3 W={wi} L={li}
 XD1  s1  s1  t   vss nfet_03v3 W={wd} L={ld}
@@ -89,9 +91,9 @@ XP2  vm  a   vdd vdd pfet_03v3 W={wl} L={ll}
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
-XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+* XPR (vr probe tap) dropped in M2 (MIL-95 item 5): XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 .ends slot_ah
 
@@ -100,7 +102,7 @@ XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -112,7 +114,7 @@ XT  la vm vbn_leak t0 t1 t2 t3 vdd vss trim_gap4
 XC  vm vss mcap wl=7.07u
 XL  vl el la aux vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -125,21 +127,33 @@ XT  la vm aux t0 t1 t2 t3 vdd vss trim_gap4
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx wt=1u
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
-XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+* XPR (vr probe tap) dropped in M2 (MIL-95 item 5): XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 .ends slot_ah_f
 
 * slot_cmp_h: CMP slot WITH the gap trim (nibble 6). It never routed in the 28 x 43.5 box (23 attempts, two
 * comparator placements); since 2026-11-20 it is a 28 x 87 double slot (array column 3, rows 0-1).
 * aux = vth_cmp (column 3). det_cmp port order: vm vth spk vbp vdd vss.
+* Level 3 (docs/m2-level3-proposal.md 2.1, 2026-11-22): det_cmp's vbp no longer comes from vbp_st (I_st scales with
+* S, so the comparator offset and spike width grew with S until it latched at S = 10000). A local 2-transistor leg
+* makes vbp_cmp from vbn_prb (bias_vi copy, ~1 uA into XDB 2/2; independent of ua[0], S and ib_x2):
+*   XNC nfet 2/2 on vbn_prb (1:1 of XDB -> ~1 uA) into XPC, a pfet 1/2 diode, so XPT (1/2) carries the same
+*   ~1 uA tail, XH2 (1/6) ~0.33 uA, the inv3s starve ~1 uA.
+*   Was 1/2 (0.5 uA, the smallest that passed S = 10000 at tt, sim/results/level3_cmp/fi_summary.txt), but the
+*   10000x gate (sim/results/gate10k/summary.txt) failed ss/0 at 0.68 (spike width / refractory). The 1 uA tail
+*   study (sim/results/gate10k/cmpfix/tail1u/, PEX estimate) gives S=10000/S=100 >= 0.74 ss/0, 0.78 tt, 0.80 ff.
+*   Idle cost ~2 uA (leg + tail) at every S. vbp_st now only feeds through. BIAS_EN = 0: vbn_prb ~0 V, so XNC is
+*   off and vbp_cmp sits at ~3.1 V (tail off), as before (sim/tb/tb_cmp_detoff.py).
 .subckt slot_cmp_h vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
 + vbp_syn sta stb hold mreset t0 t1 t2 t3 wf=4u lf=2u
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
-XD  vm aux spk vbp_st vdd vss det_cmp
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XNC vbp_cmp vbn_prb vss vss nfet_03v3 W=2u L=2u
+XPC vbp_cmp vbp_cmp vdd vdd pfet_03v3 W=1u L=2u
+XD  vm aux spk vbp_cmp vdd vss det_cmp
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -151,9 +165,9 @@ XT  la vm vbn_leak t0 t1 t2 t3 vdd vss trim_gap4
 XC  vm vss mcap wl=3.54u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
-XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+* XPR (vr probe tap) dropped in M2 (MIL-95 item 5): XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 .ends slot_ah_50
 
@@ -163,11 +177,25 @@ XC  vm vss mcap wl=7.07u
 XC2 vm vss mcap_r w=11.7u l=11.6u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 .ends slot_ah_800
+
+* AH400 (M2, MIL-127 N11, 2026-11-21): as slot_ah_800 with half the extra cap (one 7.07 x 9.6 finger = the adopted 5.85 x 11.6 area,
+* ~270 fF; Cm ~470 fF total). Replaces AH800 in the M2 array (row 3).
+.subckt slot_ah_400 vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
++ vbp_syn sta stb hold mreset cfb=8f wf=4u lf=2u
+XC  vm vss mcap wl=7.07u
+XC2 vm vss mcap_r w=7.07u l=9.6u
+XL  vl el la vbn_leak vdd vss leak_ota_degx
+XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
+XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+* XPR (vr probe tap) dropped (user decision 2026-11-21 22:33 UTC, MIL-36): XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
+.ends slot_ah_400
 
 * REF: el, en, abus, vbn_prb, rsel, sub used; the other column lines feed through.
 .subckt slot_ref rsel sub el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux vbp_syn wf=4u lf=2u
@@ -179,7 +207,7 @@ XPM el abus en rsel sub vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm spk vsrc vbp_st vdd vss det_ah cfb={cfb}
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus vss vss vss vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus vss vss vss vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
@@ -193,7 +221,7 @@ XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in
 XC  vm vss mcap wl=7.07u
 XL  vl el la vbn_leak vdd vss leak_ota_degx
 XD  vm aux spk vbp_st vdd vss det_cmp
-XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u
+XR  spk vm vr vreset vbn_ref vdd vss refrac wcr=3.54u wsw=1u
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XPR vr abus en rsel sub   vbn_prb vdd vss prb_tap wf={wf} lf={lf}
 XS  vm vl vr sta stb hold mreset vbp_syn vdd vss syn_in

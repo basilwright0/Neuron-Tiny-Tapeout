@@ -1,0 +1,521 @@
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * b1-b vdacr re-pack pex check ff 0
+
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 0 0.995863 0.996296 0.996296 0.891115 0.891137 0.891137 1.23417 1.09508 1.2346 0.35058 0.350582 0.350582
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 1 1.01488 1.01531 1.01531 0.910133 0.910151 0.910151 1.24678 1.10773 1.24725 0.35686 0.356862 0.356862
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 2 1.03717 1.0376 1.0376 0.932419 0.932437 0.932437 1.25969 1.12065 1.26017 0.363759 0.363786 0.363786
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 3 1.05616 1.05659 1.05659 0.951417 0.951431 0.951431 1.27229 1.13329 1.27281 0.370038 0.370065 0.370065
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 4 1.07689 1.07732 1.07732 0.972139 0.972159 0.972159 1.28877 1.14968 1.2892 0.376273 0.376275 0.376275
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 5 1.09586 1.09629 1.09629 0.991117 0.991132 0.991132 1.30135 1.16231 1.30183 0.38255 0.382552 0.382552
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 6 1.11815 1.11857 1.11857 1.0134 1.01341 1.01341 1.31426 1.17522 1.31474 0.389449 0.389476 0.389476
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 7 1.1371 1.13752 1.13752 1.03236 1.03237 1.03237 1.32684 1.18784 1.32736 0.395726 0.395753 0.395753
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 8 1.1567 1.15724 1.15724 1.05195 1.05208 1.05208 1.3418 1.20282 1.34234 0.401324 0.401326 0.401326
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 9 1.17564 1.17617 1.17617 1.07089 1.07101 1.07101 1.35436 1.21542 1.35494 0.407599 0.407601 0.407601
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 10 1.19791 1.19845 1.19845 1.09317 1.09329 1.09329 1.36727 1.22833 1.36785 0.414498 0.414525 0.414525
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 11 1.21683 1.21735 1.21735 1.11208 1.1122 1.1122 1.37982 1.24092 1.38044 0.420772 0.420799 0.420799
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 12 1.23763 1.23817 1.23817 1.13289 1.13301 1.13301 1.39634 1.25735 1.39687 0.427012 0.427014 0.427014
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 13 1.25653 1.25705 1.25705 1.15178 1.1519 1.1519 1.40888 1.26993 1.40945 0.433285 0.433286 0.433286
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 14 1.27879 1.27932 1.27932 1.17405 1.17416 1.17416 1.42178 1.28283 1.42235 0.440183 0.44021 0.44021
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 15 1.29766 1.29818 1.29818 1.19292 1.19303 1.19303 1.4343 1.2954 1.43492 0.446455 0.446482 0.446482
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 16 1.32176 1.32241 1.32241 1.21701 1.21726 1.21726 1.44823 1.30915 1.44867 0.452741 0.452744 0.452744
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 17 1.3406 1.34125 1.34125 1.23586 1.2361 1.2361 1.46074 1.32171 1.46123 0.459012 0.459014 0.459014
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 18 1.36286 1.36351 1.36351 1.25812 1.25836 1.25836 1.47363 1.3346 1.47412 0.46591 0.465938 0.465938
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 19 1.38168 1.38232 1.38232 1.27694 1.27717 1.27717 1.48614 1.34714 1.48666 0.472179 0.472206 0.472206
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 20 1.40259 1.40323 1.40323 1.29784 1.29808 1.29808 1.5027 1.36362 1.50314 0.478424 0.478426 0.478426
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 21 1.42138 1.42202 1.42202 1.31664 1.31686 1.31686 1.51519 1.37615 1.51567 0.484692 0.484693 0.484693
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 22 1.44363 1.44427 1.44427 1.33889 1.33912 1.33912 1.52808 1.38904 1.52856 0.49159 0.491617 0.491617
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 23 1.4624 1.46303 1.46303 1.35766 1.35787 1.35787 1.54055 1.40155 1.54107 0.497857 0.497883 0.497883
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 24 1.48245 1.48321 1.48321 1.37771 1.37805 1.37805 1.55575 1.41677 1.55629 0.503475 0.503478 0.503478
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 25 1.50119 1.50194 1.50194 1.39645 1.39678 1.39678 1.5682 1.42927 1.56879 0.509741 0.509743 0.509743
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 26 1.52344 1.52418 1.52418 1.41869 1.41903 1.41903 1.58109 1.44215 1.58167 0.516639 0.516666 0.516666
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 27 1.54215 1.54288 1.54288 1.4374 1.43773 1.43773 1.59353 1.45464 1.59416 0.522903 0.52293 0.52293
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 28 1.56316 1.56391 1.56391 1.45842 1.45875 1.45875 1.61015 1.47117 1.61069 0.529152 0.529154 0.529154
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 29 1.58184 1.58257 1.58257 1.4771 1.47742 1.47742 1.62258 1.48364 1.62315 0.535416 0.535417 0.535417
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 30 1.60408 1.60481 1.60481 1.49934 1.49966 1.49966 1.63546 1.49652 1.63603 0.542313 0.54234 0.54234
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 31 1.62273 1.62345 1.62345 1.51799 1.51829 1.51829 1.64787 1.50897 1.64849 0.548575 0.548601 0.548601
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 32 0.995863 0.996296 0.996296 0.891115 0.891137 0.891137 1.23417 1.09508 1.2346 0.554274 0.554354 0.554354
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 33 1.01488 1.01531 1.01531 0.910133 0.910151 0.910151 1.24678 1.10773 1.24725 0.560534 0.560614 0.560614
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 34 1.03717 1.0376 1.0376 0.932419 0.932437 0.932437 1.25969 1.12065 1.26017 0.567432 0.567537 0.567537
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 35 1.05616 1.05659 1.05659 0.951417 0.951431 0.951431 1.27229 1.13329 1.27281 0.573691 0.573795 0.573795
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 36 1.07689 1.07732 1.07732 0.972139 0.972159 0.972159 1.28877 1.14968 1.2892 0.579945 0.580025 0.580025
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 37 1.09586 1.09629 1.09629 0.991117 0.991132 0.991132 1.30135 1.16231 1.30183 0.586203 0.586282 0.586282
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 38 1.11815 1.11857 1.11857 1.0134 1.01341 1.01341 1.31426 1.17522 1.31474 0.5931 0.593204 0.593204
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 39 1.1371 1.13752 1.13752 1.03236 1.03237 1.03237 1.32684 1.18784 1.32736 0.599357 0.59946 0.59946
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 40 1.1567 1.15724 1.15724 1.05195 1.05208 1.05208 1.3418 1.20282 1.34234 0.604997 0.605077 0.605077
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 41 1.17564 1.17617 1.17617 1.07089 1.07101 1.07101 1.35436 1.21542 1.35494 0.611253 0.611331 0.611331
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 42 1.19791 1.19845 1.19845 1.09317 1.09329 1.09329 1.36727 1.22833 1.36785 0.61815 0.618254 0.618254
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 43 1.21683 1.21735 1.21735 1.11208 1.1122 1.1122 1.37982 1.24092 1.38044 0.624404 0.624507 0.624507
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 44 1.23763 1.23817 1.23817 1.13289 1.13301 1.13301 1.39634 1.25735 1.39687 0.630663 0.630742 0.630742
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 45 1.25653 1.25705 1.25705 1.15178 1.1519 1.1519 1.40888 1.26993 1.40945 0.636915 0.636993 0.636993
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 46 1.27879 1.27932 1.27932 1.17405 1.17416 1.17416 1.42178 1.28283 1.42235 0.643812 0.643915 0.643915
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 47 1.29766 1.29818 1.29818 1.19292 1.19303 1.19303 1.4343 1.2954 1.43492 0.650063 0.650166 0.650166
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 48 1.32176 1.32241 1.32241 1.21701 1.21726 1.21726 1.44823 1.30915 1.44867 0.656418 0.656498 0.656498
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 49 1.3406 1.34125 1.34125 1.23586 1.2361 1.2361 1.46074 1.32171 1.46123 0.662668 0.662747 0.662747
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 50 1.36286 1.36351 1.36351 1.25812 1.25836 1.25836 1.47363 1.3346 1.47412 0.669565 0.669669 0.669669
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 51 1.38168 1.38232 1.38232 1.27694 1.27717 1.27717 1.48614 1.34714 1.48666 0.675813 0.675916 0.675916
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 52 1.40259 1.40323 1.40323 1.29784 1.29808 1.29808 1.5027 1.36362 1.50314 0.682078 0.682157 0.682157
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 53 1.42138 1.42202 1.42202 1.31664 1.31686 1.31686 1.51519 1.37615 1.51567 0.688324 0.688403 0.688403
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 54 1.44363 1.44427 1.44427 1.33889 1.33912 1.33912 1.52808 1.38904 1.52856 0.695221 0.695324 0.695324
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 55 1.4624 1.46303 1.46303 1.35766 1.35787 1.35787 1.54055 1.40155 1.54107 0.701466 0.701568 0.701568
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 56 1.48245 1.48321 1.48321 1.37771 1.37805 1.37805 1.55575 1.41677 1.55629 0.70713 0.70721 0.70721
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 57 1.50119 1.50194 1.50194 1.39645 1.39678 1.39678 1.5682 1.42927 1.56879 0.713374 0.713453 0.713453
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 58 1.52344 1.52418 1.52418 1.41869 1.41903 1.41903 1.58109 1.44215 1.58167 0.72027 0.720374 0.720374
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 59 1.54215 1.54288 1.54288 1.4374 1.43773 1.43773 1.59353 1.45464 1.59416 0.726513 0.726615 0.726615
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 60 1.56316 1.56391 1.56391 1.45842 1.45875 1.45875 1.61015 1.47117 1.61069 0.732783 0.732862 0.732862
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 61 1.58184 1.58257 1.58257 1.4771 1.47742 1.47742 1.62258 1.48364 1.62315 0.739024 0.739101 0.739101
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00Note: Starting dynamic gmin stepping
+Note: Dynamic gmin stepping completed
+
+No. of Data Rows : 1
+P 62 1.60408 1.60481 1.60481 1.49934 1.49966 1.49966 1.63546 1.49652 1.63603 0.74592 0.746022 0.746022
+Doing analysis at TEMP = 0.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+P 63 1.62273 1.62345 1.62345 1.51799 1.51829 1.51829 1.64787 1.50897 1.64849 0.752159 0.752261 0.752261
+ngspice-47 done

@@ -48,6 +48,70 @@ floorplan box and keep its pins on the box edge (stubs are drawn 0.7 µm out of 
   at slot (0,3). Its row pins (rt_out, sub/sub_b, spk_in[12], trim bits of nibble 6) sit on the row-0 band, its rsel
   on the row-1 band (`geom.array` picks each cell's pins per band from the label y).
 
+## M3 re-assembly (MIL-133 top3, branch m3-top3, 2026-11-22)
+
+- **B1 M3** (`bias_b1` 242 × 114.5 at (103, 12), notches N1 + pocket NB). Power hookups re-derived from the M3 GDS
+  (KLayout net trace): east vss = 3 via3 + Metal4 jumper on the vss Metal3 line at local y 40.2, vdd stub to the x 345
+  stripe; west entry (IR fix) = via3 on the vdd line (local y 79.05, 2 cuts) and the vss line (y 71.65, 3 cuts) under
+  the x 121 / 123.6 stripes. B1's pin polygons differ from rev C (labels are the same), so 17 B1 code nets were rerouted.
+- **TOP-1:** array Metal3 buses 315.1–317.0 → 300.5–302.4, right above the en_c / rt_out lines that already hug the
+  array top; tie row powered by via stacks onto the x 50 / 52.6 stripes (no drops through the strip).
+- **TOP-4:** glue row split into two R0 rows in H3 (`fp.GLUE_ROWS`, x 282.6, y 130.4 / 136.4, rails stacked to the
+  x 286.7 / 290.0 stripes), same cells and nets (+2 fillties).
+- **Free areas** (`fp.RESERVED`: RW, RB, RT, RG) are Metal2/3 keep-outs for the router (Metal4 may cross, as over a block).
+- **Incremental routing:** `route.py reroute <nets>` (in command-line order) on top of the m2-rc1 routes; `route.py check`
+  lists nets whose wires are illegal against the current geometry; `conncheck.py` checks every task is connected.
+  Measurement: `area_dump.py` (KLayout) + `area_free.py` (largest free rectangles for an M1–M3 block).
+- VM build (`vm_top3.sh`): LVS match, KLayout 0 / antenna 0, magic 0, TT precheck pass (`work/vm3/`). Report:
+  `/home/basil/tt-m3/reports/top3.md`.
+- **PEX (M3 run, VM top3/build3, tree 3fcf302, typical 27 °C):** 6/6 benches rc 0 (`sim/results/top/batch/summary_pex.txt`).
+  vth_cmp 1.5261 V at the nominal code (+140 mV as designed); other B1 lines and all edge kicks within 0.5 mV of run 4
+  (AdEx stim A on −0.7 mV); probe step 1759 ns PASS; new top-added line D1 vs ← probe_sel_d1 4.36 mV (latched select).
+  bias_spk: victim 51.16 → 52.88 kHz (off) / 56.10 → 55.52 kHz (on), on/off shift +9.7 % → +5.0 %; ripple with
+  neighbours on: vsrc 90 → 73, vreset 80 → 90, vbn_leak 10.4 → 7.5 mV p-p; quiet S1 vm p-p 0.80 / 2.95 → 0.93 / 2.68 mV.
+  CMP quiet vm p-p 47.5 / 73.2 → 0.9 / 2.1 mV: the vth_cmp shift removes the run-4 CMP reset-follow artefact.
+- **bias_spk off-rate shift run 4 → M3 (51.16 → 52.88 kHz, +3.4 %), MIL-298 (branch m3-spk):** not the CMP state.
+  Same M3 netlist, neighbours off, TEND 100 us: vth_cmp code 20 (CMP tripped as in run 4, spk held at 3.3 V) 52.883 kHz,
+  code 26 (1.587 V, now the bench default) 52.880 kHz, code 31 (MIL-288 run) 52.881 kHz. Tripping the CMP only cuts the
+  vreset glitch at the victim (76.7 → 62.6 mV p-p, ~30 ns, settled long before the ~1.5 us refractory end). Not bias-line
+  IR drop either: every shared line at the victim matches the Nov 20 S1000 levels within 0.1 mV (vsrc -0.3 mV). The ISI is
+  very sensitive (vm reaches the ~1.613 V trip at ~3.5 mV/us, tau ~15.6 us: -0.64 us = ~2.4 mV of trip or ~3.5 mV of
+  asymptote), so the cause is a mV-level change local to the victim that the shared-line probes don't see. Still open;
+  M3's 52.88 kHz is reproducible to 0.003 kHz and independent of the CMP code. Bench fix: `topnet.vcodes` used the
+  pre-M3 vth_cmp mapping, so every M3 bench ran the CMP at code 31 (~1.655 V, DAC max); now code 26 at 1.58 V.
+- **MIL-309 (branch m3-spk, VM batch 00:13-01:21 UTC Nov 24, same M3 netlists):**
+  - *probe_sel_d1 -> D1 (item 2).* New kick-bench events (196 us SEL -> D1 with PROBE_EN 0, 200 / 210 us D1 enable
+    on / off; only probe_sel_d1 and its glue outputs D1 sel0 / en_b toggle). Edge (step) in mV, D1 vs / d1 / d2:
+    tt/27 on +5.74 (+4.8) / +2.67 (+2.4) / +4.81 (+4.1), off -6.87 (-5.1) / -4.04 (-2.8) / -6.63 (-4.8); ss/0 on
+    +6.26 (+5.0) / +2.61 (+2.8) / +4.83 (+4.5), off -7.64 (-5.7) / -4.20 (-3.4) / -6.89 (-5.6). Array, CMP, AdEx
+    <= 0.1 mV. This includes the in-block D1 select coupling (the static 4.36 mV is the top-added part only). Smaller
+    than the routine HOLD on / off kicks on D1 (+11 / -19 mV), only at a firmware probe change, and the two edges
+    nearly cancel. **Not shielded** (a re-route needs a full rebuild + LVS / DRC / precheck); firmware note in info.md.
+  - *CMP at the corrected code (Chief: re-check at code 26).* bias_spk on, r2 26, TEND 100 us: CMP 0 spike edges,
+    quiet vm p-p 2.1 mV (code 31: 2.1), vreset / vsrc at the CMP 89.0 / 64.7 mV p-p (code 31: 89.9 / 73.0). Kick
+    bench (S = 100, code 11 = 1.38 V): CMP edges tt / ss HOLD on +8.68 / +8.78, HOLD off -10.9 / -9.1, SUB +1.26 /
+    +1.31, stim A on +4.8 / +8.7 mV; no CMP spike. The victim's on-rate at TEND 100 us (58.23 kHz, 4 spikes) is not
+    comparable with the 160 us run (55.52 kHz +- 0.84 us ISI): with neighbours on the ISI beats, and the 100 us window
+    samples one phase. The TEND shortcut is only valid for the off case.
+  - *vth_cmp code window at S = 10000 (item 3, `sim/tb/speed/m3_codes.sh`, slot_cmp_h PEX):* codes 26 and 27 pass at
+    tt / ss / ff, 25 and 28 fail (table in docs/info.md). Code 26 with the x13/12 leak calibration: tt 0.78-0.85,
+    ss 0.75-0.88, ff 0.78-0.87 (pass). AH50 ss/0 1.38 is the uncalibrated leak code; calibrated 1.08-1.29
+    (`sim/results/gate10k/summary.txt`, same czslot_ah_50 PEX).
+- **MIL-319 (branch m3-spk, VM batch 02:21-03:59 UTC Nov 24, same M3 netlists):**
+  - *Full chip at S = 10000* (`sim/tb/top/tb_top_s10k.py`; tt / 27 and ss / 0; 12 us; ua[0] 100 uA EXT/1; IB_X2;
+    leak code 11; vsrc from the S = 10000 AH calibration, v0 29 / 14): all 13 array neurons fire (rate / ideal LIF
+    0.62-0.83, the same per cell type), AdEx fires, CMP 0 spikes with input 0 at codes 27 and 26 and fires at 2 x
+    rheobase. I(VDD) 743 / 604 uA quiet, 845 / 700 uA firing, peak 1.40 mA. Firing shifts the line means by <= 6 mV;
+    p-p up to 97 mV on vreset and 62 mV on vsrc (reset / detector events). At ss, vbn_leak / vbp_syn settle from the
+    tt precondition values (sch_bias cache has no corner) by ~3 us, then stay flat to 12 us (< 1 / ~5 mV).
+    ua[0] pin 1.17 / 1.34 V at 100 uA. Static IR (`tb_top_icur.py` ICUR_CASES=S10000 + `pgrid.py`): B1 / R1 <= 9.3 mV
+    with the PDN at both ends, <= 15.4 mV top-only; slots < 0.3 mV.
+  - *CMP code-window Monte Carlo* (`sim/tb/speed/mc_vdac_vc.py`, `mc_cmp.py`, `mc_cmp_sum.py`): vth_cmp DAC offset
+    sigma 9.4 / 10.8 / 11.8 mV (ff / tt / ss, schematic, 60 seeds); with slot mismatch (sigma 13 mV combined in the
+    sampled dies), 20 / 12 / 8 dies at ss / tt / ff: pass at 27 65 / 75 / 100 %, at 26 80 / 83 / 88 %, at 26 or 27
+    95 / 100 / 100 %; 1 ss die needs 28, none fails at every code 25-28. -> per-die code selection (25-28) is
+    required at S = 10000 (docs/info.md).
+
 ## Status (2026-11-20, τ cells rev B)
 
 | Block | Used as | Source |
@@ -147,3 +211,180 @@ channel reserved for the analog column lines, trim tracks broken by a Metal4 jum
 > Benches: `sim/tb/top/` (topnet, topbench, ext_c.tcl, ext_rc.tcl, pgrid, tb_top_icur, tb_top_coupling,
 > tb_top_bias, tb_top_kick, tb_top_probe, tb_top_gndchk). Outputs: `sim/results/top/` (git-ignored) and
 > `layout/top/work/pex*/` (git-ignored).
+
+## M2 full-chip PEX (layout B, 2026-11-22)
+
+Typical 27 °C, S = 100, branch `m2-compact` @ 38d6092; M1 = post-stim-A-fix run (`sim/results/top/batch_fix`,
+bias DC / probe from `vm_2026-11-20`). Compared by neuron name (M1 used another slot map); M1 AH800 -> M2 AH400.
+Spiking-neighbour benches (`tb_top_bias.py spk on|off`): done, see the note at the end. Edge kicks in mV (20-60 ns after
+the edge).
+
+| Event | Tall cells H/P/CMP: M1 -> M2 | Compact cells S/F: M1 (tall) -> M2 | AH50 | AH800 -> AH400 | D1 vs / d2 | AdEx vm |
+|---|---|---|---|---|---|---|
+| HOLD on / off | +8.9..+10.3 / -10.2..-14.6 -> +7.5..+8.7 / -7.7..-12.4 | +3.8..+4.1 / -4.8..-5.5 -> +4.7..+8.6 / -5.3..-10.8 | +9.4/-12.1 -> **+14.4/-24.1** | +1.7/-2.2 -> +1.8/-2.3 | -43.0/-13.6 -> -26.0/**-19.1** | -4.1 -> -4.1 |
+| PROBE_EN on, unselected same column | -2.5 -> **-5.9 (P2)** | -> **-5.7 (S1)** | +0.7 -> +0.8 | | | |
+| SEL / SUB | H1 SEL +3.8 -> +2.1; SUB <= +2.0 | <= 1.5 | <= 0.9 | | 0 | SUB -7.3 -> -7.0 |
+| LOAD (H1 trim / IDAC) | H1 +19.2 -> +19.2 (own trim); others <= 1.6 | 0 | 0 | 0 | 0 | 0 |
+| stim A on / off | H1 +3.6/-7.7 -> +3.2/-6.5; H2 +6.9/-10.2 -> +4.1/-6.7; P2 +6.9/-10.2 -> +7.0/-9.6; CMP +7.2/-8.3 -> +4.7/-7.3 | S1 +3.2/-6.5 -> **+6.4/-9.3**; S3 +4.9/-8.3 -> +5.9/-8.8; F3 +2.9/-6.3 -> **+5.1/-9.2**; F1/F2 +7.0..7.3/-9.7..-10.6 | +10.5/-16.2 -> **+17.5/-19.7** | +0.6/-2.0 -> +2.3/-4.3 | vs +1.2/-1.2 -> **+3.6/-3.5** | +10.8/-14.9 -> +12.7/-17.1 |
+
+**Stimulus-A decomposition** (M2; ramp = intended synapse charge, from step - edge of the off event; asym = on + off
+edge = non-cancelling in-slot charge injection; net = vm change left by one 2 us pulse; checked against the M1 waveform).
+
+| Neuron | on edge | top-level rt_out[0] (coupling.txt) | in-slot rest | ramp (syn charge) | asym | net per pulse |
+|---|---|---|---|---|---|---|
+| H1 / P3 / H2 / H3 | +3.2..+4.1 | 1.4 / 1.4 / <= 1.6 / <= 1.6 | 1.8..2.6 | 5.5..5.7 (~1.2 fC) | -2.6..-3.3 | +2.4..+2.9 |
+| P2 | +7.0 | **3.7** (249 aF) | 3.3 | 5.4 | -2.6 | +2.8 |
+| CMP | +4.7 | <= 2.5 | >= 2.2 | 5.7 | -2.6 | +3.1 |
+| S1..S3, F1..F3 | +5.1..+7.3 | <= 1.0 | 4.4..6.9 | 5.8..6.3 | -2.6..-4.0 | +2.1..+3.7 |
+| AH50 (50 fF + 9.9 fF) | +17.5 | 1.0 (19 aF) | 16.5 | 14.8 (~0.9 fC) | -2.2 | +12.6 |
+| AH400 (471 fF) | +2.3 | 0.3 | 2.0 | 2.9 | -2.0 | +0.9 |
+| D1 vs | +3.6 | **4.1** (284 aF, new) | ~0 | (stim A -> d1) | 0 | 0 |
+
+- The kick bench's "stim A off" *step* (-12..-17 mV, AH50 -34.5) is mostly an artefact: its drift correction extends the
+  synaptic ramp (~2.9 mV/us) past the off edge. The real state after a pulse is **+2..+4 mV** (AH50 +12.6): ramp minus
+  ~3 mV of in-slot injection, i.e. ~50 % of the ramp at 2 us pulses.
+- Shared lines: vbp_syn sits +13 mV during the pulse (M1 +15.6) -> I_w ~30 % low (nominal ~2 fC -> ~1.3 fC seen);
+  el / vreset / vbn_ref +7..+9 mV recover in 2 us (< 0.2 mV on vm). They set the charge, not the edge.
+- Verdict: the edge is **in-slot** (block level) except P2 (53 % top-level) and D1 vs (all top-level); H1/P3/H2/H3
+  ~40 % top-level. A top-level-only fix can remove ~3 mV on P2 and D1 vs and ~1.4 mV on H/P; compact cells and AH50
+  need a cell change. Compact cells kick ~2x the tall cells (stim A and HOLD) although their pin-pair `blk` Cc is only
+  58-69 aF: likely sta/hold coupling into internal nodes (da, vl) - confirm with a block-level kick sim of `cslot_ah`.
+- AH50 -16.2 -> -19.7 (off): node C 68.9 -> 59.9 fF (vm wiring 18.9 -> 9.9 fF in the compact cell) = +15 %, effective
+  Cc 338 -> 358 aF = +6 %. On edge +66 % (220 -> 317 aF effective); HOLD off -12.1 -> -24.1 (253 -> 437 aF); top-level adds
+  only 46 aF over all lines.
+
+**Other changes.** Static top-added coupling, all lines together: array 8-35 mV -> 2.0-12.2 mV (AH50 34.6 -> 2.6), CMP
+16.9 -> 15.6, D1 d1 32.2 -> 34.3. Worst single line CMP vm <- probe_sub_b 3.8 -> 5.4 mV (existed in M1); sub / sub_b
+switch in antiphase (net 145 aF), measured SUB kick on CMP +0.9 -> +1.4 mV. Hold-window drift: H/P -36..-44 -> -66..-68
+mV/ms, F3 -5.7 -> -10.9, AH50 -35 -> -46, CMP -115 -> -63. vbp_st at HOLD +-10 -> +-24 mV (back in 2.3 us); vbp_syn at
+HOLD on +154 -> +178 mV. Bias DC unchanged (el +0.161, vreset <= +0.004, vsrc -0.039..-0.048 mV). Probe step worst
+1969 ns (M1 1965) -> PASS, 31 ns margin.
+
+**Spiking neighbours** (`tb_top_bias.py spk on|off`, S = 1000; victim H2 (s11) at 2x rheobase, H1 / P2 / H3 / S2 at 4x;
+M1 = `vm_2026-11-20`, pre-stim-A-fix, other slot map). Neighbours on vs off: victim rate **+10.5 %** (50.38 -> 55.65 kHz,
+ISI 19.85 -> 17.97 us, jitter +-0.2 -> +-26.7 ns); M1 -0.7 % (+-71 ns jitter). Shared-line ripple p-p with neighbours on,
+M1 -> M2 (mV): vreset 79 -> 97, vsrc 86 -> 90, vbn_ref 23.9 -> 28.6, vbp_st 17.0 -> 19.5, el 11.1 -> 16.2, vbn_leak
+9.3 -> 12.3, vbn_prb 5.4 -> 7.6, vbp_syn 14.1 -> 9.2. Mean shifts are <= 1.7 mV (vreset, vbn_ref; M1 <= 1.1). Quiet
+neuron S1 vm p-p 5.4 mV (M1 s20 5.2). Open: the +10 % rate pull is new in M2 and its cause is not identified yet
+(spike lines into s11 or the shared-line ripple). Find it before calling this acceptable.
+
+**Stim-A reroute** (after the M2 PEX, not yet DRC-checked): the P2 coupling was stim A's west join line (Metal2, 0.4 um
+off column 0); the D1 coupling was its router branch running Metal2 1.1 um along D1's west edge. The join line now sits
+west of the other shared joins (`geom.JOIN_OUTER`, x 3.11) and its bottom end is a router terminal. Router keep-outs
+(`route.NET_KO`) hold rt_out[0] Metal2/3 3 um off D1 and the array. VGND Metal2 shields fill the two vacated places so the
+lines behind them see the same neighbours as before. `route.py reroute 'rt_out[0]'` keeps the run-4 east branch
+(`route.KEEP`). Local RC PEX, rt_out[0] top-added: P2 vm 249 -> 96 aF (3.69 -> 1.42 mV, same as the other tall cells),
+D1 vs 284 -> 81 aF (4.11 -> 1.17), D1 d1 143 -> 19, d2 96 -> 4, S1 42 -> 1, F2 67 -> 55. No victim / aggressor pair got
+worse (largest change +0.0 aF). LVS matches.
+
+### Stim-A reroute confirmed in the transient (2026-11-22, `330bf04`, VM PEX rerun 06:39–08:13)
+Full-chip LVS match, Magic DRC 0, KLayout DRC 0, antenna 0, TT precheck passed. All 6 PEX benches rc=0.
+Stim A edge kick (on / off, mV, typical 27 C), before -> after the reroute:
+
+| Neuron | before | after |
+|---|---|---|
+| P2 s10 | +6.99 / -9.62 | +4.02 / -6.62 (now equal to H1/H2/H3/P3) |
+| D1 vs | +3.57 / -3.55 | +1.56 / -1.55 |
+| D1 d1 | +11.92 / -12.61 | +10.81 / -11.45 |
+| S1 s20 | +6.39 / -9.32 | +5.83 / -8.75 |
+| F2 s30 | +7.31 / -10.61 | +5.22 / -9.25 |
+
+Every other neuron and every other event is unchanged within 0.1 mV (HOLD, MRESET, PROBE_EN, SEL, SUB, LOAD).
+The spiking-neighbour shift is unchanged (H2 55.65 kHz with neighbours on vs 50.38 off, ISI jitter 27 ns), so it
+is not stim-A related; still open (suspect shared-line ripple: vreset 97 mV p-p, vbn_ref 28.6 mV p-p).
+
+### Level-3 chip PEX (9146017) vs stim-A reroute (330bf04)
+Same benches (`run_batch.sh pex`, typical 27 C, S = 100); A = 330bf04, B = 9146017 (level-3 CMP fixed tail, D1 XNI L 0.5,
+D1 antenna re-route). Top-level `routes.json` is identical in A and B, so only the CMP and D1 cells differ. The A kick table equals
+the 38d6092 run (within 0.02 mV), so the bench is deterministic. Edge (step) kick in mV:
+
+| Event / victim | A 330bf04 | B 9146017 | isolated block PEX, ideal lines (replaying A's line excursions) |
+|---|---|---|---|
+| HOLD on, all array cells | +1.8..+14.4 | same within 0.1 (CMP +7.5 -> +8.7) | S +4.7 (+5.0), H +7.9 (+8.1), AH50 +14.7 (+15.3) |
+| HOLD off H1/P3/P2/H2/H3 | -12.4 (-11.9) | **-16.8 (-13.7)** | slot_ah_h -15.7 (-15.9) |
+| HOLD off S1..S3 | -10.7..-10.8 (-10.0) | **-15.2..-15.3 (-14.4)** | cslot_ah -14.8 (-15.1) |
+| HOLD off F1 / F2, F3 | -5.3 / -9.4 | -7.2 / -11.7 | cslot_ah_f -6.9 (-7.2) / czslot_ah_f -11.4 (-11.7) |
+| HOLD off AH50 / AH400 | -24.1 / -2.3 | **-35.7** / -3.2 | -34.9 (-35.5) / -2.7 (-2.9) |
+| HOLD off CMP | -7.7 | -11.0 | slot_cmp_h (level 3) -9.9 (-10.0) |
+| HOLD off D1 vs / d1 / d2 | -25.9 / -11.5 / -19.0 | -17.8 / -25.3 / -23.4 | - |
+| HOLD off AdEx vm | -4.1 | -8.3 | - |
+| Hold drift H/P, CMP (mV/ms) | -66..-68, -63 | -117..-119, -84 | slot_ah_h -100 (-105), slot_cmp_h -70 (-75) |
+| MRESET on edge H/P, S, AdEx, D1 vs | -7.2, +0.7, **+364**, **+148** | +0.3, +8.6, +2.3, -1.1 | - |
+| vreset line at MRESET on | -37.7 mV | +31.7 mV | - |
+| Shared lines at HOLD off: vbp_st / vbp_syn / vbn_ref / vbn_leak / el | -22.5 / -31.2 / -13.9 / -9.1 / -9.5 | -23.6 / -33.4 / -14.8 / -8.8 / -8.8 | - |
+| PROBE_EN, SEL, SUB, LOAD, stim A (array) | | within 0.5 mV (stim A: D1 d1 +10.8 -> +7.0, AdEx +12.7 -> +12.0) | |
+
+Other files: coupling.txt changed only for CMP (C 12.0 -> 13.8 fF, worst probe_en_c[3] 406 aF = 6.3 mV) and D1 (vs:
+**d1_sel0 392 aF = 5.7 mV**, new; all lines 10.3 -> 17.8 mV); vbp_st C_total 207.3 -> 199.5 fF (-3.8 %). bias_dc: every line
+the same to 0.1 mV except aux0 / aux2 0.331 / 0.335 -> 0.384 / 0.387 V (P-cell leak bias, single nA nodes in the full-chip .op;
+the P-cell kicks follow the H cells exactly, so they are not part of this). bias_spk: victim rate 50.35 / 55.65 kHz (no
+change), vbp_st ripple with neighbours on 19.5 -> 22.1 mV p-p, vreset 97 -> 81, vsrc 87 -> 101. Probe step 1971 ns, PASS.
+
+**Cause.** It is not the `vbp_st` load that CMP no longer has. `vbp_st` keeps its DC (2.4091 V) and loses 3.8 % of its C. Its HOLD
+excursion grows by only 1.1-1.4 mV, and vm-vbp_st is 0.10 fF in cslot_ah. On the isolated cells, replaying A's and B's
+shared-line excursions (vbp_st alone or all lines) gives the same HOLD-off kick to 0.003 mV. Moving vbp_st, vsrc, el or
+vbp_syn by 20 mV DC, or changing the HOLD edge by 10x, changes the kick by < 0.05 mV (`work/l3kick/tb_hold_slot.py`).
+**B is the expected value:** each unchanged cell's B HOLD-off kick and hold drift match its isolated block PEX within
+0.5-1 mV. A (and 38d6092) were 2-12 mV smaller at the off edge only, and their tall-cell drift was too small. The A offset is
+about 0.4-1.0 fC per slot, and an F slot (half leak-OTA tail) has about half of it. That points to the leak-OTA output
+(vl) state when HOLD is released. In the isolated cell, vl is still 17.5 mV above vm 20 us after the +177 mV HOLD-on kick
+on vl. The kick moves 0.06 mV per mV of vl (vbn_leak -30 mV DC -> -13.1 instead of -14.8). So A's slots likely ended HOLD with
+a different leak-OTA state; not proven, because the A waveforms were not saved. The MRESET rows are a bench
+settling artefact. In A, AdEx and D1 vs were not at rest at 100 us (AdEx vm ~0.88 V: the vw start value comes from the
+full-chip op, and nothing preconditions vw; the M1 waveform shows the same 0.88 V and D1 vs drifting 1.28 -> 1.09 V).
+MRESET clamps them onto vreset (-37.7 mV in A, +31.7 mV in B), and that shifts every array row. The low AdEx vm in A also
+explains its smaller HOLD-off kick (XHL Vsg 0.88 V instead of 1.3 V). D1 changed in B, and D1 was not settled in A, so the
+D1 A/B values cannot be compared. Check d1 -25.3 mV and the new d1_sel0 -> vs coupling at block level.
+
+**Fix.** Do not add a vbp_st decap or dummy load: it would recover ~0 mV, because the replay difference is 0.003 mV. Level 3 stays as it is. Bench:
+precondition AdEx vw (and the D1 nodes) or pulse MRESET early, as the firmware does after BIAS_EN. Also save absolute
+vbn_leak and one slot's vl in the kick bench, so a future A/B difference can be traced. The HOLD kick only happens at
+the HOLD release edge (HOLD on is unchanged). It is a one-time negative vm step that decays with tau_m (100 us at S = 100);
+AH50 -35.7 mV is the worst case. A negative step cannot cause a spike; it delays the next spike after a freeze. Size of
+the in-slot HOLD-off kick: XHL channel charge plus vl-vm sharing.
+
+### PEX run 4 (2026-11-22, CMP 1 uA tail + level 4)
+Chip `dc95628` (CMP tail 0.5 -> 1 uA; level 4 leak-OTA input / diode L 1 -> 0.5 um in the 9 slot/D1 cells; AdEx
+rebuilt for level 3+4), benches `125f1cd` (AdEx vw and D1 preconditioned, released at 0.5 us; stim-A local-edge table;
+absolute vbn_leak / S1 vl / AdEx vw traces; per-slot ripple table in bias_spk). Top-level `routes.json` is unchanged
+from run 3 (B = 9146017). VM 16:58-18:02 UTC: LVS match, node check 0 missing, all 6 benches rc=0; ext_rc 55 warnings (as run 3).
+Edge (step) kick in mV, typical 27 C, S = 100, run 3 -> run 4:
+
+| Event / victim | run 3 (9146017) | run 4 (dc95628) |
+|---|---|---|
+| HOLD on / off, H1/P3/P2/H2/H3 | +8.7 / -16.8 | +8.7 / -16.7 |
+| HOLD off S1..S3 / F1 / F2, F3 / AH400 | -15.2..-15.3 / -7.2 / -11.7 / -3.2 | -15.3..-15.4 / -7.3 / -11.6 / -3.1 |
+| HOLD off AH50 (worst edge kick) | -35.7 | -36.2 |
+| HOLD off CMP / hold drift CMP (mV/ms) | -11.0 / -84.1 | -10.9 / -84.3 |
+| HOLD on D1 vs / d1 / d2, AdEx vm | +10.7 / +14.0 / +16.3, +5.7 | +11.0 / +14.3 / +16.5, **+7.7** |
+| HOLD off D1 vs / d1 / d2, AdEx vm | -17.8 / -25.3 / -23.4, -8.3 | **-19.5 / -27.2 / -25.6**, -9.0 |
+| Hold drift H/P, D1 d1, AdEx vm (mV/ms) | -117..-119, -22.5, -21.6 | -117..-119, -25.2, -29.4 |
+| MRESET on D1 vs / AdEx vm | -1.1 / +2.3 | -19.7 / +3.4 (D1 preconditioned; block-level -31.7) |
+| SUB 0->1 AdEx vm | -6.8 | -3.7 |
+| stim A on / off, AdEx vm | +12.0 / -17.0 | +11.1 / -15.9 |
+| PROBE_EN, SEL, LOAD, stim A (array) | | within 0.2 mV |
+
+The D1 / AdEx rows are not a clean A/B: run 4 preconditions both (run 3 left them drifting), and they are still not at rest
+at 59 us (D1 vs -38, d1 -45, AdEx vm +30 mV/ms). The array kicks (level-4 leak OTA in every slot) moved <= 0.5 mV.
+
+Other files: coupling.txt same within 0.01 fF / 0.01 mV for every array slot and CMP (13.8 fF);
+D1 all-lines 17.8 / 32.9 / 23.1 -> 17.7 / 32.9 / 22.8 mV. As first printed, AdEx vw <- probe_sub_raw[0] 196 -> 433 aF
+(3.00 -> 6.60 mV) looked like the new worst line, but that pair is entirely inside adex_a1: the block PEX
+(`layout/tier2/out/adex_a1_pex.spice`) has vw-sub0 = 433 aF, and the `4230787` AdEx re-route raised it from 196 aF
+(m1/m2 vw and sub0 0.27-0.94 um apart in a1_pmux). probe_sub_raw is a latched PROBE_SUB bit, written only when
+firmware selects a probe tap; the 6 mV step on vw (~0.23 pF) is about half of one spike's increment and decays with
+tau_w ~0.74 ms. **Not a layout issue.**
+**Coupling-script bug fixed:** `tb_top_coupling.py` keyed `pin_of` by extracted names (`g_i0/I`, `s33/en`), which aren't
+flat-netlist nodes, so the block-level subtraction silently returned 0 for some instance pins. It now resolves them with
+`T.net()`, like the victims. With the fix (run-4 netlists), the top-level-added numbers are: AdEx vw 0.89 mV (cfg_out[34]),
+CMP vm 2.13 mV (rt_out[1]; probe_en_c[3] 406 aF is inside slot_cmp_h), D1 vs 3.02 mV (cfg_out[64]; d1_sel0 392 aF is inside
+dend_d1). Worst single top-added lines: D1 d2 <- cfg_out[65] 4.87 mV, D1 d1 <- cfg_out[41] 4.83 mV (latched config bits),
+then rt_out[1] -> P2/P3/H3 vm 2.4 mV. bias_dc: lines the same except vreset driver 1.2993 -> 1.2934 V, vsrc far-end drop
+-39..-48 -> -23..-38 mV, aux0 / aux2 0.384 / 0.387 -> 0.406 V (P-cell leak bias, level 4). bias_spk: victim 50.35 -> 51.16 kHz
+(off) / 55.65 -> 56.10 kHz (on), on/off shift +10.5 % -> +9.7 %; ripple with neighbours on: vsrc 101 -> 90, vreset 81 -> 80,
+vbn_leak 11.2 -> 10.4 mV p-p; quiet S1 vm p-p 0.64 / 2.88 -> 0.80 / 2.95 mV. New per-slot table: CMP vm p-p 47.5 (off) /
+73.2 (on) mV vs 0.8-3.7 mV for the other quiet slots. This is the CMP slot's own state, not coupling: at the bench point
+(EL / Vreset 1.50 V) the vth_cmp code clips at 31 (~1.506 V, DAC max 1.511 V), so det_cmp is tripped and vm follows the
+vreset line through the reset switch (vreset p-p at the CMP terminal is 62.8 / 80.4 mV; coupling C unchanged). Resolved by
+the deferred B1 vth_cmp +0.12 V shift (M3); the bench should exclude CMP from the quiet column until then.
+Probe step 1971 ns, PASS (same).

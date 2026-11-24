@@ -26,7 +26,12 @@ XP2  vm  a   vdd vdd pfet_03v3 W={wl} L={ll}
 * 1-40 mV of headroom at ss/0 C (EL 1.2 V): g/Ib fell to 2.8 S/A and the OTA sourced only 25 % of Ib.
 * Now inputs 4/1, degeneration diodes 8/1, and nominal EL = 1.30 V: g/Ib >= 5.2 S/A, linear range >= 75 mV,
 * >= 92 % sourcing at all 15 corner/temperature cases (S = 100 and 2x).
-.subckt leak_ota_deg vm el vbn vdd vss wi=4u li=1u wt=2u lt=4u wl=2u ll=4u wd=8u ld=1u
+* Level 4 (docs/m2-level4-proposal.md, 2026-11-22): inputs XM1/XM2 and diodes XD1/XD2 L 1 -> 0.5 um, same W (4/0.5,
+* 8/0.5), drawn inside the old L = 1 um slots. At S = 10000 the input + diode Vgs stack outgrows EL at ss/0 C, the tail
+* falls into triode and g collapses (0.08x of linear at EL 1.3, 0.61x at EL 1.5). L 0.5 lowers the stack Vgs
+* (W/L x2, Vt roll-off): g 0.81x at ss/0, EL 1.5 (level 1), and the f-I passes there for every slot type.
+* Cost: rest offset +4.5 mV systematic (DIBL, XM1 sees ~1 V more Vds than XM2), mismatch sigma 7.2 -> 9.2 mV.
+.subckt leak_ota_deg vm el vbn vdd vss wi=4u li=0.5u wt=2u lt=4u wl=2u ll=4u wd=8u ld=0.5u
 XMT  t   vbn vss vss nfet_03v3 W={wt} L={lt}
 XM1  a   el  s1  vss nfet_03v3 W={wi} L={li}
 XD1  s1  s1  t   vss nfet_03v3 W={wd} L={ld}
