@@ -28,7 +28,8 @@ PEXNOM = {"tt": ("typical", 27, 1.57961), "ss": ("ss", 0, 1.58145), "ff": ("ff",
 STEP = 0.01368
 CORNERS = sys.argv[1].split(",")
 NMIN, NMAX = int(os.environ.get("MC_NMIN", "20")), int(os.environ.get("MC_NMAX", "60"))
-TMAX, STOP, FULL = float(os.environ.get("MC_TMAX", "5400")), os.environ.get("MC_STOP"), int(os.environ.get("MC_FULL", "5"))
+NMIN_C = {"ss": NMIN, "tt": min(NMIN, 12), "ff": min(NMIN, 8)}   # dies per corner (ss = worst corner)
+TMAX, STOP, FULL = float(os.environ.get("MC_TMAX", "5400")), os.environ.get("MC_STOP"), int(os.environ.get("MC_FULL", "3"))
 DAC = {}
 for _f in OUT.glob("vdac_vc_mc_*.json"):          # mc_vdac_vc.py output(s), one per job
     DAC.update(json.loads(_f.read_text()))
@@ -43,7 +44,8 @@ def fi(corner, seed, code, S):
     env = dict(os.environ, FI_RESULTS=str(RAW), FI_DEL="0.2", FI_PEX="/work/layout/slot/out/slot_cmp_h_pex.spice",
                FI_VTHC=vthc, FI_TAG=f"_c{code}", FI_SEED=str(seed), FI_IBSCALE="1.083333" if S > 1000 else "1")
     tag = f"slot_cmp_h_{cn}_{temp}_S{S:g}_EL1.50_vthc{vthc}_c{code}" + (f"_mc{seed}" if seed else "")
-    r = subprocess.run(["python3", "sim/tb/speed/tb_fi.py", "slot_cmp_h", cn, str(temp), f"{S:g}", "1"], env=env,
+    npr = "2" if STOP and Path(STOP).exists() else "1"     # 2 cores once this job's chip transient is done
+    r = subprocess.run(["python3", "sim/tb/speed/tb_fi.py", "slot_cmp_h", cn, str(temp), f"{S:g}", npr], env=env,
                        cwd="/work", capture_output=True, text=True, timeout=900)
     f = RAW / f"fi_{tag}.json"
     if not f.exists():
@@ -94,10 +96,10 @@ for c in CORNERS:                                # seed 0 (no mismatch) baseline
     die(c, 0)
 while True:
     el = time.time() - T0
-    done_min = all(v >= NMIN for v in n.values())
+    done_min = all(v >= NMIN_C.get(k, NMIN) for k, v in n.items())
     if el > TMAX or all(v >= NMAX for v in n.values()) or (done_min and STOP and Path(STOP).exists()):
         break
-    c = min(CORNERS, key=lambda k: n[k])
+    c = min(CORNERS, key=lambda k: n[k] / NMIN_C.get(k, NMIN))
     n[c] += 1
     die(c, n[c])
 print(f"MC_DONE seeds {n} in {time.time() - T0:.0f} s", flush=True)
