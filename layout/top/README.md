@@ -97,6 +97,20 @@ floorplan box and keep its pins on the box edge (stubs are drawn 0.7 µm out of 
     tt / ss / ff, 25 and 28 fail (table in docs/info.md). Code 26 with the x13/12 leak calibration: tt 0.78-0.85,
     ss 0.75-0.88, ff 0.78-0.87 (pass). AH50 ss/0 1.38 is the uncalibrated leak code; calibrated 1.08-1.29
     (`sim/results/gate10k/summary.txt`, same czslot_ah_50 PEX).
+- **MIL-319 (branch m3-spk, VM batch 02:21-03:59 UTC Nov 24, same M3 netlists):**
+  - *Full chip at S = 10000* (`sim/tb/top/tb_top_s10k.py`; tt / 27 and ss / 0; 12 us; ua[0] 100 uA EXT/1; IB_X2;
+    leak code 11; vsrc from the S = 10000 AH calibration, v0 29 / 14): all 13 array neurons fire (rate / ideal LIF
+    0.62-0.83, the same per cell type), AdEx fires, CMP 0 spikes with input 0 at codes 27 and 26 and fires at 2 x
+    rheobase. I(VDD) 743 / 604 uA quiet, 845 / 700 uA firing, peak 1.40 mA. Firing shifts the line means by <= 6 mV;
+    p-p up to 97 mV on vreset and 62 mV on vsrc (reset / detector events). At ss, vbn_leak / vbp_syn settle from the
+    tt precondition values (sch_bias cache has no corner) by ~3 us, then stay flat to 12 us (< 1 / ~5 mV).
+    ua[0] pin 1.17 / 1.34 V at 100 uA. Static IR (`tb_top_icur.py` ICUR_CASES=S10000 + `pgrid.py`): B1 / R1 <= 9.3 mV
+    with the PDN at both ends, <= 15.4 mV top-only; slots < 0.3 mV.
+  - *CMP code-window Monte Carlo* (`sim/tb/speed/mc_vdac_vc.py`, `mc_cmp.py`, `mc_cmp_sum.py`): vth_cmp DAC offset
+    sigma 9.4 / 10.8 / 11.8 mV (ff / tt / ss, schematic, 60 seeds); with slot mismatch (sigma 13 mV combined in the
+    sampled dies), 20 / 12 / 8 dies at ss / tt / ff: pass at 27 65 / 75 / 100 %, at 26 80 / 83 / 88 %, at 26 or 27
+    95 / 100 / 100 %; 1 ss die needs 28, none fails at every code 25-28. -> per-die code selection (25-28) is
+    required at S = 10000 (docs/info.md).
 
 ## Status (2026-11-20, τ cells rev B)
 

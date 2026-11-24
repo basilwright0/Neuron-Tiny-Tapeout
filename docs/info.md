@@ -130,7 +130,10 @@ oscilloscope or ADC reads `ua[1]`.
   - S = 10000 (M2 cells, level 3 + 4): use EL / Vreset 1.50 V and the high-speed leak-code rule (step 5.5). Every slot
     type passes the post-layout f–I gate (0.7–1.4 × ideal scaling) at tt / ss / ff, including ss / 0 °C. Limits: the
     CMP slot needs the vth_cmp code window below; AH50 needs the step 5.5 leak calibration at ss / 0 °C (1.38 of 1.4
-    uncalibrated, 1.29 calibrated). The full chip has not been simulated at S = 10000.
+    uncalibrated, 1.29 calibrated). Full chip (post-layout, tt / 27 °C and ss / 0 °C, 100 µA into `ua[0]` in EXT ÷1
+    mode, IB_X2, leak code ×13/12, all 13 array neurons and AdEx firing at 2–4 × rheobase): every neuron fires, with no
+    false CMP spikes at codes 26 and 27. Firing moves the bias lines by ≤ 6 mV (mean); local p-p ripple is up to
+    ~100 mV on vreset and ~60 mV on vsrc. Supply current is 0.70–0.85 mA (peak 1.4 mA). Static IR drop is ≤ 9 mV with the PDN fed at both stripe ends (B1 / R1), ≤ 15 mV fed from the top only.
   - **CMP threshold code (vth_cmp, IDAC code 8 = r2, word bits 35–39 = byte 0x04 bits 3–7):** vth_cmp ≈
     1.225 V + 13.7 mV × code (M3 DAC, 1.23–1.64 V). At S = 10000 only **codes 26 and 27** pass the f–I gate at every
     corner (post-layout slot_cmp_h, EL 1.50 V; min–max of f/f_ideal, pass 0.7–1.4):
@@ -147,8 +150,12 @@ oscilloscope or ADC reads `ua[1]`.
     code ≈ (Vth − 1.225 V) / 13.7 mV, e.g. 11 for 1.38 V, 26 for 1.58 V. Per die: with BIAS_EN = 0 write r2, set BIAS_EN = 1, drive
     the CMP slot at 1.1 × and 8 × its rheobase, and compare the rates with the same run at S = 100. If 1.1 × fires too
     fast or not at all, step r2 down by one; if 8 × is below ~0.75 × ideal scaling, step r2 up by one. Re-check after
-    the leak calibration (step 5.5), which moves the 1.1 × point. Die-to-die DAC and comparator offsets have not been
-    simulated (no Monte Carlo), so on some dies this procedure may land on 25 or 28.
+    the leak calibration (step 5.5), which moves the 1.1 × point.
+    **The per-die step is required at S = 10000.** A mismatch Monte Carlo (vth_cmp DAC offset σ ≈ 13 mV, about one
+    code, plus slot mismatch; 40 dies over tt / ss / ff) shows that no fixed code passes on every die. At ss / 0 °C,
+    code 27 passes on 65 % of dies and code 26 on 80 %; either 26 or 27 passes on 95 %. The window moves by up to ±1
+    code, so some dies need 25 or 28 (1 of 20 dies needed 28 at ss); every simulated die passed at some code in 25–28.
+    Start from 27, follow the step rule above, and allow codes 25–28.
 
 ## External hardware
 
