@@ -495,6 +495,36 @@ if M3:
         "Xm": (208.5, 1.0, 0), "Xd3": (240.96, 66.3, 90),
     }
 
+# R2 re-pack (MIL-344, branch r2-b1-pack): the C4 column (idac_p Xi0 / Xi1 above pocket NB) is removed, so the
+# west columns C1-C3 sit directly west of N1 and the frame is 28 um narrower (214 x 115, tile x 131-345); NB is gone.
+#   C1: the 3 rotated resistor DACs (packed tighter), idac_p Xi0 on top, receivers beside / above it
+#   C2, C3: unchanged;  rx_n1 on top of C2.   Over N1: rails + idac_p Xi1 rotated (code pins west).
+# The east group (R1/N1, corridor, rails, master, vth_ref DAC), ua[0], vdd/vss and every digital pin keep their
+# tile positions (local x - 28); the 10 analog outputs keep their local x (they move 28 um east in the tile).
+# Freed: tile x 103-131 joins RW (x 80-103) into one 49 x 104 bay (with the 2 um block gap) west of B1.
+R2 = M3 and os.environ.get("B1_R2", "1") == "1"
+if R2:
+    R2_DX = 28.0
+    FR_W = FR_W - R2_DX
+    N1 = (N1[0] - R2_DX, N1[1], N1[2] - R2_DX, N1[3])
+    CORR = (CORR[0] - R2_DX, CORR[1], CORR[2] - R2_DX, CORR[3])
+    UA0 = (UA0[0] - R2_DX, UA0[1] - R2_DX)
+    NB = None
+    _OUTS = ("vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vth_cmp", "vbn_ax", "vbp_w", "ua0_stim_out")
+    PINS_REF = {n: (r if n in _OUTS else [r[0] - R2_DX, r[1], r[2] - R2_DX, r[3]]) for n, r in PINS_REF.items()}
+    _E = lambda i: (PLACE_F[i][0] - R2_DX, PLACE_F[i][1], PLACE_F[i][2])
+    PLACE_F = {
+        "Xd2": (1.0 + 39.23, 1.0, 90), "Xd1": (1.0 + 38.58, 21.8, 90),
+        "Xd0": (1.0 + 38.58 - (38.58 - 36.32) / 2, 42.6, 90),
+        "Xi0": (1.0, 67.0, 0),
+        "Xx4": (27.4, 67.0, 0), "Xx2": (27.4, 77.0, 0), "Xxst": (27.4, 88.0, 0),
+        "Xx0": (1.0, 100.3, 0), "Xx1": (24.2, 100.3, 0),
+        "Xi4": (43.0, 1.0, 0), "Xi3": (43.0, 36.0, 0), "Xi2": (43.0, 71.3, 0), "Xx3": (43.0, 104.3, 0),
+        "Xvi": (72.0, 1.0, 0), "Xg": (76.0, 47.4, 0),
+        "Xr": _E("Xr"), "Xi1": (N1[0] + 1.0 + 32.26, 83.7, 90),
+        "Xm": _E("Xm"), "Xd3": _E("Xd3"),
+    }
+
 
 def pin_at(c, net, r):
     c.p("metal3", r, net, term=True)
