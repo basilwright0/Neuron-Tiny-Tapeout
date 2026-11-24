@@ -65,3 +65,33 @@
   conflict count isn't falling. Only then do a full route.
 - Knobs: `B1_R2DX` (trim), `B1_XI1_Y`, `B1_CORR_TOP`, `ROUTE_ITERS` / `ROUTE_NSCHED`. Floorplan B1_BOX x0 must equal
   103 + DX (currently set for 28).
+
+## Status 2026-11-24 ~20:50 UTC (handoff for the next session)
+- **B1 verified once** (e28, 4cfd7f8): 214 × 114.5, magic 0, KLayout 0, LVS match, frame PASS 68/68.
+- **PEX DC on e28** (`sim/tb/bias/out/r2/pex3/summary.txt`): new − fdcf2ad PEX ≤ 0.01 mV at every settled point
+  (S = 1000/10000, mid/full codes, all 12 outputs). Unsettled code-0 / S = 100 points differ by ≤ 6.2 mV, inside
+  their own 6–8 mV drift, as in b1int.
+- **Top-level reroute** (local, host mode: `PYTHONPATH=/tmp/b1r_kl ~/.venvs/audvec/bin/python prep.py`, then
+  `route.py check` / `route.py reroute <nets>`, about 40 s):
+  - With outputs on B1's top edge, 3 of the 9 analog lines get no path: the Metal3 band at tile y 127–140 is full.
+  - So (aaa8b79) the analog outputs now leave B1's **west edge**, local y 113.5 → 104.5 (vbn_leak first), into the
+    empty corner tile x 101–131 × 116–126.5.
+  - B1 re-route `r2b1f/route` was submitted 20:42. A duplicate started at 20:43 and was killed, so check
+    vm_events for two "end r2b1f/route" lines and use the survivor's result.
+  - Then repeat the frame check (it reads `out/b1_pins_r2.json`) and the B1 PEX (`r2_pex_vm.sh`; its result
+    paths include `sim/tb/bias/out/r2`).
+- **Next:**
+  1. Fetch `r2b1f`; local prep + check + reroute (cfg_out[40/42/64/66] first, then the 9 analog nets:
+     vbp_syn el vbn_leak vbp_st vbn_prb vbn_ref aux3 vbn_ax vbp_w).
+  2. Commit `routes.json`, then `vmrun r2b1top2 build "bash layout/top/vm_r2.sh"`. Submit **once**: the
+     first-use ssh error is printed, but the job still goes in.
+  3. PEX again on the final B1.
+  4. Renders: `tools/render_labeled.py` (now also draws fp.RESERVED free areas), host klayout.
+  5. `b1-repack` Paperclip doc and the Nov 26 verdict.
+- **C1 redesign** (branch `r2-c1-spk`, worktree `/home/basil/tt-m3/c1spk`, `docs/r2/c1-redesign-handoff.md`):
+  - Step 2 is done (eeabade): N_SPK = 24, OUT_BANK @0x17 bit 0 (uo ↔ ch16–23), PROBE[7] = SEL[4]
+    (bay k = 0–2, column 4 rows 2/3).
+  - cocotb 15/15 and lint pass. Area +474 µm² (yosys); expected utilization about 96 %.
+  - Step 3 = re-harden. Freeze all existing pin positions from the committed `pin_order.cfg` / `config_fp.json`
+    and only add the new pins. Don't regenerate the others, because `mkpins` output already differs from the
+    hardened macro.
