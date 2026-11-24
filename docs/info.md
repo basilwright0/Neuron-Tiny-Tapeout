@@ -146,7 +146,7 @@ oscilloscope or ADC reads `ua[1]`.
     | 28 | ~1.608 V | 0.84–1.52 fail | no firing at 1.1 × rheobase | 0.86–0.99 |
 
     Too low a code makes the CMP too slow at high drive (the comparator's trip falls with speed); too high a code stops
-    it firing near rheobase. Use **27** as the default at S = 10000 (it has more margin than 26 at ss). At S ≤ ~1000 set vth_cmp ≈ Vth:
+    it firing near rheobase. Use **26** as the starting code at S = 10000 (it passes on more dies under mismatch, see below). At S ≤ ~1000 set vth_cmp ≈ Vth:
     code ≈ (Vth − 1.225 V) / 13.7 mV, e.g. 11 for 1.38 V, 26 for 1.58 V. Per die: with BIAS_EN = 0 write r2, set BIAS_EN = 1, drive
     the CMP slot at 1.1 × and 8 × its rheobase, and compare the rates with the same run at S = 100. If 1.1 × fires too
     fast or not at all, step r2 down by one; if 8 × is below ~0.75 × ideal scaling, step r2 up by one. Re-check after
@@ -155,7 +155,7 @@ oscilloscope or ADC reads `ua[1]`.
     code, plus slot mismatch; 40 dies over tt / ss / ff) shows that no fixed code passes on every die. At ss / 0 °C,
     code 27 passes on 65 % of dies and code 26 on 80 %; either 26 or 27 passes on 95 %. The window moves by up to ±1
     code, so some dies need 25 or 28 (1 of 20 dies needed 28 at ss); every simulated die passed at some code in 25–28.
-    Start from 27, follow the step rule above, and allow codes 25–28.
+    Start from 26, follow the step rule above, and allow codes 25–28.
 
 ## External hardware
 
