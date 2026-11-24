@@ -117,3 +117,26 @@ Open items for the harden:
    - floorplan.py SPIKE_CH: names for 16..18 (bay) and 22, 23 (column 4), and the :288 assertion goes to 24 channels.
    - layout/top/config.py:123: range(16) -> 24, tie spk_in[19..21] low, and route probe_sel_bay / probe_en_c4.
 4. docs/info.md (23 bytes, pinout) and firmware: add OUT_BANK and SEL 16..31 once the top is integrated.
+
+## Step 3: pin freeze + re-harden launch (shared VM)
+Pin freeze (lead decision: every existing pin keeps its rev E position / layer / size, new pins only added):
+- The flow consumes rtl/librelane/config_fp.json (= config.json + `IO_PIN_ORDER_CFG dir::pin_order.cfg`), die 166 x 166, density 86, unchanged.
+- The committed pin_order.cfg reproduces the hardened LEF exactly: `python3 rtl/librelane/pincheck.py cfglef rtl/librelane/pin_order.cfg macros/neuron_ctrl/neuron_ctrl.lef` -> 199 cfg pins OK (N/S/W slots; E has no spacers, io_placer spreads it, and E is untouched).
+- pin_order.cfg was edited in the #W section only (N/E/S lines byte-identical); the W spacers were recomputed around 12 added pins.
+  `pincheck.py cfgdiff <old cfg> pin_order.cfg` -> "old 199 new 211; OK: only additions":
+  - W bottom, slots 2..10 (local y 2.52-11.48): spk_in[16], probe_sel_bay[0], spk_in[17], probe_sel_bay[1], spk_in[18], probe_sel_bay[2], spk_in[19], spk_in[20], spk_in[21].
+  - W free slots: spk_in[22] slot 84 (y 94.36), probe_en_c4 slot 86 (y 96.60), spk_in[23] slot 89 (y 99.96).
+- mkpins.py is NOT the source of pin_order.cfg any more (its N edge drifted from rev E, open item 2). Do not rerun it before the top level is re-floorplanned.
+Harden job:
+- rtl/librelane/vm_harden.sh: same command as run.sh (librelane --pdk gf180mcuD --scl gf180mcu_fd_sc_mcu7t5v0 --manual-pdk, config_fp.json) in hpretl/iic-osic-tools:2026.08 (scripts/eda.sh pin), docker --cpus 2, run tag c1spk_166 (rtl/librelane/runs/c1spk_166 on the VM, not fetched).
+- Submitted once: `cd /home/basil/tt-m3/c1spk && bash /home/basil/tt-m3/vmrun.sh c1spk harden "timeout 170m bash rtl/librelane/vm_harden.sh" "rtl/librelane/c1spk_results"`.
+- Results dir rtl/librelane/c1spk_results/: info.txt (die, density, librelane rc), harden.log + harden_tail.txt, error.log / warning.log, metrics.csv / metrics.json, resolved.json,
+  neuron_ctrl.{lef,gds,nl.v,spice}, reports/<step>/ (STA post-PnR, Magic / KLayout DRC, LVS, antenna, placement, io placement), pin_cfg_vs_revE.txt, pin_diff_lef.txt.
+- Fetch: `cd /home/basil/tt-m3/c1spk && bash /home/basil/tt-m3/vmwait.sh c1spk harden` (waits, then unpacks the results dir into the tree). Do not resubmit; check /home/basil/tt-m3/vm.log for the submit / end lines.
+What to check:
+- info.txt: librelane rc=0, DIE_AREA [0,0,166,166]. harden_tail.txt: flow completed, no step failure (detailed placement failed at 164 for rev E; first suspect if rc != 0).
+- metrics.csv: design__instance__utilization (rev E 0.940; expected about 0.96), design__instance__count, setup WNS at nom_ss_125C_3v00 (rev E +2.47 ns, must stay > 0), hold WNS all corners (rev E +0.21 ns, > 0),
+  max slew / cap / fanout violations 0, route__drc_errors 0, magic__drc_error__count 0, klayout__drc_error__count 0, design__lvs_error__count 0, antenna violations 0, XOR 0.
+- pin_diff_lef.txt: `pincheck.py lef macros/neuron_ctrl/neuron_ctrl.lef c1spk_results/neuron_ctrl.lef` must print only ADDED lines for the 12 new pins (layer Metal3, W edge, slots above) and "OK: only additions" (201 -> 213 pins).
+  The E edge parked pins are placed by io_placer, not the cfg: any MOVED line on E means the placer re-spread them, and must be fixed (e.g. explicit E spacers) before the top level is touched.
+- If all pass: copy the LEF / GDS / nl.v / spice / metrics.csv to macros/neuron_ctrl/ and update docs/regmap.md "Hardened" paragraph. Then the top-level items (open items 3, 4).
