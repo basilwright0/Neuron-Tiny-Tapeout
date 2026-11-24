@@ -8,36 +8,36 @@ transform 0 -1 8046 1 0 200
 box 0 0 3960 7846
 use vdacr_vr  Xd1
 timestamp 0
-transform 0 -1 7916 1 0 4560
+transform 0 -1 7916 1 0 4360
 box 0 0 3960 7716
 use vdacr_el  Xd0
 timestamp 0
-transform 0 -1 7690 1 0 8920
+transform 0 -1 7690 1 0 8520
 box 0 0 4680 7264
-use rx_n4  Xx0
+use idac_p  Xi0
 timestamp 0
-transform 1 0 480 0 1 14000
-box 0 0 4528 1520
-use rx_n2  Xx1
+transform 1 0 200 0 1 13400
+box 0 0 5080 6452
+use rx_p05  Xx4
 timestamp 0
-transform 1 0 200 0 1 15740
-box 0 0 2720 1520
-use rx_n1  Xx3
-timestamp 0
-transform 1 0 3160 0 1 15740
-box 0 0 1816 1520
+transform 1 0 5480 0 1 13400
+box 0 0 1816 1800
 use rx_p24  Xx2
 timestamp 0
-transform 1 0 200 0 1 17480
+transform 1 0 5480 0 1 15400
 box 0 0 1816 2000
 use rx_p05  Xxst
 timestamp 0
-transform 1 0 2320 0 1 17480
+transform 1 0 5480 0 1 17600
 box 0 0 1816 1800
-use rx_p05  Xx4
+use rx_n4  Xx0
 timestamp 0
-transform 1 0 200 0 1 19700
-box 0 0 1816 1800
+transform 1 0 200 0 1 20060
+box 0 0 4528 1520
+use rx_n2  Xx1
+timestamp 0
+transform 1 0 4840 0 1 20060
+box 0 0 2720 1520
 use idac_n  Xi4
 timestamp 0
 transform 1 0 8600 0 1 200
@@ -50,6 +50,10 @@ use idac_n  Xi2
 timestamp 0
 transform 1 0 8600 0 1 14260
 box 0 0 5080 6400
+use rx_n1  Xx3
+timestamp 0
+transform 1 0 8600 0 1 20860
+box 0 0 1816 1520
 use bias_vi  Xvi
 timestamp 0
 transform 1 0 14400 0 1 200
@@ -58,24 +62,20 @@ use bias_ladder  Xg
 timestamp 0
 transform 1 0 15200 0 1 9480
 box 0 0 9600 12052
-use idac_p  Xi0
-timestamp 0
-transform 1 0 26200 0 1 8636
-box 0 0 5080 6452
-use idac_p  Xi1
-timestamp 0
-transform 1 0 26200 0 1 15488
-box 0 0 5080 6452
 use bias_rails  Xr
 timestamp 0
-transform 1 0 32000 0 1 8800
+transform 1 0 26400 0 1 8800
 box 0 0 6200 7534
+use idac_p  Xi1
+timestamp 0
+transform 0 -1 32852 1 0 16740
+box 0 0 5080 6452
 use bias_master  Xm
 timestamp 0
-transform 1 0 41700 0 1 200
+transform 1 0 36100 0 1 200
 box 0 0 6400 12466
 use vdacr_vt  Xd3
 timestamp 0
-transform 0 -1 48192 1 0 13260
+transform 0 -1 42592 1 0 13260
 box 0 0 6440 8012
 << end >>

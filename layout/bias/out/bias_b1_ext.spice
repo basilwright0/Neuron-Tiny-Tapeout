@@ -677,8 +677,8 @@ XXx3 vbn_ax vdd vss rx_n1
 XXx4 vbp_w vdd vss rx_p05
 XXg Xm/in_n Xr/vgln Xr/vsn Xi4/g Xi2/g Xm/in_p Xr/vglp Xr/vsp vdd Xi1/g Xi0/g Xi3/g
 + vss bias_ladder
-XXi0 Xi0/g Xr/vsp i0_b0 i0_b1 i0_b2 i0_b3 i0_b4 vbn_leak vss Xr/vgln vdd vss idac_p
 XXi1 Xi1/g Xr/vsp i1_b0 i1_b1 i1_b2 i1_b3 i1_b4 vbn_ref vss Xr/vgln vdd vss idac_p
+XXi0 Xi0/g Xr/vsp i0_b0 i0_b1 i0_b2 i0_b3 i0_b4 vbn_leak vss Xr/vgln vdd vss idac_p
 XXm ua0 ua0_s0 ua0_s1 ua0_stim ua0_int bias_en Xm/in_n Xm/in_p vbp_st Xm/iint ua0_stim_out
 + Xr/en_b vdd vss bias_master
 XXi2 Xi2/g Xr/vsn i2_b0 i2_b1 i2_b2 i2_b3 i2_b4 vbp_syn vdd Xr/vgln vdd vss idac_n
