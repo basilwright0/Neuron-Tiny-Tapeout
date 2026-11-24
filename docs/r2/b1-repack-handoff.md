@@ -116,3 +116,17 @@
   - the `b1-repack` doc and the Nov 26 verdict;
   - the daily report `tiny-tapeout-2026-11-24`;
   - VM-h on MIL-6.
+
+## Status 2026-11-24 ~23:20 UTC
+- **B1** (fe98f90, VM r2b1g):
+  - Top pin row kept clear. Converged at iter 13; magic 0, KLayout 0, LVS match, frame PASS 68/68.
+  - **PEX DC:** settled points ≤ 0.02 mV vs fdcf2ad. The max values (≤ 6 mV) are only on the unsettled S = 100 rows.
+- **Top routes** (b417c67): only v0_c5 needed a reroute; check 0, conncheck 0 / 193.
+  - geom power hookups now come from the B1 route cache.
+  - The full-chip `r2b1top3/build` was submitted at 23:18.
+- **C1** (r2-c1-spk 03e57fc): harden_a and harden_b both pass (DRC, LVS, antenna 0; pins: only 12 added, 0 moved).
+  - **Chosen: a** (side margins 6 sites, density 90, keeps the input buffers): utilization 0.934, setup +0.16 ns ss/125C,
+    hold +0.083 ns.
+  - b has more setup slack (+1.70 ns) but drops the input buffers.
+  - Next: copy a's LEF/GDS/netlist into macros/neuron_ctrl on the C1 branch, then the info.md docs (user approved
+    OUT_BANK and SEL[4], 22:21).
