@@ -507,7 +507,9 @@ if R2:
     R2_DX = float(os.environ.get("B1_R2DX", "28.0"))   # west trim; 25 = 6 um C3 | N1 channel
     FR_W = FR_W - R2_DX
     N1 = (N1[0] - R2_DX, N1[1], N1[2] - R2_DX, N1[3])
-    CORR = (CORR[0] - R2_DX, CORR[1], CORR[2] - R2_DX, CORR[3])
+    # The top level runs no Metal3 through the corridor (R1 feed-throughs are Metal4 at tile x 276-296; only Metal3
+    # jogs at tile y 54.0-54.8 = local 42.0-42.8 on N1's top edge), so the Metal3 keep-out is a strip local y 42-43.5.
+    CORR = (CORR[0] - R2_DX, CORR[1], CORR[2] - R2_DX, float(os.environ.get("B1_CORR_TOP", "43.5")))
     UA0 = (UA0[0] - R2_DX, UA0[1] - R2_DX)
     NB = None
     _OUTS = ("vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vth_cmp", "vbn_ax", "vbp_w", "ua0_stim_out")

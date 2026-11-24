@@ -45,7 +45,7 @@ EXTENDED_STRAP_PAIRS = (0, 2)            # macro strap pairs extended full heigh
 # the east group keep their tile positions.  Tile x 80-129, y 12-116 is one free bay (RESERVED "RW").
 B1_BOX = (131.0, 12.0, 345.0, 126.5)                                  # bias_b1 214 x 114.5 at (131, 12)
 B1_NOTCHES = {"R1": (262.0, 12.0, 302.0, 54.0)}
-B1_CORRIDOR = (276.0, 54.0, 302.0, 126.5)                             # Metal3-free in B1: R1 feed-throughs
+B1_CORRIDOR = (276.0, 54.0, 302.0, 55.5)    # R2: Metal3-free strip in B1 for the R1 jogs (feed-throughs are Metal4)
 BLOCKS = {
     "C1 control macro":     (MACRO_X, MACRO_Y, MACRO_X + MACRO_S, MACRO_Y + MACRO_S),
     "NA neuron array 4x4":  (8.0, 140.0, 120.0, 140.0 + 2 * 45.74 + 29.42 + 34.29),  # M2 layout B: 155.19 tall

@@ -15,7 +15,7 @@ DX = float(os.environ.get("B1_R2DX", "28.0"))
 R2 = M3 and os.environ.get("B1_R2", "1") == "1"       # R2 (MIL-344): 214 frame, east group and N1 at local x - 28, no NB
 OUTS = ("vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vth_cmp", "vbn_ax", "vbp_w", "ua0_stim_out")
 if R2:
-    N1 = (N1[0] - DX, N1[1], N1[2] - DX, N1[3]); CORR = (CORR[0] - DX, CORR[1], CORR[2] - DX, CORR[3])
+    N1 = (N1[0] - DX, N1[1], N1[2] - DX, N1[3]); CORR = (CORR[0] - DX, CORR[1], CORR[2] - DX, float(os.environ.get("B1_CORR_TOP", "43.5")))
 notches = [("N1", N1)] + ([("N2", N2)] if N2[2] > 0 else []) + ([("NB", NB)] if M3 and not R2 else [])
 box = lambda r: kdb.Region(kdb.Box(*[round(v / d) for v in r]))
 bb = top.bbox()
