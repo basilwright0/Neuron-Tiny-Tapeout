@@ -1,4 +1,4 @@
-bbox 0.0 0.5 213.95000000000002 114.5
+bbox 0.0 0.05 213.5 114.5
 Metal3 in corridor: none
 label ua0 42/10 196.3 0.8
 label vth_ref 42/10 133.0 42.2
