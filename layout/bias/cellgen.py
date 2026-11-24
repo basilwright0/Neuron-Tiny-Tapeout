@@ -507,6 +507,9 @@ class Cell:
         import os
         if os.environ.get("ROUTE_QUICK"):
             schedules, iters = schedules[:1], int(os.environ["ROUTE_QUICK"])
+        if os.environ.get("ROUTE_ITERS"):       # cap: iterations per schedule, number of schedules (R2 experiments)
+            iters = int(os.environ["ROUTE_ITERS"])
+            schedules = schedules[:int(os.environ.get("ROUTE_NSCHED", len(schedules)))]
         for k, (pm, hs) in enumerate(schedules):
             R = mk()
             log(f"  schedule {k}: pres_mult={pm} hist_step={hs}  nets={len(nets)}")

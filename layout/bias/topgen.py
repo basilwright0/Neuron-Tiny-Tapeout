@@ -504,7 +504,7 @@ if M3:
 # Freed: tile x 103-131 joins RW (x 80-103) into one 49 x 104 bay (with the 2 um block gap) west of B1.
 R2 = M3 and os.environ.get("B1_R2", "1") == "1"
 if R2:
-    R2_DX = 28.0
+    R2_DX = float(os.environ.get("B1_R2DX", "28.0"))   # west trim; 25 = 6 um C3 | N1 channel
     FR_W = FR_W - R2_DX
     N1 = (N1[0] - R2_DX, N1[1], N1[2] - R2_DX, N1[3])
     CORR = (CORR[0] - R2_DX, CORR[1], CORR[2] - R2_DX, CORR[3])
@@ -521,7 +521,7 @@ if R2:
         "Xx0": (1.0, 100.3, 0), "Xx1": (24.2, 100.3, 0),
         "Xi4": (43.0, 1.0, 0), "Xi3": (43.0, 36.0, 0), "Xi2": (43.0, 71.3, 0), "Xx3": (43.0, 104.3, 0),
         "Xvi": (72.0, 1.0, 0), "Xg": (76.0, 47.4, 0),
-        "Xr": _E("Xr"), "Xi1": (N1[0] + 1.0 + 32.26, 83.7, 90),
+        "Xr": _E("Xr"), "Xi1": (N1[0] + 1.0 + 32.26, float(os.environ.get("B1_XI1_Y", "83.7")), 90),
         "Xm": _E("Xm"), "Xd3": _E("Xd3"),
     }
 
