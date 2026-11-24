@@ -297,7 +297,9 @@ NET_KO = {"rt_out[0]": [("D1 dendrite", (0, 1), 3.0), ("NA neuron array 4x4", (0
 # reroute only: keep the net's old wires inside this box (x0, y0, x1, y1).  Stim A: its run-4 branch east of the
 # array (row-2 fan-out -> macro pin -> AdEx) stays as it was (rerouted, it moved off en_c3 over AdEx: AdEx vm
 # <- probe_en_c[3] 8 -> 104 aF); y 265.62 = its macro-pin row (the old wire above it only led to the west).
-KEEP = {"rt_out[0]": (120.5, 0.0, fp.TILE_W, 265.62)}
+KEEP = {"rt_out[0]": (120.5, 0.0, fp.TILE_W, 265.62),
+        # R2 (MIL-344): vbn_ax keeps its D1 escape (Metal4 riser at x 69.9 out of the D1 / tau gap, Metal3 east to x 86)
+        "vbn_ax": (60.0, 110.0, 90.0, 140.0), "vbn_ref": (60.0, 110.0, 80.0, 139.6)}
 
 
 def route_net(g, k, groups, margin=25.0, max_exp=3_000_000, full=False, net=None, seed=()):
