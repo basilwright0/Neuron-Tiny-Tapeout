@@ -621,6 +621,7 @@ def reroute(nets):
         print("reroute", net, "OK" if ok else "FAIL " + msg, flush=True)
         if not ok:
             R["_failed"].append([net, msg])
+    R["_stubs"] = [[l, r, n] for l, r, n in stubs]             # pins may have moved (R2): stubs follow the geometry
     (C.WORK / "routes.json").write_text(json.dumps(R))
 
 
