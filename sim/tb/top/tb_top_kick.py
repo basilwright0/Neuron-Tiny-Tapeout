@@ -11,6 +11,7 @@ preconditioning release at 0.5 us, see topbench.chip):
   110 us  config write (LOAD): H1 trim 8 -> 7 (nibble 0 = cfg_out[7..10], 4 lines toggle)
   130 us  config write: IDAC word byte 0x02 (vbn_ax / vbp_w codes, B1 code lines toggle; BIAS_EN stays 1)
   150 us  stimulus A pulse 2 us (rt_out[0]), nominal weight (every array neuron gets ~2 fC of synapse charge)
+  156 us  SEL -> D1 (PROBE_EN 0)   160 us  D1 probe on (probe_sel_d1 + glue D1 sel0 / en_b; MIL-309)   170 us  off
 edge = vm change 20-60 ns after the edge (the capacitive kick, before the synapse / leak act), step = mean of
 1-3 us after minus the pre-event baseline (pre-event slope removed). Hold drift: vm slope in the HOLD window.
 Victims: vm of every array neuron (floorplan MAP, REF excluded), D1 vs / d1 / d2, AdEx vm.
@@ -72,7 +73,7 @@ EVENTS = [("HOLD on", 60e-6), ("HOLD off", 80e-6), ("MRESET on", 100e-6), ("MRES
           (f"PROBE_EN on ({FAR_N})", 120e-6), ("PROBE_EN off", 130e-6), (f"SEL row {FAR[0]}->{H1[0]}", 135e-6),
           ("SUB 0->1", 140e-6),
           ("LOAD: H1 trim 8->7", 150e-6), ("LOAD: IDAC byte 2", 170e-6), ("stim A on", 190e-6),
-          ("stim A off", 192e-6)]
+          ("stim A off", 192e-6), ("SEL -> D1 (rsel off)", 196e-6), ("PROBE D1 on (sel_d1)", 200e-6), ("PROBE D1 off", 210e-6)]
 at(60e-6, rt=(0, 0, 1, 0))
 at(80e-6)
 at(100e-6, rt=(0, 0, 0, 1))
@@ -94,7 +95,17 @@ st3 = dict(st2)
 st3["rt_out[0]"] = 3.3
 evs.append((190e-6, st3))
 evs.append((192e-6, dict(st2)))
-TEND = 210e-6
+# MIL-309 item 2: probe_sel_d1 (+ D1 tap sel0 and en_b) on / off, the top-added 4.36 mV static line onto D1 vs
+# (196 us: SEL -> D1 with PROBE_EN 0 = rsel off only; 200 / 210 us: only the D1 enable toggles, as in firmware)
+st4 = {}
+for en in (0, 1):
+    st4[en] = T.config(codes=cw, probe=dict(blk="d1", sub=0, en=en))
+    for j in range(4):
+        st4[en][f"cfg_out[{7 + j}]"] = 3.3 * ((7 >> j) & 1)
+evs.append((196e-6, dict(st4[0])))
+evs.append((200e-6, dict(st4[1])))
+evs.append((210e-6, dict(st4[0])))
+TEND = 220e-6
 LINES = ["vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vreset", "vsrc", "vth_ref", "aux3",
          "vbn_ax", "vbp_w"]
 body = B.chip(S, state_over=B.timeline(evs))
