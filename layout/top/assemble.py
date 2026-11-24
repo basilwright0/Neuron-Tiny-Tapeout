@@ -42,6 +42,22 @@ def main():
     # geometry, grouped by layer (vias last)
     shapes = [(l, r, n) for l, r, n in F.shapes if not (l == "metal4" and any(r == p[2] for p in F.ports))]
     shapes += [(l, tuple(r), n) for l, r, n in R["_stubs"]]
+    # stub / wire-end Z joints (R2, MIL-344, B1 west-edge outputs): a horizontal Metal3 wire ending on a horizontal
+    # stub with a y offset forms a Z whose inner corners are sqrt(ox^2 + oy^2) apart (ox, oy = overlap lengths); if
+    # that is < 0.28 um (M3.1), widen the overlap to 0.3 um across the full combined height, toward the stub side.
+    for l, r, n in R["_stubs"]:
+        if l != "metal3" or r[2] - r[0] <= r[3] - r[1]:
+            continue
+        for wl, w in R.get(n, {}).get("wires", []):
+            if wl != l or w[2] - w[0] <= w[3] - w[1]:
+                continue
+            ox = min(r[2], w[2]) - max(r[0], w[0]); oy = min(r[3], w[3]) - max(r[1], w[1])
+            if ox <= 0 or oy <= 0 or (w[1] <= r[1] and w[3] >= r[3]) or (r[1] <= w[1] and r[3] >= w[3]):
+                continue
+            if (ox * ox + oy * oy) ** 0.5 < 0.28 + 1e-6:
+                x0 = max(r[0], w[0]); x1 = min(r[2], w[2])
+                a, b = (x0, x0 + 0.3) if r[2] > w[2] else (x1 - 0.3, x1)
+                shapes.append((l, (round(a, 3), round(min(r[1], w[1]), 3), round(b, 3), round(max(r[3], w[3]), 3)), n))
     def cutgap(a, b):               # edge-to-edge distance of two 0.28 um via cuts
         gx = max(0.0, abs(a[0] - b[0]) - 0.28); gy = max(0.0, abs(a[1] - b[1]) - 0.28)
         return (gx * gx + gy * gy) ** 0.5
