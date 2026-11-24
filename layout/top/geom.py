@@ -352,27 +352,26 @@ def stripe_at(net, xc):
 
 def blocks_power(F):
     I = C.instances()
-    # ---- B1 (M3 + vth_cmp DAC shift, m3-vdac 01254de; 242 x 114.5 at (103, 12)). Power hookups from a KLayout net
-    # trace of layout/bias/out/bias_b1.gds (local coordinates):
-    # east: vss Metal3 local x 240.41-241.45, y 39.465-39.765 (pad 240.41-240.81 x 39.415-39.815) next to the x 342.6
-    # VGND stripe -> Metal4 jumper from the stripe + 2 via3; vdd pin (local 241.1-241.5, 49.8-50.2) stubbed east to the
-    # x 345 VDPWR stripe.
+    # ---- B1 R2 (MIL-344, r2-b1-pack: 214 x 114.5 at (131, 12)). Power hookups from the B1 route (net-labelled wires in
+    # layout/bias/out/route_cache_bias_b1.json, local coordinates):
+    # east: vss Metal3 line local x 211.01-213.45, y 68.2-68.5 runs under the x 342.6 VGND stripe (local 211.6-212.4)
+    # -> 2 via3; vdd pin (local 213.15-213.45, 49.85-50.75) stubbed east to the x 345 VDPWR stripe.
     bx, by = I["b1"][1:]
-    assert abs(bx - 103.0) < 1e-6 and abs(by - 12.0) < 1e-6, (bx, by)
+    assert abs(bx - 131.0) < 1e-6 and abs(by - 12.0) < 1e-6, (bx, by)
     g = geo("bias_b1")["pins"]
-    vy = by + 39.615
-    F.p("metal4", (stripe_at("VGND", 343.0) - 0.4, vy - 0.25, bx + 241.45, vy + 0.25), "VGND")
-    for xx in (bx + 240.61, bx + 241.21):
-        F.p("via3", (xx - 0.14, vy - 0.14, xx + 0.14, vy + 0.14), "VGND")
+    for xx in (bx + 211.8, bx + 212.2):
+        F.p("via3", (xx - 0.14, by + 68.35 - 0.14, xx + 0.14, by + 68.35 + 0.14), "VGND")
     vy = by + 50.0
     xr = stripe_at("VDPWR", 345.4)
-    F.p("metal3", (bx + 241.41, vy - 0.2, xr + 0.25, vy + 0.2), "VDPWR")
+    F.p("metal3", (bx + 213.41, vy - 0.2, xr + 0.25, vy + 0.2), "VDPWR")
     F.via("via3", xr, vy, "VDPWR")
-    # B1 west power entry (m2-rc1 PEX IR drop fix, kept for M3): via3 drops from the x 121.0 VDPWR / 123.6 VGND
-    # stripes onto B1's Metal3 power lines under them: vdd local y 78.9-79.2 (x 17.65-22.7), vss y 72.05-72.35
-    # (x 19.25-22.7)
-    for (lx, ly), net in (((18.6, 79.05), "VDPWR"), ((19.2, 79.05), "VDPWR"), ((20.8, 72.2), "VGND"),
-                          ((21.4, 72.2), "VGND"), ((22.0, 72.2), "VGND")):
+    # B1 interior power entry (replaces the m2-rc1 west entry: the x 121 / 123.6 stripes no longer cross B1): via3 drops
+    # from the strap-pair-0 (tile x 185.92 / 189.22 = local 54.92 / 58.22) and strap-pair-2 (local 154.92 / 158.22)
+    # stripes onto B1's Metal3 power lines under them: vdd y 100.05-100.35 (x 54.15-56.85) and y 85.65-85.95
+    # (x 154.45-157.15); vss y 64.05-64.35 (x 57.65-59.65) and y 91.25-91.55 (x 154.45-160.35).
+    for (lx, ly), net in (((55.4, 100.2), "VDPWR"), ((56.0, 100.2), "VDPWR"), ((58.6, 64.2), "VGND"),
+                          ((59.2, 64.2), "VGND"), ((155.4, 85.8), "VDPWR"), ((156.0, 85.8), "VDPWR"),
+                          ((158.6, 91.4), "VGND"), ((159.2, 91.4), "VGND")):
         F.p("via3", (bx + lx - 0.14, by + ly - 0.14, bx + lx + 0.14, by + ly + 0.14), net)
     # ---- R1: vdd/vss Metal3 rails extended down into CH_BOT, jogs to the strap-pair-2 / east stripes
     rx, ry = I["r1"][1:]
