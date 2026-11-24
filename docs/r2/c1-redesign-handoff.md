@@ -140,3 +140,22 @@ What to check:
 - pin_diff_lef.txt: `pincheck.py lef macros/neuron_ctrl/neuron_ctrl.lef c1spk_results/neuron_ctrl.lef` must print only ADDED lines for the 12 new pins (layer Metal3, W edge, slots above) and "OK: only additions" (201 -> 213 pins).
   The E edge parked pins are placed by io_placer, not the cfg: any MOVED line on E means the placer re-spread them, and must be fixed (e.g. explicit E spacers) before the top level is touched.
 - If all pass: copy the LEF / GDS / nl.v / spice / metrics.csv to macros/neuron_ctrl/ and update docs/regmap.md "Hardened" paragraph. Then the top-level items (open items 3, 4).
+
+## Step 3b: harden retry (DPL failure, 2 config variants)
+Failure of the step 3 job (rtl/librelane/c1spk_results/, kept untracked as evidence): librelane rc=2 at stage 37 OpenROAD.ResizerTimingPostCTS,
+`[DPL-0036] Detailed placement failed` (DPL-0034 lists _302_ x4, _328_ x2, _620_ x2) right after `repair_timing -hold` inserted 21 hold buffers (+5.7 % area, hold margin 0.1 ns).
+Reason is plain over-fill, not a blockage or pin halo: core 22690 um^2 (core box 6.72..159.04 x 7.84..156.80, i.e. LEFT/RIGHT_MARGIN_MULT 12 sites, TOP/BOTTOM 2 rows),
+movable cells already 88.8 % at GPL, GPL-1004 "minimum feasible density 0.89", then +26 input buffers, +34 tie cells, CTS and 21 hold buffers -> no legal sites left.
+GPL-0302 (0.86 too low) is only a symptom; raising PL_TARGET_DENSITY_PCT alone adds no sites. DPL_CELL_PADDING / GPL_CELL_PADDING are already 0.
+Fix = more core rows/sites inside the fixed die (die 0 0 166 166 and pin_order.cfg unchanged; pins sit on the die edge, not the core) + less hold/buffer area:
+- config_fp_a.json (tag c1spk_a): LEFT/RIGHT_MARGIN_MULT 12 -> 6 (core +6.72 um wide, +4.4 % sites), PL_TARGET_DENSITY_PCT 90, PL_/GRT_RESIZER_HOLD_SLACK_MARGIN 0.1/0.05 -> 0.05/0.05.
+- config_fp_b.json (tag c1spk_b): a + TOP/BOTTOM_MARGIN_MULT 2 -> 1 (+5.3 % rows), density 92, hold slack margins 0.02, DESIGN_REPAIR_BUFFER_INPUT_PORTS false (drops the 26 buf_1 input buffers).
+- vm_harden.sh now takes `[CFG] [TAG]`; results go to rtl/librelane/c1spk_results_<TAG>/ (default args = old behaviour / old dir). Both jobs run in parallel on the VM, 2 cores each.
+- Submitted once each: `bash /home/basil/tt-m3/vmrun.sh c1spk harden_a "timeout 170m bash rtl/librelane/vm_harden.sh config_fp_a.json c1spk_a" "rtl/librelane/c1spk_results_c1spk_a"`, same for harden_b / config_fp_b.json / c1spk_b.
+- Fetch: `cd /home/basil/tt-m3/c1spk && bash /home/basil/tt-m3/vmwait.sh c1spk harden_a` and `... harden_b`. Do not resubmit.
+What to check (in addition to the step 3 list, per results dir):
+- info.txt rc=0 and the CFG / margin line; harden_tail.txt no DPL-0036. If both pass prefer a (smaller change); b's input-buffer removal makes the input ports drive the first gate directly,
+  so check input-port max slew / cap and setup at nom_ss_125C_3v00 in the STA report.
+- Margin 6 sites = 3.36 um, 1 row = 3.92 um between the die-edge pins and the first cells: check route__drc_errors 0 and antenna 0 near the edges, and pin_diff_lef.txt "OK: only additions"
+  (the LEF footprint / pins must be identical to rev E + 12 W pins; core margins do not appear in the LEF).
+- If both still fail at DPL: next levers are MARGIN_MULT 4 / 1, PL_RESIZER_HOLD_MAX_BUFFER_PCT lower, or trimming logic (rev E was already at 0.940 utilization).

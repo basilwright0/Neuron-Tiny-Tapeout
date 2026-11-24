@@ -4,23 +4,26 @@
 # (= config.json + IO_PIN_ORDER_CFG pin_order.cfg), die 166 x 166, density 86, in the pinned
 # iic-osic-tools image of scripts/eda.sh. pin_order.cfg is the rev E order + 12 added W pins only
 # (frozen by hand, NOT from mkpins.py; check with pincheck.py).
-# Usage (repo root, host with docker): bash rtl/librelane/vm_harden.sh
-# Output: rtl/librelane/c1spk_results/ (logs, metrics.csv, final LEF/GDS/netlist/spice, reports, pin diff)
+# Usage (repo root, host with docker): bash rtl/librelane/vm_harden.sh [CFG] [TAG]
+#   CFG = config file name in rtl/librelane (default config_fp.json), TAG = run tag (default c1spk_166)
+# Output: rtl/librelane/c1spk_results/ for the default tag, else rtl/librelane/c1spk_results_<TAG>/
+#   (logs, metrics.csv, final LEF/GDS/netlist/spice, reports, pin diff)
 set -u
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 IMAGE=hpretl/iic-osic-tools:2026.08          # same pin as scripts/eda.sh
-TAG=c1spk_166
-R=rtl/librelane/c1spk_results
+CFG=${1:-config_fp.json}
+TAG=${2:-c1spk_166}
+if [ "$TAG" = c1spk_166 ]; then R=rtl/librelane/c1spk_results; else R=rtl/librelane/c1spk_results_$TAG; fi
 cd "$ROOT"
 rm -rf "$R"; mkdir -p "$R"
 { echo "start $(date -u +%FT%TZ) host $(hostname) commit $(git rev-parse HEAD 2>/dev/null || echo n/a)"
-  python3 -c "import json;c=json.load(open('rtl/librelane/config_fp.json'));print('DIE_AREA',c['DIE_AREA'],'DENS',c['PL_TARGET_DENSITY_PCT'],'PIN_CFG',c.get('IO_PIN_ORDER_CFG'))"
+  python3 -c "import json;import sys;c=json.load(open('rtl/librelane/'+sys.argv[1]));print('CFG',sys.argv[1],'DIE_AREA',c['DIE_AREA'],'DENS',c['PL_TARGET_DENSITY_PCT'],'PIN_CFG',c.get('IO_PIN_ORDER_CFG'));print({k:v for k,v in c.items() if 'MARGIN' in k or 'BUFFER_INPUT' in k})" "$CFG"
 } > $R/info.txt 2>&1
 python3 rtl/librelane/pincheck.py cfglef rtl/librelane/pin_order.cfg macros/neuron_ctrl/neuron_ctrl.lef > $R/pin_cfg_vs_revE.txt 2>&1
 
 # Harden (<= 2 cores on the shared VM). Full librelane output -> harden.log
 CMD="export PATH=/foss/tools/bin:/foss/tools/klayout:\$PATH PDK_ROOT=/foss/pdks PDK=gf180mcuD; cd /work/rtl/librelane && \
-librelane --pdk-root /foss/pdks --pdk gf180mcuD --scl gf180mcu_fd_sc_mcu7t5v0 --manual-pdk --run-tag $TAG --overwrite config_fp.json"
+librelane --pdk-root /foss/pdks --pdk gf180mcuD --scl gf180mcu_fd_sc_mcu7t5v0 --manual-pdk --run-tag $TAG --overwrite $CFG"
 docker run --rm --cpus 2 -v "$ROOT:/work" --entrypoint bash $IMAGE -c "$CMD" > $R/harden.log 2>&1
 rc=$?
 echo "librelane rc=$rc end $(date -u +%FT%TZ)" >> $R/info.txt
