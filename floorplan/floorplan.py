@@ -41,8 +41,10 @@ EXTENDED_STRAP_PAIRS = (0, 2)            # macro strap pairs extended full heigh
 # B1 is notched: its frame is the box minus B1_NOTCHES (R1 corner N1, bottom pocket NB).
 # M3 (MIL-133, b1d/b1int): bias_b1 242 x 114.5 at (103, 12); the west trim removed notch N2 (tau col 2) and
 # frees tile x 80-103 (RESERVED "RW"); pocket NB (local x 131-159, y 0-40) is empty in the GDS (RESERVED "RB").
-B1_BOX = (103.0, 12.0, 345.0, 126.5)                                  # bias_b1 242 x 114.5 at (103, 12)
-B1_NOTCHES = {"R1": (262.0, 12.0, 302.0, 54.0), "NB": (234.0, 12.0, 262.0, 52.0)}
+# R2 (MIL-344, branch r2-b1-pack): C4 removed, bias_b1 214 x 114.5 at (131, 12); NB is gone, R1/N1, the corridor and
+# the east group keep their tile positions.  Tile x 80-129, y 12-116 is one free bay (RESERVED "RW").
+B1_BOX = (131.0, 12.0, 345.0, 126.5)                                  # bias_b1 214 x 114.5 at (131, 12)
+B1_NOTCHES = {"R1": (262.0, 12.0, 302.0, 54.0)}
 B1_CORRIDOR = (276.0, 54.0, 302.0, 126.5)                             # Metal3-free in B1: R1 feed-throughs
 BLOCKS = {
     "C1 control macro":     (MACRO_X, MACRO_Y, MACRO_X + MACRO_S, MACRO_Y + MACRO_S),
@@ -60,7 +62,7 @@ EST = {  # measured areas (um^2) of what goes in each box
     "C1 control macro": 166 * 166,
     "NA neuron array 4x4": 4 * 28.0 * (2 * 45.74 + 29.42 + 34.29),
     "D1 dendrite": 70 * 104,
-    "B1 bias generator": 242.0 * 114.5 - 40 * 42 - 28 * 40,
+    "B1 bias generator": 214.0 * 114.5 - 40 * 42,
     "R1 readout corner": 40 * 40,
     "A1 AdEx": 38 * 73,
     "TE0 tau trim col 0": 37 * 11.8,
@@ -78,10 +80,9 @@ CHANNELS = {  # routing-only regions (Metal2/Metal3; Metal4 may cross blocks bet
 }
 
 # Free areas kept for later use (M3 decap / test structures): the router may not put Metal2-4 there and no block
-# may overlap them.  RW = B1's west trim, RB = pocket NB, RT = array-top strip (TOP-1), RG = CH_BOT west + H2 (TOP-4).
+# may overlap them.  RW = B1's west bay (R2: old west trim + C4), RT = array-top strip (TOP-1), RG = CH_BOT west + H2 (TOP-4).
 RESERVED = {
-    "RW B1 west trim": (80.0, 12.0, 103.0, 116.0),
-    "RB B1 pocket NB": (234.0, 12.0, 262.0, 52.0),
+    "RW B1 west bay (R2)": (80.0, 12.0, 129.0, 116.0),
     "RT array-top strip": (8.0, 302.9, 120.0, 317.7),
     "RG CH_BOT east of the D1 lines": (199.5, 0.0, 280.0, 12.0),
 }
@@ -216,9 +217,9 @@ def overlap(a, b, gap=0.0):
 def b1_rects():
     """B1 frame as rectangles (box minus notches)."""
     x0, y0, x1, y1 = B1_BOX
-    n1, nb = B1_NOTCHES["R1"], B1_NOTCHES["NB"]
-    assert nb[2] == n1[0] and nb[1] == n1[1] == y0
-    return [(x0, y0, nb[0], y1), (nb[0], nb[3], n1[0], y1), (n1[0], n1[3], n1[2], y1), (n1[2], y0, x1, y1)]
+    n1 = B1_NOTCHES["R1"]
+    assert n1[1] == y0
+    return [(x0, y0, n1[0], y1), (n1[0], n1[3], n1[2], y1), (n1[2], y0, x1, y1)]
 
 
 def frames():

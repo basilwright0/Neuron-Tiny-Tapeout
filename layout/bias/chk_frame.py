@@ -11,7 +11,11 @@ M3 = os.environ.get("B1_M3", "1") == "1" and WT == 23.0
 N1 = (182.0 - WT, 0.0, 222.0 - WT, 42.0); CORR = (196.0 - WT, 42.0, 222.0 - WT, 115.0)
 N2 = (0.0, 104.0, 23.0 - WT, 115.0)
 NB = (131.0, 0.0, N1[0], 40.0)
-notches = [("N1", N1)] + ([("N2", N2)] if N2[2] > 0 else []) + ([("NB", NB)] if M3 else [])
+R2 = M3 and os.environ.get("B1_R2", "1") == "1"       # R2 (MIL-344): 214 frame, east group and N1 at local x - 28, no NB
+OUTS = ("vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vth_cmp", "vbn_ax", "vbp_w", "ua0_stim_out")
+if R2:
+    N1 = (N1[0] - 28, N1[1], N1[2] - 28, N1[3]); CORR = (CORR[0] - 28, CORR[1], CORR[2] - 28, CORR[3])
+notches = [("N1", N1)] + ([("N2", N2)] if N2[2] > 0 else []) + ([("NB", NB)] if M3 and not R2 else [])
 box = lambda r: kdb.Region(kdb.Box(*[round(v / d) for v in r]))
 bb = top.bbox()
 print("bbox", bb.left * d, bb.bottom * d, bb.right * d, bb.top * d)
@@ -40,6 +44,8 @@ for n in ("ua0", "vth_ref", "vreset_src", "ib_r1", "el", "vdd", "vss", "vbn_leak
         print("label", n, *labels[n])
 if M3:
     ref = json.loads(open("b1_pins_242.json").read())
+    if R2:   # same tile positions (local - 28), except the analog outputs (same local x)
+        ref = {n: (r if n in OUTS else [r[0] - 28, r[1], r[2] - 28, r[3]]) for n, r in ref.items()}
     miss = []
     for n, r in ref.items():
         cx, cy = (r[0] + r[2]) / 2, (r[1] + r[3]) / 2
