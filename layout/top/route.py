@@ -12,7 +12,7 @@ Inputs : config.py (nets), geom.py (fixed geometry + terminals), work/geo/*.json
 Outputs: work/routes.json  {net: {"wires": [[layer, rect]], "vias": [[kind, x, y]]}, "_stubs": [...],
          "_failed": [...]}
 """
-import heapq, json, math, sys, time
+import heapq, json, math, os, sys, time
 import numpy as np
 import config as C
 import geom as GM
@@ -188,7 +188,8 @@ def build():
                     g.mark(LI[p["layer"]], xf(r, x, y), k, foreign=(k < 0))
                 if k < 0 or is_slot or net in SKIP or (inst, pn) in C.GEOM_TIES:
                     continue
-                if pn in ("vdd", "vss", "VDD", "VSS") and not (inst in ("d1", "ax", "tau0", "tau2") and pn == "vdd"):
+                if pn in ("vdd", "vss", "VDD", "VSS") and not (inst in ("d1", "ax", "tau0", "tau2") and pn == "vdd") \
+                        and inst != "e2":                         # R2: E2's side-edge vdd / vss pins are routed
                     continue
                 st = edge_stub(p, gg["bbox"] if gg["bbox"][0] > -0.1 else [0, 0, gg["bbox"][2], gg["bbox"][3]], x, y,
                                extra=0.5 if gg.get("placeholder") else 0.0)
@@ -610,11 +611,13 @@ def reroute(nets):
         R[net] = {"wires": [[l, list(r)] for l, r in kw], "vias": [list(v) for v in kv]}
     order = {n: i for i, n in enumerate(nets)}                 # route in the order given on the command line
     for net, grps in sorted([t for t in tasks + tie_tasks() if t[0] in nets], key=lambda t: order[t[0]]):
-        seed = [(LI[l], r) for l, r in kept[net][0]]
+        # seed = kept wires shrunk to their centre-line nodes: a branch starting on a node 0.14 off the centre of a
+        # 0.28 wire left a corner-touch sliver (R2 top4: M2.1 / M4.1 on vbn_prb / abus)
+        seed = [(LI[l], (r[0] + 0.07, r[1] + 0.07, r[2] - 0.07, r[3] - 0.07)) for l, r in kept[net][0]]
         paths, ok, msg = route_net(g, ids[net], grps, net=net, seed=seed)
         if not ok:
-            paths, ok, msg = route_net(g, ids[net], grps, margin=60.0, max_exp=8_000_000, full=True, net=net,
-                                       seed=seed)
+            paths, ok, msg = route_net(g, ids[net], grps, margin=float(os.environ.get("ROUTE_MARGIN", 60.0)),
+                                       max_exp=8_000_000, full=True, net=net, seed=seed)
         wires, vias = path_shapes(paths) if paths else ([], [])
         commit(g, ids[net], wires, vias)
         R[net]["wires"] += [[l, r] for l, r in wires]; R[net]["vias"] += [[k, x, y] for k, x, y in vias]

@@ -86,7 +86,7 @@ The latch enable is `le[a] = LOAD & (sr[12:8] == a)`. Because SCK has no edge fr
 |---|---|---|---|
 | 0x00..0x04 | IDAC | 40-bit word, LSB first | **Analog.** Eight 5-bit current-DAC codes, code k = word[5k+4 : 5k]; 0 = off (§3.2) |
 | 0x05 | VDAC | [5:0] | **Analog.** Voltage-DAC code (6 bit); [7:6] no storage |
-| 0x06 | ANA | [3:0] GRP_EN | **Analog.** Group enables. R2: [0] E2 leakage cells (1 = charge to vreset), [1] E1 local bias leg (1 = run), [3:2] spare |
+| 0x06 | ANA | [3:0] GRP_EN | **Analog.** Group enables. R2: [0] E2 leakage cells (1 = charge to vreset), [1] E1 local bias leg (1 = run), [2] E2 node-B mid clamp (1 = mid held at vreset, 0 = floating 2-stack), [3] spare |
 | | | [4] PLATEAU_EN | **Analog.** D1 plateau enable |
 | | | [5] D1_CHAIN | **Analog.** D1 subunit topology: 0 star, 1 chain |
 | | | [6] BIAS_EN | **Analog.** Master bias enable (`bias_en`); also gates `ua0_int` |

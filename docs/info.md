@@ -76,7 +76,7 @@ The full map, timing and bit packing are in [`docs/regmap.md`](regmap.md).
 |---|---|---|
 | 0x00–0x04 | IDAC | Eight 5-bit DAC codes (leak, refractory, synapse, D1 axial, AdEx adaptation, EL, V_reset, CMP threshold), packed as a 40-bit word, LSB first |
 | 0x05 | VDAC | 6-bit threshold reference `vth_ref` |
-| 0x06 | ANA | GRP_EN [3:0] (bit 0 E2 leakage reset, bit 1 E1 bias enable, bits 2–3 spare), D1 plateau / chain / stimulus-B steering, BIAS_EN |
+| 0x06 | ANA | GRP_EN [3:0] (bit 0 E2 leakage reset, bit 1 E1 bias enable, bit 2 E2 node-B mid clamp, bit 3 spare), D1 plateau / chain / stimulus-B steering, BIAS_EN |
 | 0x07 | PROBE | SEL[3:0] and SEL[4] = bit 7 (5-bit address; see the note above), SUB (membrane / secondary node / REF; the compact slots S, F, AH50 and AH400 have no secondary-node tap; SUB = 1 at the AH50 / AH400 addresses reads E2), PROBE_EN |
 | 0x08 | MODE | `ua[0]` mode, OUT_MUX, IB_X2 (readout bias ×2), RT_EN (enables for the `ui[6:3]` pass-throughs) |
 | 0x09–0x0E | LIF | Digital LIF: enable and source, leak shift and refractory, EL, Vth, Vreset, weight |
@@ -100,16 +100,22 @@ PROBE_SUB other than 3 (no `vr` tap); SUB = 3 still selects REF.
 | E1 | 18 | 18 | `uo[2]` with OUT_BANK = 1 |
 
 **E1** is an S neuron with its own local bias leg (a fixed-bias twin of S4, for comparing a local bias against the
-shared bias lines). GRP_EN[1] = 0 turns the leg off and parks `vm`; GRP_EN[1] = 1 lets it run. If E1 is dropped, the
-slot holds a plain S neuron and GRP_EN[1] does nothing.
+shared bias lines). All its currents are ratioed from `vbp_st` (set only by `ua[0]`), EL = Vreset comes from a local
+diode stack and its threshold reference from a local diode (docs/r2/e1-fixed-bias.md). GRP_EN[1] = 0 turns the leg off
+and parks `vm` at 0 V; GRP_EN[1] = 1 lets it run. PEX at S = 100 (tt/27, ss/0, ff/85): τ_m 110 / 98 / 147 µs, t_ref
+18 / 8 / 35 µs, Vth − EL 79 / 69 / 97 mV, rheobase ≈ 150 pA; schematic 100-point MC: τ σ 9.6 %, gap σ 19 mV. If E1 is
+dropped, the slot holds a plain S neuron and GRP_EN[1] does nothing.
 
-**E2** is a hold-node leakage cell with two floating ~200 fF nodes. Node A is reset to `vreset` through one nMOS
-switch; node B through two stacked switches whose middle node is held at `vreset` while the cell floats, which
-should suppress the switch leakage (design in progress; device details TBD). GRP_EN[0] = 1 charges both nodes to
+**E2** is a hold-node leakage cell with two floating ~200 fF nodes (nMOS gate caps). Node A is reset to `vreset`
+through one nMOS switch (1/0.5). Node B goes through two stacked switches; GRP_EN[2] selects whether their middle node
+is clamped to `vreset` while the cell floats (1) or floats as a plain 2-stack (0). GRP_EN[0] = 1 charges both nodes to
 `vreset`; clearing it releases them to droop. Probe addresses (PROBE_SUB = 1 of array row 3, the AH50 / AH400 slots,
 which have no SUB = 1 tap of their own): node A = SEL 11, SUB 1 (PROBE = 0x5B); node B = SEL 15, SUB 1 (PROBE = 0x5F).
+PEX (docs/r2/e2-leak.md): with `vreset` held, both nodes droop at the junction-leakage floor (tt/27 −3.3 µV/s,
+ff/85 −9 mV/s). Stepping `vreset` to 0 V (R-DAC code 0) after release makes the switch leakage visible: node B with
+the clamp off droops ~20–25 % slower than A, and with the clamp on it matches A.
 
-GRP_EN resets to 0: E1 off, E2 nodes floating. GRP_EN[3:2] are latched but not connected.
+GRP_EN resets to 0: E1 off, E2 nodes floating, E2 clamp off. GRP_EN[3] is latched but not connected.
 
 ## How to test
 
@@ -135,14 +141,20 @@ oscilloscope or ADC reads `ua[1]`.
       that over-corrects (code 21: no firing at 1.1 × rheobase). Repeat after a large temperature change.
 6. **Run the analog neurons:** set RT_EN, drive stimulus A/B on `ui[3]`/`ui[4]` and count spikes on `uo`/`uio`. Move the
    probe to observe membranes on `ua[1]`.
-7. **R2 measurements** (values marked TBD are pending the E1 / E2 post-layout benches):
+7. **R2 measurements** (expected values from the PEX benches, docs/r2/e1-fixed-bias.md and docs/r2/e2-leak.md):
    - **E2 droop:** set GRP_EN[0] = 1 for at least 10 µs, then clear it (that is the t = 0 of the droop). Select node A
      (PROBE = 0x1B, then 0x5B, break-before-make), sample `ua[1]` from milliseconds to seconds and take the droop rate as
-     the slope dV/dt. Repeat for node B (SEL 15) and compare A against B. Expected rates: TBD. Keep `clk` stopped and
-     avoid other probe or configuration activity during the droop.
-   - **E1 f–I:** set GRP_EN[1] = 1 and bias `ua[0]` for S = 100. Stimulate E1 through its synapse (**TBD**: which
-     stimulus line drives E1 depends on the E1 design). Count its spikes on `uo[2]` with OUT_BANK = 1, or probe its
-     `vm` at SEL 18 (PROBE[7] = 1). Compare with S4 (SEL 16 / `uo[0]`) under the same stimulus. Expected rates: TBD.
+     the slope dV/dt. Repeat for node B (SEL 15) and compare A against B. With `vreset` held, both droop at the junction
+     floor (PEX: tt/27 about −3 µV/s, ff/85 about −9 mV/s; a hot-air gun or oven makes it visible). For the switch
+     leakage, step `vreset` to 0 V (R-DAC code 0) right after release: B with GRP_EN[2] = 0 (floating mid) droops
+     ~20–25 % slower than A, and with GRP_EN[2] = 1 it matches A. Keep `clk` stopped and avoid other probe or
+     configuration activity during the droop.
+   - **E1 f–I:** bias `ua[0]` for S = 100 (1 µA), set GRP_EN[1] = 1 and wait ~20 µs (vm settles to EL ≈ 1.40 V).
+     Stimulate with the global stimulus lines like the array neurons: sta (A) alone, or sta + stb (fixed weights,
+     ≈ 0.37 nA each). Count spikes on `uo[2]` with OUT_BANK = 1, or probe `vm` at SEL 18 (PROBE[7] = 1). τ_m: pulse
+     sta ~20 µs and fit the decay; t_ref: the flat reset segment of the sawtooth; gap: the sawtooth peak minus EL
+     (read at S = 10, where the probe lag is small). Repeat at S = 10 / 1000 and a second temperature, and compare
+     with S4 (SEL 16 / `uo[0]`) and S1–S3 on the same die.
 8. **Run the digital LIF:** write the LIF parameters with LIF_EN = 0, then set LIF_EN = 1. Drive `clk` and tick `ui[7]`,
    at least 48 clock cycles apart.
 
