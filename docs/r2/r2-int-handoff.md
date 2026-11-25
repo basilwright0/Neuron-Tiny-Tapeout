@@ -75,3 +75,24 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
 - **Running:**
   - `r2-pex` (/home/basil/tt-m3/r2pex): full-chip PEX regression + bay benches (sub-agent, cap ~8 VM-h).
   - `r2-e2` / `r2-e1` cell designs.
+
+## Status 2026-11-25 ~03:10 UTC: R2 content chip green (988c8d8)
+- **VM r2int/top6:** LVS match uniquely, KLayout 0, antenna 0, magic 0, TT precheck pass. GDS sha256 b15b89f5….
+- **E2** (r2-e2 rev B 4c5650c, `e2_leak` 30.83 × 11.8):
+  - placed at (72, 304) above array columns 2–3. RESERVED RT dropped; CH_TOP_A trimmed to y ≥ 316.
+  - taps: node A = SEL 11 SUB 1, node B = SEL 15 SUB 1; GRP_EN[0] charge, GRP_EN[2] node-B mid clamp (spare bit;
+    deviation, see the checkpoint).
+  - PEX: with vreset held, A = B = junction floor (tt −3.3 µV/s, ff/85 −9 mV/s). With vreset stepped to 0 V, B
+    (clamp off) droops 1.2–1.3× slower than A.
+- **E1** (r2-e1 2648516, `ce1_fb` 28 × 34.29) in bay slot by2, grp_en = GRP_EN[1] (band track 8).
+  - PEX S = 100: τ 110 / 98 / 147 µs, t_ref 18 / 8 / 35 µs, gap 79 / 69 / 97 mV (tt / ss / ff).
+  - Schematic MC 100: τ σ 9.6 %, gap σ 19 mV.
+  - Spec deviations for approval: vsrc is a local diode (not vss); the detector has a second diode rail; a few
+    devices are drawn 1/2.
+- **Routing notes:**
+  - `route.py extend` seeds are shrunk to centre-line nodes (corner slivers).
+  - After a top-cell height change, clip the column-net branches out of the cell, then re-extend.
+  - `cfg_out[1]` must route before `cfg_out[67]`, [0] and [2]; `cfg_out[67]` needs `ROUTE_MARGIN=250`.
+  - /tmp/reach.py: BFS reachability per terminal group, which finds the trapped end of a "no path" net.
+- **Next:** the final PEX on 988c8d8 (r2-pex agent), the Nov 28 checkpoint, and the user/Chief approvals (E1
+  deviations, GRP_EN[2]); push or merge only after approval.
