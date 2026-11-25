@@ -111,6 +111,16 @@ elif MODE == "e2":
     body = B.chip(S, codes=codes, state_over=B.timeline(ev))
     na, nb = T.vnode("e2.na"), T.vnode("e2.nb")
     sv = ["v(pad)", f"v({na})", f"v({nb})", f"v({T.vnode('vreset')})", f"v({T.vnode('abus')})"]
+    EXTRA = []
+    if os.environ.get("E2_SAVEALL") == "1":            # every node coupled to na / nb + every e2.* node
+        for l in body.splitlines():
+            if l[:1] == "C":
+                t_ = l.split()
+                if na in t_[1:3] or nb in t_[1:3]:
+                    EXTRA += [x for x in t_[1:3] if x not in (na, nb, "0", "VGND", "VDPWR")]
+        EXTRA += [T.san(x) for x in T.names() if x.startswith("e2.")]
+        EXTRA = sorted(set(EXTRA) - {na, nb})
+        sv += [f"v({x})" for x in EXTRA]
     d = B.deck(body, f"tran 10n {TEND:g} 0 {float(os.environ.get('E2_TMAX', min(2e-3, TEND / 200))):g}", sv, corner=CORNER, temp=TEMP,
                opts=OPTS)
     r = B.go(d, f"r2blk_{TAG}{B.SUFFIX}", timeout=int(os.environ.get("R2BLK_TIMEOUT", "7200")))
@@ -126,6 +136,9 @@ elif MODE == "e2":
     for k, y in ys.items():
         sl = np.polyfit(t[m], y[m], 1)[0] * 1e3 if m.sum() > 3 else float("nan")
         log(f"{k:10s} " + " ".join(f"{np.interp(x, t, y):11.6f}" for x in pts) + f"   {sl:+9.3f}")
+    for x in EXTRA:
+        y = r[f"v({x})".lower()]
+        log(f"  {x:28s} {np.interp(T_REL + 1e-6, t, y):10.6f} -> {y[-1]:10.6f} V, slope {np.polyfit(t[m], y[m], 1)[0] * 1e3:+10.3f} mV/s")
     blk = {"A": "na -9.04 mV/s (vreset 1.2-1.5 V)", "B": "nb clamp on -9.03 mV/s, clamp off -9.7..-9.9 mV/s"}[WHICH]
     log(f"block PEX (docs/r2/e2-leak.md, ff/85, vreset held): {blk}; release step na / nb -5.2 / -10.6..-12.8 mV")
     rel = {k: 1e3 * (np.interp(T_REL + 1e-6, t, ys[k]) - np.interp(T_REL - 1e-6, t, ys[k])) for k in ("na", "nb")}
