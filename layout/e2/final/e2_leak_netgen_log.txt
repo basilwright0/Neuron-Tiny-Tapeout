@@ -1,0 +1,105 @@
+Netgen 1.5.323 compiled on Tue Aug 25 11:33:45 AM CEST 2026
+Warning: netgen command 'format' use fully-qualified name '::netgen::format'
+Warning: netgen command 'global' use fully-qualified name '::netgen::global'
+Reading netlist file e2_leak_ext.spice for e2_leak_ext.spice e2_leak
+Call to undefined subcircuit nfet_03v3
+Creating placeholder cell definition.
+Call to undefined subcircuit pfet_03v3
+Creating placeholder cell definition.
+Reading netlist file e2_leak_lvs.spice for e2_leak_lvs.spice e2_leak
+Call to undefined subcircuit nfet_03v3
+Creating placeholder cell definition.
+Call to undefined subcircuit pfet_03v3
+Creating placeholder cell definition.
+
+Reading setup file /foss/pdks/gf180mcuD/libs.tech/netgen/gf180mcuD_setup.tcl
+
+Model nfet_03v3 pin 1 == 3
+No property par1 found for device nfet_03v3
+No property NRD found for device nfet_03v3
+No property NRS found for device nfet_03v3
+No property par found for device nfet_03v3
+No property sa found for device nfet_03v3
+No property sb found for device nfet_03v3
+No property sd found for device nfet_03v3
+No property par found for device nfet_03v3
+No property dtemp found for device nfet_03v3
+No property nf found for device nfet_03v3
+No property $D found for device nfet_03v3
+No property $X found for device nfet_03v3
+No property $Y found for device nfet_03v3
+Model nfet_03v3 pin 1 == 3
+No property par1 found for device nfet_03v3
+No property NRD found for device nfet_03v3
+No property NRS found for device nfet_03v3
+No property par found for device nfet_03v3
+No property sa found for device nfet_03v3
+No property sb found for device nfet_03v3
+No property sd found for device nfet_03v3
+No property par found for device nfet_03v3
+No property dtemp found for device nfet_03v3
+No property nf found for device nfet_03v3
+No property as found for device nfet_03v3
+No property ad found for device nfet_03v3
+No property ps found for device nfet_03v3
+No property pd found for device nfet_03v3
+No property $D found for device nfet_03v3
+No property $X found for device nfet_03v3
+No property $Y found for device nfet_03v3
+Model pfet_03v3 pin 1 == 3
+No property par1 found for device pfet_03v3
+No property NRD found for device pfet_03v3
+No property NRS found for device pfet_03v3
+No property par found for device pfet_03v3
+No property sa found for device pfet_03v3
+No property sb found for device pfet_03v3
+No property sd found for device pfet_03v3
+No property par found for device pfet_03v3
+No property dtemp found for device pfet_03v3
+No property nf found for device pfet_03v3
+No property $D found for device pfet_03v3
+No property $X found for device pfet_03v3
+No property $Y found for device pfet_03v3
+Model pfet_03v3 pin 1 == 3
+No property par1 found for device pfet_03v3
+No property NRD found for device pfet_03v3
+No property NRS found for device pfet_03v3
+No property par found for device pfet_03v3
+No property sa found for device pfet_03v3
+No property sb found for device pfet_03v3
+No property sd found for device pfet_03v3
+No property par found for device pfet_03v3
+No property dtemp found for device pfet_03v3
+No property nf found for device pfet_03v3
+No property as found for device pfet_03v3
+No property ad found for device pfet_03v3
+No property ps found for device pfet_03v3
+No property pd found for device pfet_03v3
+No property $D found for device pfet_03v3
+No property $X found for device pfet_03v3
+No property $Y found for device pfet_03v3
+Comparison output logged to file e2_leak_lvs_report.txt
+Logging to file "e2_leak_lvs_report.txt" enabled
+Circuit nfet_03v3 contains no devices.
+Circuit pfet_03v3 contains no devices.
+
+Contents of circuit 1:  Circuit: 'e2_leak'
+Circuit e2_leak contains 18 device instances.
+  Class: nfet_03v3             instances:  17
+  Class: pfet_03v3             instances:   1
+Circuit contains 21 nets.
+Contents of circuit 2:  Circuit: 'e2_leak'
+Circuit e2_leak contains 18 device instances.
+  Class: nfet_03v3             instances:  17
+  Class: pfet_03v3             instances:   1
+Circuit contains 21 nets.
+
+Circuit 1 contains 18 devices, Circuit 2 contains 18 devices.
+Circuit 1 contains 21 nets,    Circuit 2 contains 21 nets.
+
+
+Final result: 
+Circuits match uniquely.
+.
+Logging to file "e2_leak_lvs_report.txt" disabled
+LVS Done.
