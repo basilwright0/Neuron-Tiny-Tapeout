@@ -140,7 +140,7 @@ SLOT_CELL = {"S": "cslot_ah", "F": "cslot_ah_f", "H": "slot_ah_h", "P": "slot_ah
              "AH400": "czslot_ah_400"}
 # compact cells (layout/compact/final) and their heights; the others are tall layout/slot cells
 COMPACT_CELLS = {"cslot_ah": COMPACT_H, "cslot_ah_f": COMPACT_H, "czslot_ah_f": COMPACT_X_H,
-                 "czslot_ah_50": COMPACT_X_H, "czslot_ah_400": COMPACT_X_H}
+                 "czslot_ah_50": COMPACT_X_H, "czslot_ah_400": COMPACT_X_H, "ce1_fb": COMPACT_X_H}
 TAU_COLS = {0: "TE0 tau trim col 0", 2: "TE2 tau trim col 2"}         # P2 in column 0, P3 in column 2
 
 # --------------------------------------------------------------------- R2 bay column (MIL-362, branch r2-int)
@@ -150,7 +150,7 @@ TAU_COLS = {0: "TE0 tau trim col 0", 2: "TE2 tau trim col 2"}         # P2 in co
 # slot holds a plain S cell (the fallback if E1 is dropped). Column lines leave the stack top to B1's west-edge
 # outputs; row bands exit east into the channel BAY_CH (x 108-129).
 BAY_X, BAY_Y = 80.0, 13.0
-BAY = [("S4", "cslot_ah"), ("F4", "cslot_ah_f"), ("E1", "cslot_ah")]
+BAY = [("S4", "cslot_ah"), ("F4", "cslot_ah_f"), ("E1", "ce1_fb")]       # E1 fallback: ("E1", "cslot_ah")
 BAY_CH = (108.0, 129.0)
 SPIKE_CH.update({"S4": 16, "F4": 17, "E1": 18})
 N_SPK = 24

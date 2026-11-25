@@ -26,8 +26,8 @@
 <text x="63.6" y="483.5" font-size="8" text-anchor="middle">TE0</text>
 <rect x="153.6" y="469.3" width="88.8" height="28.3" fill="#f7e08a" stroke="#333"/>
 <text x="198.0" y="483.5" font-size="8" text-anchor="middle">TE2</text>
-<rect x="192.0" y="537.8" width="67.2" height="211.8" fill="#f2c48d" stroke="#333"/>
-<text x="225.6" y="643.8" font-size="8" text-anchor="middle">BY</text>
+<rect x="192.0" y="526.2" width="67.2" height="223.5" fill="#f2c48d" stroke="#333"/>
+<text x="225.6" y="637.9" font-size="8" text-anchor="middle">BY</text>
 <rect x="172.8" y="22.9" width="74.0" height="28.3" fill="#a2d7e8" stroke="#333"/>
 <text x="209.8" y="37.1" font-size="8" text-anchor="middle">E2</text>
 <rect x="673.5" y="747.3" width="14.4" height="33.6" fill="#d77" />

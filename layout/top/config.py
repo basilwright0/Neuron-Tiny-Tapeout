@@ -41,7 +41,8 @@ LIB = {
 # M2 regrouped array: tall trimmed cells from layout/slot (45.74 um per row), compact cells from
 # layout/compact/final (29.42 / 34.29 um; copies of the clean layout/compact/out builds, which are git-ignored).
 _SLOT_FINAL = {"slot_ah_h": True, "slot_ah_p": True, "slot_cmp_h": True, "slot_ref": True,
-               "cslot_ah": True, "cslot_ah_f": True, "czslot_ah_f": True, "czslot_ah_50": True, "czslot_ah_400": True}
+               "cslot_ah": True, "cslot_ah_f": True, "czslot_ah_f": True, "czslot_ah_50": True, "czslot_ah_400": True,
+               "ce1_fb": True}                       # R2 E1 (layout/compact/final, r2-e1)
 for _i, (_c, _f) in enumerate(_SLOT_FINAL.items()):
     _h = fp.COMPACT_CELLS[_c] if _c in fp.COMPACT_CELLS else fp.TALL_H * (2 if _c == fp.SLOT_CELL["CMP"] else 1)
     _d = "layout/compact/final" if _c in fp.COMPACT_CELLS else "layout/slot"
@@ -131,6 +132,8 @@ def nets():
         # bay taps read vm for any PROBE_SUB != 3, and probe_sub / probe_sub_b need no branch into the bay
         add(f"probe_sel_bay[{k}]", s, "rsel"); add("VDPWR", s, "sub_b")
         add(f"spk_in[{fp.SPIKE_CH[name]}]", s, "spk")
+        if cell == "ce1_fb":                          # E1 local bias leg enable = GRP_EN[1] (band track 8)
+            add("cfg_out[1]", s, "grp_en"); add("cfg_out[1]", "ctrl", "cfg_out[1]")
     # ---- R2 E2 leakage cells: GRP_EN[0] charge, GRP_EN[2] clamp mode; taps on AH50 / AH400 PROBE_SUB = 1
     for ln in ("vreset", "abus", "vbn_prb"):
         add(ln, "e2", ln)

@@ -12,7 +12,7 @@ Inputs : config.py (nets), geom.py (fixed geometry + terminals), work/geo/*.json
 Outputs: work/routes.json  {net: {"wires": [[layer, rect]], "vias": [[kind, x, y]]}, "_stubs": [...],
          "_failed": [...]}
 """
-import heapq, json, math, sys, time
+import heapq, json, math, os, sys, time
 import numpy as np
 import config as C
 import geom as GM
@@ -616,8 +616,8 @@ def reroute(nets):
         seed = [(LI[l], (r[0] + 0.07, r[1] + 0.07, r[2] - 0.07, r[3] - 0.07)) for l, r in kept[net][0]]
         paths, ok, msg = route_net(g, ids[net], grps, net=net, seed=seed)
         if not ok:
-            paths, ok, msg = route_net(g, ids[net], grps, margin=60.0, max_exp=8_000_000, full=True, net=net,
-                                       seed=seed)
+            paths, ok, msg = route_net(g, ids[net], grps, margin=float(os.environ.get("ROUTE_MARGIN", 60.0)),
+                                       max_exp=8_000_000, full=True, net=net, seed=seed)
         wires, vias = path_shapes(paths) if paths else ([], [])
         commit(g, ids[net], wires, vias)
         R[net]["wires"] += [[l, r] for l, r in wires]; R[net]["vias"] += [[k, x, y] for k, x, y in vias]
