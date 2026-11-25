@@ -48,8 +48,12 @@ COLX = {n: x for n, x, _ in COLS}
 NTRACK, TRACK_PITCH = 19, 0.56
 BAND_H = round(TRACK_PITCH * (NTRACK - 1) + 0.28, 3)      # 10.36
 BAND_TOP_GAP = 0.90                                       # band top below the cell top (as in the 43.5 slot)
-TRACK = {"sta": 0, "stb": 1, "hold": 2, "mreset": 3, "rsel": 4, "sub": 5, "sub_b": 6}
-PINS = {"sta": 17.40, "stb": 15.30, "hold": 14.00, "mreset": 17.40, "rsel": 15.30, "sub": 14.00, "sub_b": 17.40}
+TRACK = {"sta": 0, "stb": 1, "hold": 2, "mreset": 3, "rsel": 4, "sub": 5, "sub_b": 6, "grp_en": 8}
+PINS = {"sta": 17.40, "stb": 15.30, "hold": 14.00, "mreset": 17.40, "rsel": 15.30, "sub": 14.00, "sub_b": 17.40,
+        "grp_en": 10.0}
+# E1 (e1_fb, MIL-362): grp_en on its own track 8; the top level drops a via2 at each pad x, so the grp_en pad keeps
+# PIN_XSEP from every other row pin's x
+PIN_XSEP = {"grp_en": 0.7}
 STRAPS = {"spk": 16.60, "t0": 0, "t1": 0, "t2": 0, "t3": 0}      # x chosen in the strap lane (value unused)
 STRAP_TRACKS = {"spk": (7, 10), "t0": (11, 18), "t1": (11, 18), "t2": (11, 18), "t3": (11, 18)}
 SUPPLY = {"vdd", "vss"}
@@ -72,6 +76,10 @@ if EXTRA_N:
         i = ROWPLAN.index(("chan", 0.6))          # the channel above the cap row
         ROWPLAN = ROWPLAN[:i + 1] + [("row", "n", "down", 0.5, "N5"), ("ptap",), ("row", "n", "up", 0.5, "N4"),
                                      ("chan", 0.6)] + ROWPLAN[i + 1:]
+# E1 (e1_fb): one short n row (W <= 0.5: switches, long-L mirror copies) on its own p-tap strip above the cap row
+if CELL == "e1_fb" or os.environ.get("SHORT_N") == "1":
+    i = ROWPLAN.index(("chan", 0.6))
+    ROWPLAN = ROWPLAN[:i + 1] + [("row", "n", "down", 0.5, "N5"), ("ptap",), ("chan", 0.6)] + ROWPLAN[i + 1:]
 if os.environ.get("CHAN"):
     ROWPLAN = [("chan", float(os.environ["CHAN"])) if e[0] == "chan" else e for e in ROWPLAN]
 WFOLD = {"n": 2.0, "p": 2.0}
@@ -530,9 +538,12 @@ def build_geometry(pl):
     def pick(net, mk):
         own = [((r[0] + r[2]) / 2) for n, r in mterms if n == net] or [9.0]
         tgt = sum(own) / len(own)
+        sep = PIN_XSEP.get(net, 0.0)
         for x in sorted((snap(1.0 + 0.05 * k) for k in range(int((COLS[0][1] - 1.8) / 0.05))),
                         key=lambda x: abs(x - tgt)):
             rr = mk(x)
+            if sep and any(abs(x - qx) < sep for qx in [(q[0] + q[2]) / 2 for q in placed] + list(pl.strap_x if pl.straps else [])):
+                continue
             if free(rr, net):
                 return rr
         raise RuntimeError(f"no free spot for pin {net}")

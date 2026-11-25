@@ -1,0 +1,69 @@
+* E1 (MIL-362 R2): fixed-bias "regular-spiking" twin of the S slot (slot_ah), for the 3rd (top) slot of the bay column.
+* Requires: neuron/membrane.spice, neuron/lif.spice, readout/readout.spice, neuron/synapse.spice, neuron/slot.spice
+* (prb_tap, leak_ota_degx). Layout: layout/compact (CELL=e1_fb, 28.0 x 34.29). Doc: docs/r2/e1-fixed-bias.md.
+*
+* Same Cm (200 fF), Cr (50 fF), leak OTA (leak_ota_degx), AH detector (det_ah, Cfb), synapse (syn_in), vm probe tap
+* (prb_tap on sub_b) as slot_ah. None of its bias column lines (el vsrc vreset vbn_leak vbn_ref vbp_syn aux) is used:
+* they are feed-throughs. Every current comes from vbp_st (I_nd/16 into the 1/4 rx_p05 diode, set only by ua[0]):
+*   leg 1  XP1 (1/2 on vbp_st, ~2 I_nd/16 = 125 nA at S = 100) -> XG1 (nfet switch, grp_en) -> el_l -> XE1 (diode)
+*          -> mid -> XE2 (diode) -> vss: the 2-device diode stack gives EL = Vreset (el_l); mid is the nfet mirror
+*          master (W/L 8) for the leak tail 0.22/11 (~320 pA), the refractory sink XNR (~3 nA) and the weight bias XNW
+*          (~1.4 nA into the 2/1 pfet diode XPW -> vbw; the syn_in weights XWA/XWB 1/2 copy 1/4 of it, ~350 pA each).
+*   leg 2  XP2 (1/2 on vbp_st, 125 nA) -> XG2 (nfet switch, grp_en) -> XV (1/0.5 diode) = the detector's own vsrc (vsl).
+*          DEVIATION from the spec text "vsrc = vss": with vsrc = vss the trip point is one nfet Vgs (0.44-0.77 V over
+*          corners), below any 2-diode EL; at EL = Vth - 80 mV the leak OTA has no headroom (g -> 0) and the NMOS-cap Cm
+*          is in depletion (~100 fF). The local diode lifts vsrc by one Vgs, so the trip point sits ~80 mV above EL.
+*   starve XPS/XS2/XS3 of det_ah on vbp_st directly (1/2, 125 nA, as slot_ah); they conduct only around a spike.
+* grp_en (GRP_EN bit, cfg_out[1]): 0 (reset) -> both legs open (XG1/XG2), so the mirror master and every copy are off:
+*   no static current; el_l is pulled to vss (XEL) and vr to ~2.3 V (XMK, an nfet follower like mreset's XMR), so the
+*   refractory switch parks vm on el_l = 0 V; the detector idles (vm and vsl low, keeper XK holds spk low).
+*   1 -> runs. When grp_en rises, vr decays with I_ref: vm is released after about one refractory period.
+* Pins: as slot_ah + grp_en. sta/stb steer the two fixed weights (DC-hold one or both for f-I points), hold/mreset as slot_ah.
+.subckt refrac_e1 spk vm vr vreset vbn_ref vdd vss wcr=3.54u wsw=1u wnr=0.5u lnr=2.6u
+Xi  spk spkb vdd vss inv3
+XPC vr  spkb vdd vdd pfet_03v3 W=1u L=0.28u
+XNR vr  vbn_ref vss vss nfet_03v3 W={wnr} L={lnr}
+XCR vr  vss mcap wl={wcr}
+XSW vm  vr  vreset vss nfet_03v3 W={wsw} L=0.5u
+.ends refrac_e1
+
+.subckt e1_fb vm spk rsel sub sub_b el vsrc vreset vbn_leak vbp_st vbn_ref vbn_prb en abus vdd vss aux
++ vbp_syn sta stb hold mreset grp_en cfb=8f wf=4u lf=2u
++ we1=0.7u we2=4u lt=11u wnr=0.5u lnr=2.6u lnw=2.4u
+* enable: legs switched by grp_en; off-state clamps on grp_en_b (gb)
+XI  grp_en gb vdd vss inv3
+XEL el_l gb  vss vss nfet_03v3 W=0.5u L=0.28u
+XMK vdd gb  vr  vss nfet_03v3 W=0.5u L=0.28u
+* leg 1: EL / Vreset stack and the nfet mirror master
+XP1 l1  vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XG1 l1  grp_en el_l vss nfet_03v3 W=0.5u L=0.28u
+XE1 el_l el_l mid vss nfet_03v3 W={we1} L=0.5u
+XE2 mid mid vss vss nfet_03v3 W={we2} L=0.5u
+* leg 2: the detector's own vsrc
+XP2 l2  vbp_st vdd vdd pfet_03v3 W=1u L=2u
+XG2 l2  grp_en vsl vss nfet_03v3 W=0.5u L=0.28u
+XV  vsl vsl vss vss nfet_03v3 W=1u L=0.5u
+* synapse weight bias
+XNW vbw mid vss vss nfet_03v3 W=0.22u L={lnw}
+XPW vbw vbw vdd vdd pfet_03v3 W=2u L=1u
+* the S neuron
+XC  vm vss mcap wl=7.07u
+XL  vl el_l la mid vdd vss leak_ota_degx wt=0.22u lt={lt}
+XD  vm spk vsl vbp_st vdd vss det_ah cfb={cfb}
+XR  spk vm vr el_l mid vdd vss refrac_e1 wcr=3.54u wsw=1u wnr={wnr} lnr={lnr}
+XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
+XS  vm vl vr sta stb hold mreset vbw vdd vss syn_e1
+.ends e1_fb
+
+* syn_in with the fixed weights drawn 1/2 (W/L 0.5 as syn_in's 2/4; their gate is the local vbw, not vbp_syn)
+.subckt syn_e1 vm vl vr sta stb hold mreset vbw vdd vss
+XPH h   hold    vdd vdd pfet_03v3 W=1u L=2u
+XWA da  vbw     h   vdd pfet_03v3 W=1u L=2u
+XWB db  vbw     h   vdd pfet_03v3 W=1u L=2u
+XNA da  sta     vm  vss nfet_03v3 W=0.5u L=0.28u
+XNB db  stb     vm  vss nfet_03v3 W=0.5u L=0.28u
+XQA vss sta     da  vdd pfet_03v3 W=1u L=0.28u
+XQB vss stb     db  vdd pfet_03v3 W=1u L=0.28u
+XHL vm  hold    vl  vdd pfet_03v3 W=1u L=0.28u
+XMR vdd mreset  vr  vss nfet_03v3 W=0.5u L=0.28u
+.ends syn_e1

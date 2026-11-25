@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 FILES = ["cells/neuron/membrane.spice", "cells/neuron/lif.spice", "cells/readout/readout.spice",
          "cells/neuron/synapse.spice", "cells/trim/trim_gap.spice", "cells/trim/trim_el.spice", "cells/bias/bias_trim.spice", "cells/trim/trim_tau.spice",
-         "cells/neuron/slot.spice"]
+         "cells/neuron/slot.spice", "cells/neuron/e1.spice"]
 MODELS = {"nfet_03v3", "pfet_03v3"}
 SI = {"f": 1e-15, "p": 1e-12, "n": 1e-9, "u": 1e-6, "m": 1e-3, "k": 1e3, "meg": 1e6}
 
