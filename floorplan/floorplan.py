@@ -76,14 +76,13 @@ CHANNELS = {  # routing-only regions (Metal2/Metal3; Metal4 may cross blocks bet
     "CH_MIDW B1 bias outputs, D1/AdEx lines": (120.5, 127.0, 167.5, 139.5),
     "CH_NAE row 0 lines past AdEx": (120.5, 140.0, 128.5, 213.0),
     "CH_ROW array rows -> macro W edge": (120.5, 213.5, 169.5, 317.0),
-    "CH_TOP_A array power buses, uio_oe ties": (8.0, 314.5, 120.0, 324.3),
+    "CH_TOP_A uio_oe ties (R2: above E2)": (8.0, 316.0, 120.0, 324.3),
     "CH_TOP_M TT pin jogs to the macro N edge": (120.5, 317.5, 344.5, 324.3),
 }
 
 # Free areas kept for later use (M3 decap / test structures): the router may not put Metal2-4 there and no block
 # may overlap them.  (RW, B1's west bay, is used by the bay column since R2 r2-int.)  RT = array-top strip (TOP-1), RG = CH_BOT west + H2 (TOP-4).
 RESERVED = {
-    "RT array-top strip": (8.0, 302.9, 120.0, 317.7),
     "RG CH_BOT east of the D1 lines": (199.5, 0.0, 280.0, 12.0),
 }
 
@@ -170,6 +169,11 @@ def bay_cells():
 
 BLOCKS["BY bay column (R2)"] = (BAY_X, BAY_Y, BAY_X + SLOT_W, round(BAY_Y + sum(c[5] for c in bay_cells()), 3))
 EST["BY bay column (R2)"] = SLOT_W * sum(c[5] for c in bay_cells())
+# R2 E2 leakage cells (layout/e2, e2_leak 30.83 x 11.8) in the old RT strip above array columns 2-3 (taps on the
+# PROBE_SUB = 1 positions of AH50 / AH400: en_c2 / en_c3, probe_rsel[3]); RESERVED "RT" dropped
+E2_XY = (72.0, 304.0)                 # pins (bottom edge) clear of cfg_out[42] at y 302.86
+BLOCKS["E2 leakage cells (R2)"] = (E2_XY[0], E2_XY[1], E2_XY[0] + 30.83, E2_XY[1] + 11.8)
+EST["E2 leakage cells (R2)"] = 30.83 * 11.8
 
 
 def row_y0(r):
@@ -360,7 +364,7 @@ def grid_col(grid, name):
 
 
 # --------------------------------------------------------------------- drawing
-COL = {"BY": "#f2c48d", "C1": "#9aa7c7", "NA": "#f2c48d", "D1": "#b9dba0", "B1": "#e8a2a2", "R1": "#d77", "A1": "#c9b3e6",
+COL = {"BY": "#f2c48d", "E2": "#a2d7e8", "C1": "#9aa7c7", "NA": "#f2c48d", "D1": "#b9dba0", "B1": "#e8a2a2", "R1": "#d77", "A1": "#c9b3e6",
        "TE": "#f7e08a"}
 
 

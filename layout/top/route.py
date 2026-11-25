@@ -188,7 +188,8 @@ def build():
                     g.mark(LI[p["layer"]], xf(r, x, y), k, foreign=(k < 0))
                 if k < 0 or is_slot or net in SKIP or (inst, pn) in C.GEOM_TIES:
                     continue
-                if pn in ("vdd", "vss", "VDD", "VSS") and not (inst in ("d1", "ax", "tau0", "tau2") and pn == "vdd"):
+                if pn in ("vdd", "vss", "VDD", "VSS") and not (inst in ("d1", "ax", "tau0", "tau2") and pn == "vdd") \
+                        and inst != "e2":                         # R2: E2's side-edge vdd / vss pins are routed
                     continue
                 st = edge_stub(p, gg["bbox"] if gg["bbox"][0] > -0.1 else [0, 0, gg["bbox"][2], gg["bbox"][3]], x, y,
                                extra=0.5 if gg.get("placeholder") else 0.0)

@@ -33,6 +33,8 @@ LIB = {
                         prefix="tt_", final=True),
     "dend_d1":     dict(gds="layout/dendrite/out/dend_d1.gds", lvs="layout/dendrite/dend_d1_lvs.spice",
                         prefix="d1_", final=True, size=(70.0, 104.0)),
+    "e2_leak":     dict(gds="layout/e2/final/e2_leak.gds", lvs="layout/e2/final/e2_leak_lvs.spice",
+                        prefix="e2_", final=True),
     "adex_a1":     dict(gds="layout/tier2/out/adex_a1.gds", lvs="layout/tier2/adex_a1_lvs.spice",
                         prefix="ax_", final=True, size=(38.0, 73.0)),
 }
@@ -74,6 +76,7 @@ def instances():
     for (r, c), n in fp.slot_map().items():          # instance named by map position; CMP: s13 at (0,3)
         x, y = fp.cell_box((r, c))[:2]
         I[f"s{r}{c}"] = (fp.slot_cell(n), x, y)
+    I["e2"] = ("e2_leak", *fp.E2_XY)                 # R2 E2 leakage cells
     for k, n, cell, x, y, h in fp.bay_cells():        # R2 bay column (by0 at the bottom)
         I[f"by{k}"] = (cell, x, y)
     return I
@@ -128,6 +131,13 @@ def nets():
         # bay taps read vm for any PROBE_SUB != 3, and probe_sub / probe_sub_b need no branch into the bay
         add(f"probe_sel_bay[{k}]", s, "rsel"); add("VDPWR", s, "sub_b")
         add(f"spk_in[{fp.SPIKE_CH[name]}]", s, "spk")
+    # ---- R2 E2 leakage cells: GRP_EN[0] charge, GRP_EN[2] clamp mode; taps on AH50 / AH400 PROBE_SUB = 1
+    for ln in ("vreset", "abus", "vbn_prb"):
+        add(ln, "e2", ln)
+    add("en_c2", "e2", "en_a"); add("en_c3", "e2", "en_b"); add("probe_rsel[3]", "e2", "rsel")
+    add("probe_sub", "e2", "sub")
+    for b, pn in ((0, "grp_en"), (2, "clamp_en")):
+        add(f"cfg_out[{b}]", "e2", pn); add(f"cfg_out[{b}]", "ctrl", f"cfg_out[{b}]")
     # ---- macro (W, S edges; N edge to TT pins)
     for c in range(4):
         add(f"en_c{c}", "ctrl", f"probe_en_c[{c}]")
