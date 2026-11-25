@@ -287,7 +287,11 @@ def block_boxes():
         elif inst.startswith("tau"):
             B[inst] = (x, y, x + 37.0, y + 11.8)
         else:
-            w, h = C.LIB[cell]["size"]
+            sz = C.LIB[cell].get("size")
+            if sz is None:                # R2 E2 (e2_leak): no LIB size; its floorplan block box
+                bx = next((v for k, v in fp.BLOCKS.items() if k.startswith("E2")), (x, y, x + 31.0, y + 11.8))
+                sz = (bx[2] - bx[0], bx[3] - bx[1])
+            w, h = sz
             B[inst] = (x, y, x + w, y + h)
     B["glue"] = GLUE
     return B
