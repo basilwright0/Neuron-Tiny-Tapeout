@@ -54,7 +54,10 @@ PH_MOVE = {}
 # top level (macro / TRIM_MASK unchanged).
 CMP_TRIM = True
 # aux column lines with no user: they float (connected only by abutment). Column 3 carries vth_cmp (CMP).
-FLOAT_AUX = {"aux1"}
+FLOAT_AUX = {"aux1", "aux_bay"}
+# R2: unused macro spike inputs, tied to VGND by geom.ties() (Metal1 riser on the macro's W edge to AdEx's vss
+# ring), not by the router (the W-edge corner next to AdEx has no room for 5 escapes)
+GEOM_TIES = {("ctrl", f"spk_in[{ch}]") for ch in fp.SPK_TIED}
 # Ports that are internal test nodes (left unconnected at the top level)
 OPEN_PORTS = {"vm", "vw", "vs", "d1", "d2", "la1", "dl1", "la2", "dl2"}
 
@@ -71,6 +74,8 @@ def instances():
     for (r, c), n in fp.slot_map().items():          # instance named by map position; CMP: s13 at (0,3)
         x, y = fp.cell_box((r, c))[:2]
         I[f"s{r}{c}"] = (fp.slot_cell(n), x, y)
+    for k, n, cell, x, y, h in fp.bay_cells():        # R2 bay column (by0 at the bottom)
+        I[f"by{k}"] = (cell, x, y)
     return I
 
 
@@ -111,6 +116,18 @@ def nets():
         if key in tn and (name != "CMP" or CMP_TRIM):
             for j, b in enumerate(nib_bits(tn[key])):
                 add(b, s, f"t{j}")
+    # ---- R2 bay column: column lines abut through the stack; en = g_bay (bay glue OR), rsel = probe_sel_bay[k]
+    for k, name, cell, x, y, h in fp.bay_cells():
+        s = f"by{k}"
+        for ln in COLUMN_NETS:
+            add(ln, s, ln)
+        add("g_bay", s, "en"); add("aux_bay", s, "aux")
+        for j, rt in enumerate(RT):
+            add(f"rt_out[{j}]", s, rt)
+        # sub_b tied high (geom.bay: via2 on the cell's vdd column), sub open (S/F have no PROBE_SUB = 1 tap): the
+        # bay taps read vm for any PROBE_SUB != 3, and probe_sub / probe_sub_b need no branch into the bay
+        add(f"probe_sel_bay[{k}]", s, "rsel"); add("VDPWR", s, "sub_b")
+        add(f"spk_in[{fp.SPIKE_CH[name]}]", s, "spk")
     # ---- macro (W, S edges; N edge to TT pins)
     for c in range(4):
         add(f"en_c{c}", "ctrl", f"probe_en_c[{c}]")
@@ -119,8 +136,10 @@ def nets():
     add("probe_sub", "ctrl", "probe_sub"); add("probe_sub_b", "ctrl", "probe_sub_b")
     for k in range(4):
         add(f"rt_out[{k}]", "ctrl", f"rt_out[{k}]")
-    for ch in range(16):
-        add(f"spk_in[{ch}]", "ctrl", f"spk_in[{ch}]")
+    for ch in range(fp.N_SPK):                     # R2: 24 channels; unused inputs tied to VGND
+        add("VGND" if ch in fp.SPK_TIED else f"spk_in[{ch}]", "ctrl", f"spk_in[{ch}]")
+    for k in range(3):
+        add(f"probe_sel_bay[{k}]", "ctrl", f"probe_sel_bay[{k}]")
     for key, n in tn.items():
         if key == "CMP.VTH" and not CMP_TRIM:
             continue
@@ -188,11 +207,16 @@ def nets():
     add("probe_sel_adex", "ax", "sel_adex"); add("probe_sel_adex", "ax", "en"); add("probe_sel_adex", "ctrl", "probe_sel_adex")
     add("probe_sub_raw[0]", "ax", "sub0"); add("probe_sub_raw[0]", "ctrl", "probe_sub_raw[0]")
     add("probe_sub_raw[1]", "ax", "sub1"); add("probe_sub_raw[1]", "ctrl", "probe_sub_raw[1]")
-    # ---- glue logic (std cells, layout/top): en_b = NOR(en_c0..3, sel_d1, sel_adex); D1 tap decode
+    # ---- glue logic (std cells, layout/top): en_b = NOR(en_c0..3, sel_d1, sel_adex, g_bay); D1 tap decode;
+    #      R2: g_bay = OR(probe_sel_bay[2:0]) in the bay glue row (bay column en)
     for c in range(4):
         add(f"en_c{c}", "g_or", f"A{c + 1}")
     add("g_any", "g_or", "Z"); add("g_any", "g_enb", "A1")
-    add("probe_sel_d1", "g_enb", "A2"); add("probe_sel_adex", "g_enb", "A3"); add("en_b", "g_enb", "ZN")
+    add("probe_sel_d1", "g_enb", "A2"); add("probe_sel_adex", "g_enb", "A3"); add("g_bay", "g_enb", "A4")
+    add("en_b", "g_enb", "ZN")
+    for k in range(3):
+        add(f"probe_sel_bay[{k}]", "g_bor", f"A{k + 1}")
+    add("g_bay", "g_bor", "Z")
     add("probe_sel_d1", "g_in", "I"); add("g_nsel", "g_in", "ZN")
     add("probe_sub_raw[0]", "g_i0", "I"); add("g_ns0", "g_i0", "ZN")
     add("probe_sub_raw[1]", "g_i1", "I"); add("g_ns1", "g_i1", "ZN")
@@ -208,7 +232,7 @@ def nets():
 
 # std cells: inst -> (cell, x, y)  (lower-left, R0); widths from the PDK LEF
 SC = "gf180mcu_fd_sc_mcu7t5v0__"
-SC_W = {"tieh": 2.24, "filltie": 1.12, "inv_1": 2.24, "nor3_1": 4.48, "or4_1": 6.72}
+SC_W = {"tieh": 2.24, "filltie": 1.12, "inv_1": 2.24, "nor3_1": 4.48, "or4_1": 6.72, "nor4_1": 5.6, "or3_1": 5.6}
 SC_H = 3.92
 
 
@@ -221,9 +245,10 @@ def std_cells():
         S[f"tie{i}"] = ("tieh", x, fp.TIE_ROW_Y)
         S[f"tap{i}"] = ("filltie", x + SC_W["tieh"], fp.TIE_ROW_Y)
     # glue rows (west -> east), M3: split over the two rows in H3 (fp.GLUE_ROWS); same cells and nets
-    rows = [[("gtap0", "filltie"), ("g_or", "or4_1"), ("g_enb", "nor3_1"), ("g_in", "inv_1"),
+    rows = [[("gtap0", "filltie"), ("g_or", "or4_1"), ("g_enb", "nor4_1"), ("g_in", "inv_1"),
              ("g_i0", "inv_1"), ("g_i1", "inv_1"), ("gtap1", "filltie")],
-            [("gtap2", "filltie"), ("g_s0", "nor3_1"), ("g_s1", "nor3_1"), ("g_s2", "nor3_1"), ("gtap3", "filltie")]]
+            [("gtap2", "filltie"), ("g_s0", "nor3_1"), ("g_s1", "nor3_1"), ("g_s2", "nor3_1"), ("gtap3", "filltie")],
+            [("gtap4", "filltie"), ("g_bor", "or3_1"), ("gtap5", "filltie")]]          # R2 bay glue row
     for (x, y), row in zip(fp.GLUE_ROWS, rows):
         for inst, cell in row:
             S[inst] = (cell, round(x, 3), y)

@@ -186,7 +186,7 @@ def build():
                 k = ids.get(net, -1) if net else -1
                 for r in p["rects"]:
                     g.mark(LI[p["layer"]], xf(r, x, y), k, foreign=(k < 0))
-                if k < 0 or is_slot or net in SKIP:
+                if k < 0 or is_slot or net in SKIP or (inst, pn) in C.GEOM_TIES:
                     continue
                 if pn in ("vdd", "vss", "VDD", "VSS") and not (inst in ("d1", "ax", "tau0", "tau2") and pn == "vdd"):
                     continue
@@ -670,6 +670,10 @@ def main():
         return check(set(sys.argv[2:]))
     if len(sys.argv) > 1 and sys.argv[1] == "reroute":
         return reroute(list(dict.fromkeys(sys.argv[2:])))
+    if len(sys.argv) > 1 and sys.argv[1] == "extend":          # R2: keep every old wire, add the new branches only
+        nets = list(dict.fromkeys(sys.argv[2:]))
+        KEEP.update({n: (0.0, 0.0, fp.TILE_W, fp.TILE_H) for n in nets})
+        return reroute(nets)
     if len(sys.argv) > 1 and sys.argv[1] == "ties":
         return add_ties()
     if len(sys.argv) > 1 and sys.argv[1] == "stubs":

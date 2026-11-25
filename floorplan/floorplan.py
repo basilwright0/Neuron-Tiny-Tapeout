@@ -80,9 +80,8 @@ CHANNELS = {  # routing-only regions (Metal2/Metal3; Metal4 may cross blocks bet
 }
 
 # Free areas kept for later use (M3 decap / test structures): the router may not put Metal2-4 there and no block
-# may overlap them.  RW = B1's west bay (R2: old west trim + C4), RT = array-top strip (TOP-1), RG = CH_BOT west + H2 (TOP-4).
+# may overlap them.  (RW, B1's west bay, is used by the bay column since R2 r2-int.)  RT = array-top strip (TOP-1), RG = CH_BOT west + H2 (TOP-4).
 RESERVED = {
-    "RW B1 west bay (R2)": (80.0, 12.0, 129.0, 116.0),
     "RT array-top strip": (8.0, 302.9, 120.0, 317.7),
     "RG CH_BOT east of the D1 lines": (199.5, 0.0, 280.0, 12.0),
 }
@@ -103,7 +102,7 @@ TIE_ROW_Y = 318.4      # uio_oe tie-high cells (one tieh + filltie under each ui
 # probe-enable / D1 tap-select glue (or4, 4x nor3, 3x inv, fillties): M3 (TOP-4) two R0 rows in hole H3 (CH_MID east,
 # between the B1 code lines from the macro S edge (x <= 281.2) and bias_en (x 312)), lower-left corners; each row's
 # rails are tied to the strap-pair-2 stripes (x 286.72 / 290.02). Was one row in CH_BOT at (170, 5.5).
-GLUE_ROWS = [(282.6, 130.4), (282.6, 136.4)]
+GLUE_ROWS = [(282.6, 130.4), (282.6, 136.4), (119.5, 58.0)]   # R2: + bay glue row (or3) over the x 121/123.6 stripes
 
 # --------------------------------------------------------------------- NA slot map
 # M2 regrouped array, layout B (user decisions 2026-11-21 14:32 and 19:24 UTC, MIL-36 `array-regroup-plan`): the
@@ -143,6 +142,33 @@ SLOT_CELL = {"S": "cslot_ah", "F": "cslot_ah_f", "H": "slot_ah_h", "P": "slot_ah
 COMPACT_CELLS = {"cslot_ah": COMPACT_H, "cslot_ah_f": COMPACT_H, "czslot_ah_f": COMPACT_X_H,
                  "czslot_ah_50": COMPACT_X_H, "czslot_ah_400": COMPACT_X_H}
 TAU_COLS = {0: "TE0 tau trim col 0", 2: "TE2 tau trim col 2"}         # P2 in column 0, P3 in column 2
+
+# --------------------------------------------------------------------- R2 bay column (MIL-362, branch r2-int)
+# One column of 3 compact slots in B1's old west bay, stacked bottom -> top, outside the 4x4 array (own probe
+# lines: column `en` = g_bay = OR(probe_sel_bay[2:0]) from the bay glue row, rsel of slot k = probe_sel_bay[k],
+# i.e. PROBE SEL = 16 + k). Spikes on spk_in[16 + k]. Default mix (MIL-103): 2 S/F + E1. Until e1_fb is in, the E1
+# slot holds a plain S cell (the fallback if E1 is dropped). Column lines leave the stack top to B1's west-edge
+# outputs; row bands exit east into the channel BAY_CH (x 108-129).
+BAY_X, BAY_Y = 80.0, 13.0
+BAY = [("S4", "cslot_ah"), ("F4", "cslot_ah_f"), ("E1", "cslot_ah")]
+BAY_CH = (108.0, 129.0)
+SPIKE_CH.update({"S4": 16, "F4": 17, "E1": 18})
+N_SPK = 24
+SPK_TIED = tuple(ch for ch in range(N_SPK) if ch not in SPIKE_CH.values())   # macro inputs tied to VGND
+
+
+def bay_cells():
+    """[(k, name, cell, x0, y0, h)] bottom -> top."""
+    out, y = [], BAY_Y
+    for k, (n, c) in enumerate(BAY):
+        h = COMPACT_CELLS[c]
+        out.append((k, n, c, BAY_X, round(y, 3), h))
+        y += h
+    return out
+
+
+BLOCKS["BY bay column (R2)"] = (BAY_X, BAY_Y, BAY_X + SLOT_W, round(BAY_Y + sum(c[5] for c in bay_cells()), 3))
+EST["BY bay column (R2)"] = SLOT_W * sum(c[5] for c in bay_cells())
 
 
 def row_y0(r):
@@ -282,12 +308,12 @@ def checks():
         errs.append(f"bias channel under the array only {ch:.1f} um")
     # spike channels and slots
     grid = slot_map()
-    placed = set(grid.values()) | {"D1", "ADEX"}
+    placed = set(grid.values()) | {"D1", "ADEX"} | {n for n, _ in BAY}
     for name in SPIKE_CH:
         if name not in placed:
             errs.append(f"spike channel {name} has no slot")
-    if len(set(SPIKE_CH.values())) != 16:
-        errs.append("spike channel numbers not unique 0..15")
+    if len(set(SPIKE_CH.values())) != len(SPIKE_CH) or not set(SPIKE_CH.values()) <= set(range(N_SPK)):
+        errs.append(f"spike channel numbers not unique in 0..{N_SPK - 1}")
     groups = {}
     for (r, c), n in grid.items():
         if n[0] in "FSHP" and n[1:].isdigit():
@@ -333,7 +359,7 @@ def grid_col(grid, name):
 
 
 # --------------------------------------------------------------------- drawing
-COL = {"C1": "#9aa7c7", "NA": "#f2c48d", "D1": "#b9dba0", "B1": "#e8a2a2", "R1": "#d77", "A1": "#c9b3e6",
+COL = {"BY": "#f2c48d", "C1": "#9aa7c7", "NA": "#f2c48d", "D1": "#b9dba0", "B1": "#e8a2a2", "R1": "#d77", "A1": "#c9b3e6",
        "TE": "#f7e08a"}
 
 

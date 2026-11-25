@@ -265,6 +265,84 @@ def array(F):
     return VDDB, VSSB
 
 
+# ======================================================================== R2 bay column (MIL-362)
+BAY_TRK = {**PINTRK, "spk": 7, "grp_en": 8}     # band tracks of a bay cell (grp_en: E1 only)
+
+
+def bay(F):
+    """One Metal3 band per bay cell (track k at y0 + H - 11.12 + 0.56 k, as the array rows) with via2 drops on the
+    row pins; every track exits east into the channel (Metal2 stub down to a router terminal, 0.7 um pitch).
+    Column lines (abutting through the stack) get Metal2 terminals at the stack top; en is g_bay, aux floats.
+    Power: VSS Metal1 rails (bottom, top) and the vdd column (Metal2 down, Metal3) to the x 121 / 123.6 stripes."""
+    cells = fp.bay_cells()
+    x0, xr = fp.BAY_X, fp.BAY_X + fp.SLOT_W
+    for k, name, cell, cx, cy, h in cells:
+        pins = geo(cell)["pins"]
+        trk0 = round(h - 11.12, 3)
+        net_of = {0: "rt_out[0]", 1: "rt_out[1]", 2: "rt_out[2]", 3: "rt_out[3]", 4: f"probe_sel_bay[{k}]",
+                  7: f"spk_in[{fp.SPIKE_CH[name]}]", 8: "cfg_out[1]"}
+        used = {BAY_TRK[pn]: pins[pn][0]["pt"][0] for pn in BAY_TRK if pn in pins and BAY_TRK[pn] in net_of}
+        # sub_b (track 6) tied to the cell's vdd column inside the band; sub (track 5) left open (config.nets)
+        ty, px, q = cy + trk0 + TRKP * 6, pins["sub_b"][0]["pt"][0], pins["vdd"][0]["rects"][0]
+        xv = (q[0] + q[2]) / 2
+        F.p("metal3", (cx + min(px, xv) - 0.2, ty - 0.14, cx + max(px, xv) + 0.2, ty + 0.14), "VDPWR")
+        F.p("via2", (cx + px - 0.14, ty - 0.14, cx + px + 0.14, ty + 0.14), "VDPWR")
+        F.p("via2", (cx + xv - 0.14, ty - 0.14, cx + xv + 0.14, ty + 0.14), "VDPWR")
+        for j, (t, px) in enumerate(sorted(used.items())):
+            net = net_of[t]
+            ty = cy + trk0 + TRKP * t
+            xe = gx(xr + 0.71 + 0.7 * j)
+            F.p("metal3", (x0 + 0.3, ty - 0.14, xe + 0.2, ty + 0.14), net)
+            F.p("via2", (cx + px - 0.14, ty - 0.14, cx + px + 0.14, ty + 0.14), net)
+            F.p("via2", (xe - 0.14, ty - 0.14, xe + 0.14, ty + 0.14), net)
+            yt = gy(cy + trk0 - 1.38)
+            F.p("metal2", (xe - 0.14, yt - 0.14, xe + 0.14, ty + 0.2), net)
+            F.term(net, [("metal2", (xe - 0.14, yt - 0.14, xe + 0.14, yt + 0.42))])
+    # column-top terminals (top cell)
+    k, name, cell, cx, cy, h = cells[-1]
+    top = cy + h
+    pins = geo(cell)["pins"]
+    for ln in C.COLUMN_NETS + ["en"]:
+        q = min([q for q in pins[ln][0]["rects"] if q[3] >= h - 0.01], key=lambda q: q[2] - q[0])
+        net = "g_bay" if ln == "en" else ln
+        F.p("metal2", (cx + q[0], top - 0.02, cx + q[2], top + 0.7), net)
+        F.term(net, [("metal2", (cx + q[0], top + 0.42, cx + q[2], top + 0.7))])
+    # power: VSS rails (stack bottom and top) east to the VGND stripe; vdd column down to a Metal3 line -> VDPWR
+    xg, xv = stripe_at("VGND", 124.4), stripe_at("VDPWR", 121.8)
+    for yr in (fp.BAY_Y + 0.3, top - 0.3):
+        F.p("metal1", (x0, yr - 0.3, xg + 0.3, yr + 0.3), "VGND")
+        F.stack(xg, yr, "VGND")
+    q = geo(cells[0][2])["pins"]["vdd"][0]["rects"][0]
+    xd, yd = x0 + (q[0] + q[2]) / 2, fp.BAY_Y - 0.8
+    F.p("metal2", (x0 + q[0], yd - 0.2, x0 + q[2], fp.BAY_Y + 0.02), "VDPWR")
+    F.via("via2", xd, yd, "VDPWR")
+    F.p("metal3", (xd - 0.25, yd - 0.25, xv + 0.25, yd + 0.25), "VDPWR")
+    F.via("via3", xv, yd, "VDPWR")
+
+
+def ties(F):
+    """R2: macro inputs in C.GEOM_TIES -> VGND. Metal3 stub off the W edge, via2/via1 onto a Metal1 riser along the
+    macro's W edge (x 169.65, no router metal), Metal1 jumper at the lowest tie onto AdEx's east vss ring."""
+    I = C.instances()
+    mx, my = I["ctrl"][1:]
+    ax, ay = I["ax"][1:]
+    pins = geo("neuron_ctrl")["pins"]
+    xr = round(mx - 0.35, 3)
+    ys = []
+    for inst, pn in sorted(C.GEOM_TIES):
+        q = [r for g in pins[pn] if g["layer"] == "metal3" for r in g["rects"] if r[0] <= 0.06][0]
+        y = round(my + (q[1] + q[3]) / 2, 3)
+        ys.append(y)
+        F.p("metal3", (mx - 0.7, y - 0.14, mx + q[2], y + 0.14), "VGND")
+        F.via("via2", xr, y, "VGND")
+        F.via("via1", xr, y, "VGND", pads=("lo",))
+    ring = [r for g in geo("adex_a1")["pins"]["vss"] for r in g["rects"] if r[0] > 37 and r[3] - r[1] > 30][0]
+    yj = min(ys)
+    assert ay + ring[1] + 0.3 <= yj <= ay + ring[3] - 0.3, yj
+    F.p("metal1", (xr - 0.3, yj - 0.3, xr + 0.3, max(ys) + 0.3), "VGND")
+    F.p("metal1", (ax + ring[0], yj - 0.3, xr + 0.3, yj + 0.3), "VGND")
+
+
 # ======================================================================== std cells
 def stdcells(F, VDDB, VSSB):
     sc = json.loads((C.WORK / "geo" / "stdcells.json").read_text())
@@ -311,7 +389,9 @@ def stdcells(F, VDDB, VSSB):
             conn[(inst, pin)] = net
     PICK = {"or4_1": {"A1": (0.84, 2.6), "A2": (2.02, 1.9), "A3": (3.14, 2.9), "A4": (4.26, 1.9), "Z": (6.32, 2.9)},
             "nor3_1": {"A3": (0.80, 1.975), "A2": (1.96, 2.9), "A1": (3.08, 1.9), "ZN": (3.69, 2.95)},
-            "inv_1": {"I": (0.87, 1.7), "ZN": (1.43, 2.9)}}
+            "inv_1": {"I": (0.87, 1.7), "ZN": (1.43, 2.9)},
+            "nor4_1": {"A4": (1.0, 1.94), "A3": (1.96, 2.9), "A2": (3.08, 1.9), "A1": (4.2, 2.9), "ZN": (3.70, 0.8)},
+            "or3_1": {"A1": (0.84, 2.6), "A2": (1.96, 1.9), "A3": (3.125, 2.9), "Z": (5.22, 2.9)}}
     for inst, (cell, x, y) in S.items():
         if y not in glue_y or cell not in PICK:
             continue
@@ -455,6 +535,8 @@ def fixed():
     F = Fix()
     stripes(F)
     VDDB, VSSB = array(F)
+    bay(F)
+    ties(F)
     stdcells(F, VDDB, VSSB)
     blocks_power(F)
     return F
