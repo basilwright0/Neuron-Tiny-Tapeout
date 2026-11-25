@@ -111,7 +111,7 @@ elif MODE == "e2":
     body = B.chip(S, codes=codes, state_over=B.timeline(ev))
     na, nb = T.vnode("e2.na"), T.vnode("e2.nb")
     sv = ["v(pad)", f"v({na})", f"v({nb})", f"v({T.vnode('vreset')})", f"v({T.vnode('abus')})"]
-    d = B.deck(body, f"tran 10n {TEND:g} 0 {min(2e-3, TEND / 200):g}", sv, corner=CORNER, temp=TEMP,
+    d = B.deck(body, f"tran 10n {TEND:g} 0 {float(os.environ.get('E2_TMAX', min(2e-3, TEND / 200))):g}", sv, corner=CORNER, temp=TEMP,
                opts=OPTS)
     r = B.go(d, f"r2blk_{TAG}{B.SUFFIX}", timeout=int(os.environ.get("R2BLK_TIMEOUT", "7200")))
     t = r["_x"]
