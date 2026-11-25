@@ -14,15 +14,15 @@
 // feed-through buffer after flattening); they reset asynchronously from rst_n.
 `default_nettype none
 
-module nc_cfg (
-    input  wire                  sck,
-    input  wire                  sdi,
-    input  wire                  load,
-    output wire [22:0]           le,       // latch enable per byte address (width = NREG)
-    output wire [7:0]            data,     // frame DATA field -> latch D inputs
-    output wire                  echo
-);
+// Non-ANSI header so the le width can follow NREG from nc_regmap.vh.
+module nc_cfg (sck, sdi, load, le, data, echo);
 `include "nc_regmap.vh"
+    input  wire                  sck;
+    input  wire                  sdi;
+    input  wire                  load;
+    output wire [NREG-1:0]       le;       // latch enable per byte address
+    output wire [7:0]            data;     // frame DATA field -> latch D inputs
+    output wire                  echo;
 
     // shift register: no reset, content is don't-care until a frame is in
     reg [FW-1:0] sr;

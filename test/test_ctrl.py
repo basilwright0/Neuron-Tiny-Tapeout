@@ -1,7 +1,7 @@
 """cocotb tests for neuron_ctrl rev E: SCK/DATA/LOAD config port and latches,
 latch reset, row x column probe decode (AdEx line, dummy slot never selected),
 packed bias_b1 DAC codes + master lines vs the Python model, direct spike pins
-+ output mux, config echo, rt pass-through, LIF tick / event-source / enable paths."""
++ output mux + OUT_BANK (24 channels), PROBE_SEL[4] (bay / column 4), config echo, rt pass-through, LIF tick / event-source / enable paths."""
 import os
 import random
 
@@ -10,9 +10,9 @@ from cocotb.triggers import ClockCycles, RisingEdge, FallingEdge, Edge, ReadOnly
 from cocotb.utils import get_sim_time
 
 from nc_driver import setup, wr, shift_bits, ns, stop_task, CLK_NS, _V2
-from regmap import (A, NREG, FW, reg_used, cfg_pack, ana, probe, mode, lif_ctl, idac_word,
-                    probe_lines, bias_lines, IDACS, VDACS, SLOT, D1_CH, ADEX_CH, DUMMY_SLOT,
-                    REF_SLOT, TRIM_MASK_DEFAULT)
+from regmap import (A, NREG, FW, N_SPK, reg_used, cfg_pack, ana, probe, probe_fields, mode, lif_ctl,
+                    idac_word, probe_lines, probe_lines_old, bias_lines, IDACS, VDACS, SLOT, SLOT_HI,
+                    BAY_SEL, D1_CH, ADEX_CH, DUMMY_SLOT, REF_SLOT, TRIM_MASK_DEFAULT)
 
 U = lambda s: int(s.value)  # noqa: E731
 NTRIM = 16
@@ -32,7 +32,7 @@ def regs(dut):
 def probe_got(dut):
     c = dut.u_ctrl
     return (U(c.probe_rsel), U(c.probe_en_c), U(c.probe_sel_d1), U(c.probe_sel_adex),
-            U(c.probe_sub), U(c.probe_sub_b), U(c.probe_sub_raw))
+            U(c.probe_sub), U(c.probe_sub_b), U(c.probe_sub_raw), U(c.probe_sel_bay), U(c.probe_en_c4))
 
 
 def check_bias(dut, shadow, msg=""):
@@ -45,8 +45,7 @@ def check_image(dut, shadow, msg=""):
     got = regs(dut)
     assert got == shadow, f"{msg}: regs {[hex(x) for x in got]} != {[hex(x) for x in shadow]}"
     assert U(dut.cfg_out) == cfg_pack(shadow, NTRIM), f"{msg}: cfg_out packing"
-    pr = shadow[A["PROBE"]]
-    assert probe_got(dut) == probe_lines(pr & 0xF, (pr >> 4) & 3, (pr >> 6) & 1), f"{msg}: probe"
+    assert probe_got(dut) == probe_lines(*probe_fields(shadow[A["PROBE"]])), f"{msg}: probe"
     check_bias(dut, shadow, msg)
 
 
@@ -56,18 +55,18 @@ async def test_reset_defaults(dut):
     pins = await setup(dut)
     for b in range(3, 8):
         pins.set_ui(b, 1)
-    pins.set_spk_all(0xA5C3)
+    pins.set_spk_all(0x5AA5C3)                 # ch 23..16 differ from ch 7..0
     await ClockCycles(dut.clk, 20)
     assert regs(dut) == [0] * NREG
     assert U(dut.cfg_out) == 0
-    assert probe_got(dut) == (0b0001, 0, 0, 0, 0, 1, 0), "probe: no column enabled"
+    assert probe_got(dut) == (0b0001, 0, 0, 0, 0, 1, 0, 0, 0), "probe: no column enabled"
     check_bias(dut, [0] * NREG, "reset: every DAC code 0 (off), ua0 = EXT/1, bias off")
     for p in IDACS:                               # explicit safe state
         assert all(U(getattr(dut.u_ctrl, f"{p}_b{j}")) == 0 for j in range(5)), p
     assert U(dut.u_ctrl.bias_en) == 0 and U(dut.u_ctrl.ua0_s0) == 1 and U(dut.u_ctrl.ua0_int) == 0
     assert U(dut.rt_out) == 0, "rt pass-through must default off"
     assert U(dut.uio_oe) == 0xFF
-    assert U(dut.uo_out) == 0xC3
+    assert U(dut.uo_out) == 0xC3, "OUT_BANK = 0 after reset: uo = ch 7..0"
     uio = str(dut.uio_out.value)              # MSB first; uio[7] = echo, X until 13 SCK edges
     assert int(uio[2:], 2) == 0x25
     assert uio[1] == "0", "uio[6] = LIF spike (LIF off)"
@@ -76,7 +75,7 @@ async def test_reset_defaults(dut):
 
 @cocotb.test()
 async def test_cfg_write_all(dut):
-    """Random writes to every address (incl. unused 0x1A..0x1F) in random order,
+    """Random writes to every address (incl. OUT 0x17 and unused 0x18..0x1F) in random order,
     with 13-bit and 16-bit (3 leading don't-care bits) frames; check the whole
     byte image and the packed cfg_out after every write."""
     pins = await setup(dut)
@@ -160,14 +159,14 @@ async def test_latch_reset_and_no_clk(dut):
     for a in range(NREG):
         await wr(dut, pins, a, 0xFF)
     assert regs(dut) == USED
-    assert probe_got(dut) == probe_lines(15, 3, 1)       # SUB = 3: REF slot (0,0)
+    assert probe_got(dut) == probe_lines(31, 3, 1)       # SUB = 3: REF slot (0,0)
     stop_task(pins.clk_task)
     await ns(1000)
     dut.rst_n.value = 0
     await ns(50)
     assert regs(dut) == [0] * NREG, "async latch reset (no clk)"
     assert U(dut.cfg_out) == 0 and U(dut.probe_en_c) == 0 and U(dut.probe_sel_d1) == 0
-    assert U(dut.probe_sel_adex) == 0
+    assert U(dut.probe_sel_adex) == 0 and U(dut.probe_sel_bay) == 0 and U(dut.probe_en_c4) == 0
     check_bias(dut, [0] * NREG, "after reset")
     # LOAD during reset: reset dominates
     await wr(dut, pins, A["ANA"], 0x7F)
@@ -195,18 +194,20 @@ async def test_config_echo(dut):
 
 @cocotb.test()
 async def test_spike_pins_and_out_mux(dut):
-    """Spike inputs reach uo / uio combinationally; OUT_MUX picks uio[7:6]."""
+    """Spike inputs reach uo / uio combinationally; OUT_BANK picks uo = ch 7..0 / 23..16,
+    OUT_MUX picks uio[7:6]; uio does not depend on OUT_BANK. Random 24-bit patterns."""
     pins = await setup(dut)
     rng = random.Random(4)
     await shift_bits(pins, [1, 0] * 8)        # echo now well defined
-    for om in (0, 1, 0):
+    for bank, om in ((0, 0), (1, 0), (0, 1), (1, 1), (0, 0)):
         await wr(dut, pins, A["MODE"], mode(out_mux=om))
+        await wr(dut, pins, A["OUT"], bank)
         echo = U(dut.u_ctrl.u_cfg.echo)
-        for _ in range(40):
-            v = rng.getrandbits(16)
+        for _ in range(60):
+            v = rng.getrandbits(N_SPK)
             pins.set_spk_all(v)
             await ns(1)
-            assert U(dut.uo_out) == v & 0xFF
+            assert U(dut.uo_out) == ((v >> 16) if bank else v) & 0xFF, (bank, om, hex(v))
             uio = U(dut.uio_out)
             assert uio & 0x3F == (v >> 8) & 0x3F
             if om:
@@ -215,6 +216,7 @@ async def test_spike_pins_and_out_mux(dut):
                 assert (uio >> 6) & 1 == 0          # LIF disabled
                 assert uio >> 7 == echo
             assert U(dut.uio_oe) == 0xFF
+    await wr(dut, pins, A["MODE"], mode(out_mux=0))
     # a 2 ns spike on neuron 9 is visible without any clk involvement
     seen = []
 
@@ -232,32 +234,69 @@ async def test_spike_pins_and_out_mux(dut):
 
 
 @cocotb.test()
+async def test_out_reg_and_unused(dut):
+    """OUT (0x17) stores bit 0 only and a write there changes nothing else;
+    writes to 0x18..0x1F (every data value) change nothing at all."""
+    pins = await setup(dut)
+    rng = random.Random(12)
+    shadow = [0] * NREG
+    for a in range(NREG - 1):
+        shadow[a] = rng.getrandbits(8) & USED[a]
+        await wr(dut, pins, a, shadow[a])
+    check_image(dut, shadow, "preload")
+    for v in [0xFE, 0x01, 0xFF, 0x00] + [rng.getrandbits(8) for _ in range(12)]:
+        await wr(dut, pins, A["OUT"], v)
+        shadow[A["OUT"]] = v & 1
+        check_image(dut, shadow, f"OUT={v:#x}")
+        assert U(dut.u_ctrl.out_bank) == v & 1
+        pins.set_spk_all(0xA50F3C)
+        await ns(1)
+        assert U(dut.uo_out) == (0xA5 if v & 1 else 0x3C)
+    for a in range(NREG, 32):
+        for v in range(256):
+            await wr(dut, pins, a, v, half_ns=5)
+        check_image(dut, shadow, f"unused addr {a:#x}")
+
+
+@cocotb.test()
 async def test_probe_decode(dut):
-    """Exhaustive SEL x SUB x EN against the floorplan-derived model: row/column
-    lines, D1 and AdEx lines, sub taps. At most one target is enabled, the
-    dummy slot (0,3) is never selected, and every array channel reaches its own
-    slot."""
+    """Exhaustive SEL[4:0] x SUB x EN against the floorplan-derived model: row/column
+    lines, column 4, D1 / AdEx / bay lines, sub taps. SEL[4] = 0 is bit-identical to
+    the rev E (fdcf2ad) decoder. At most one target is enabled, the dummy slot (0,3)
+    is never selected, and every array channel reaches its own slot."""
     pins = await setup(dut)
     dr, dc = DUMMY_SLOT
     reached = set()
-    for sel in range(16):
+    for sel in range(32):
         for sub in range(4):
             for en in (0, 1):
                 await wr(dut, pins, A["PROBE"], probe(sel=sel, sub=sub, en=en))
                 got = probe_got(dut)
                 exp = probe_lines(sel, sub, en)
                 assert got == exp, (sel, sub, en, got, exp)
+                if sel < 16:                                  # regression: old decoder, new lines idle
+                    assert got[:7] == probe_lines_old(sel, sub, en) and got[7:] == (0, 0), (sel, sub, en)
                 rsel, enc, d1, adex = got[:4]
-                assert bin(enc).count("1") + d1 + adex <= 1 and bin(rsel).count("1") <= 1
+                bay, c4 = got[7:]
+                assert bin(enc).count("1") + d1 + adex + bin(bay).count("1") + c4 <= 1
+                assert bin(rsel).count("1") <= 1
                 assert not ((rsel >> dr) & 1 and (enc >> dc) & 1), f"dummy slot selected by {sel},{sub}"
-                assert not (en == 0 and (enc or d1 or adex)), "PROBE_EN = 0 must enable nothing"
+                assert not (en == 0 and (enc or d1 or adex or bay or c4)), "PROBE_EN = 0 must enable nothing"
                 if en and enc:
                     reached.add((rsel.bit_length() - 1, enc.bit_length() - 1))
+                if en and c4:
+                    reached.add((rsel.bit_length() - 1, 4))
                 if sub != 3 and sel in (D1_CH, ADEX_CH):      # outside the array: no row, no column
                     assert rsel == 0 and enc == 0
                     assert (d1, adex) == ((en, 0) if sel == D1_CH else (0, en))
-    assert reached == set(SLOT.values()) | {REF_SLOT}, "every array channel and REF reachable"
+                if sub != 3 and sel >= 16 and sel not in SLOT_HI:   # bay or nothing: no row, no column
+                    assert rsel == 0 and enc == 0 and c4 == 0 and d1 == 0 and adex == 0
+                    assert bay == ((en << BAY_SEL[sel]) if sel in BAY_SEL else 0), (sel, bay)
+    assert reached == set(SLOT.values()) | set(SLOT_HI.values()) | {REF_SLOT}, "every channel and REF reachable"
     assert DUMMY_SLOT not in reached
+    for sel, row in ((22, 2), (23, 3)):
+        await wr(dut, pins, A["PROBE"], probe(sel=sel, sub=1, en=1))
+        assert U(dut.probe_rsel) == 1 << row and U(dut.probe_en_c4) == 1 and U(dut.probe_en_c) == 0
     # spot checks against the floorplan table (docs/regmap.md section 3.1)
     for sel, sub, rc in ((0, 0, (0, 1)), (12, 1, (1, 1)), (15, 0, (3, 3)), (7, 2, (2, 0)), (9, 3, (0, 0)),
                          (3, 3, (0, 0)), (13, 3, (0, 0))):
@@ -384,13 +423,14 @@ async def test_lif_enable_and_tick(dut):
 
 @cocotb.test()
 async def test_lif_event_sources(dut):
-    """SRC 0/1/3 route stim A / stim B / analog neuron 0 to the LIF input
+    """SRC 0/1/3 route stim A / stim B / analog neuron 0 (spk_in[0], also with OUT_BANK = 1) to the LIF input
     event (one 1-clk event per rising edge, short pulses captured); SRC 2 is
     DC (no events, dc = 1)."""
     pins = await setup(dut)
     lif = dut.u_ctrl.u_lif
     rng = random.Random(8)
-    srcs = {0: ("ui", 3), 1: ("ui", 4), 3: ("spk", 0)}
+    srcs = {0: ("ui", 3), 1: ("ui", 4), 3: ("spk", 0), "ch16": ("spk", 16)}   # ch16 (uo[0] in bank 1): never a source
+    await wr(dut, pins, A["OUT"], 1)          # OUT_BANK does not move LIF source 3 off spk_in[0]
 
     async def pulse(kind, idx, w):
         if kind == "ui":

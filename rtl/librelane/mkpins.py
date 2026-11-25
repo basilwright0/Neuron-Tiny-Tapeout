@@ -9,8 +9,10 @@ follow the blocks they face:
      at the west end); clk / rst_n at the east end
   E  parked, unrouted: uio_in (unused), uio_oe (top level ties high next to the tile pins),
      the cfg_out bits of trim nibbles without storage (constant 0)
-  W  neuron-array lines only, above the AdEx column (tile y > 215): array spikes, probe
-     row/column lines and vm/vr tap, rt_out, in-array trim nibbles
+  W  neuron-array lines above the AdEx column (tile y > 215): array spikes, probe
+     row/column lines and vm/vr tap, rt_out, in-array trim nibbles; R2 C1: column-4 lines
+     (spk_in[22..23], probe_en_c4) on free slots at local y ~94-100, and the B1-bay lines
+     (spk_in[16..18], probe_sel_bay[0..2]) + spare spk_in[19..21] at the bottom, local y ~2-12
   S  west -> east: AdEx (spk_in[3], probe_sel_adex), probe_sub_raw (AdEx + D1), D1 lines
      (spk_in[13], PLATEAU_EN, D1_CHAIN, D1_BSEL, D1 trims, probe_sel_d1), GRP_EN, leak-tau
      trims (TE cells); then the bias_b1 code lines in port order under B1's code inputs
@@ -25,6 +27,7 @@ import re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NTRIM = 16
+N_SPK = 24           # rtl/neuron_ctrl.v N_SPK (R2 C1: OUT_BANK)
 TRIM_MASK = 0xC1FD   # rtl/neuron_ctrl.v default
 CFG_TRIM = 7         # rtl/nc_regmap.vh: cfg_out = {trims, D1_BSEL, D1_CHAIN, PLATEAU_EN, GRP_EN[3:0]}
 MX, MY, SIZE = 170.0, 151.0, 166.0   # macro origin in the tile, side (config.json DIE_AREA)
@@ -109,9 +112,16 @@ E = E_pins
 
 # ---- W: array lines, above the AdEx column (bottom -> top)
 arr_spk = [b("spk_in", i) for i in range(16) if i not in OUTSIDE]
+bay = [b("spk_in", 16), b("probe_sel_bay", 0), b("spk_in", 17), b("probe_sel_bay", 1),
+       b("spk_in", 18), b("probe_sel_bay", 2)] + [b("spk_in", i) for i in (19, 20, 21)]   # 19..21 spare
+col4 = [b("spk_in", 22), "probe_en_c4", b("spk_in", 23)]
 w_list = (arr_spk + bits("probe_rsel", 0, 3) + bits("probe_en_c", 0, 3) + ["probe_sub", "probe_sub_b"]
           + bits("rt_out", 0, 3) + sum((nib(n) for n in nib_arr), []))
-W, W_pins, W_slot = side(spread(w_list, ADEX_TOP + 6 - MY, SIZE - 2))
+w_pairs = spread(w_list, ADEX_TOP + 6 - MY, SIZE - 2)
+used = {k for _, k in w_pairs}
+k4 = [k for k in range(slot(94), NSLOT - 1) if k not in used][:len(col4)]   # free slots from y ~94 up
+assert k4[-1] <= slot(101), k4
+W, W_pins, W_slot = side(sorted(spread(bay, 2, 12) + w_pairs + list(zip(col4, k4)), key=lambda pk: pk[1]))
 
 # ---- S: west -> east
 s_west = ([b("spk_in", fp.SPIKE_CH["ADEX"]), "probe_sel_adex"] + bits("probe_sub_raw", 0, 1)
@@ -125,7 +135,7 @@ S, S_pins, S_slot = side(s_pairs)
 allp = N_pins + E_pins + W_pins + S_pins
 assert len(allp) == len(set(allp))
 assert len([p for p in allp if p.startswith("cfg_out")]) == CFG_TRIM + 4 * NTRIM
-assert len([p for p in allp if p.startswith("spk_in")]) == 16
+assert len([p for p in allp if p.startswith("spk_in")]) == N_SPK
 
 with open(os.path.join(HERE, "pin_order.cfg"), "w", newline="\n") as f:
     for s_, pins in (("#N", N), ("#E", E), ("#S", S), ("#W", W)):
