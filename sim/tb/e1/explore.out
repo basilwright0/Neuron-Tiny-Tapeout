@@ -1,0 +1,171 @@
+Unable to find image 'hpretl/iic-osic-tools:2026.08' locally
+2026.08: Pulling from hpretl/iic-osic-tools
+28675ea902aa: Pulling fs layer
+b23942cc0d7e: Pulling fs layer
+0926a8eb0e60: Pulling fs layer
+4ece0b14d843: Pulling fs layer
+c83f318726b9: Pulling fs layer
+20d7aa64b1b4: Pulling fs layer
+239932e76c05: Pulling fs layer
+856f50842db5: Pulling fs layer
+5164569969ba: Pulling fs layer
+6d45293936fc: Pulling fs layer
+ebf49f6cb793: Pulling fs layer
+c84219e46264: Pulling fs layer
+621237c5f445: Pulling fs layer
+c22a0199a8a8: Pulling fs layer
+38a0c33945e0: Pulling fs layer
+2403dd4b8e78: Pulling fs layer
+3b51de6193a6: Pulling fs layer
+604a4fb71290: Pulling fs layer
+034cff7b1a70: Pulling fs layer
+018331b76552: Pulling fs layer
+5583cc262a9c: Pulling fs layer
+710f470ce0bf: Pulling fs layer
+71639c6d4b36: Pulling fs layer
+120c94f89f57: Pulling fs layer
+5eee03240b9e: Pulling fs layer
+a5f17f7987a5: Pulling fs layer
+29f1a580940f: Pulling fs layer
+6c88a08a646d: Pulling fs layer
+85e1f264532f: Pulling fs layer
+52cffe207258: Pulling fs layer
+344d7b6b4157: Pulling fs layer
+cf9834331a8d: Pulling fs layer
+7c0c283833a9: Pulling fs layer
+b6a131eee0b3: Pulling fs layer
+83ceb432a03a: Pulling fs layer
+282ce7b8afef: Pulling fs layer
+2a877e897482: Pulling fs layer
+87b679d168be: Pulling fs layer
+5e756c46c0db: Pulling fs layer
+c37ca07ee26b: Pulling fs layer
+a88fc71dbe14: Pulling fs layer
+91797085f47b: Pulling fs layer
+188764ceb928: Pulling fs layer
+fcda54a501a4: Pulling fs layer
+5782826be1aa: Pulling fs layer
+5612216304ac: Pulling fs layer
+3d6161c52fcf: Pulling fs layer
+a9fb66cede44: Pulling fs layer
+4f303af155b6: Pulling fs layer
+2665c95fe6f2: Pulling fs layer
+03beac4a1298: Pulling fs layer
+f81af7e401c0: Pulling fs layer
+80176ee82f59: Pulling fs layer
+e844e28e8c44: Pulling fs layer
+473abc134071: Pulling fs layer
+d3495231d3a2: Pulling fs layer
+276389164205: Pulling fs layer
+42ec8ade053c: Pulling fs layer
+00b099dcd7e8: Pulling fs layer
+ba32f2bc25de: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+28675ea902aa: Already exists
+5782826be1aa: Download complete
+29f1a580940f: Already exists
+0926a8eb0e60: Already exists
+239932e76c05: Already exists
+120c94f89f57: Already exists
+344d7b6b4157: Already exists
+5583cc262a9c: Download complete
+5eee03240b9e: Download complete
+4f303af155b6: Already exists
+03beac4a1298: Already exists
+473abc134071: Already exists
+42ec8ade053c: Already exists
+4ece0b14d843: Already exists
+188764ceb928: Already exists
+018331b76552: Already exists
+034cff7b1a70: Already exists
+20d7aa64b1b4: Already exists
+3d6161c52fcf: Already exists
+3b51de6193a6: Already exists
+5612216304ac: Download complete
+5164569969ba: Already exists
+5e756c46c0db: Download complete
+2665c95fe6f2: Already exists
+00b099dcd7e8: Already exists
+2403dd4b8e78: Already exists
+604a4fb71290: Download complete
+2a877e897482: Already exists
+276389164205: Already exists
+52cffe207258: Already exists
+282ce7b8afef: Already exists
+4f4fb700ef54: Already exists
+38a0c33945e0: Already exists
+856f50842db5: Download complete
+c83f318726b9: Download complete
+6d45293936fc: Download complete
+ebf49f6cb793: Download complete
+d3495231d3a2: Download complete
+87b679d168be: Download complete
+710f470ce0bf: Download complete
+71639c6d4b36: Download complete
+a5f17f7987a5: Download complete
+c22a0199a8a8: Download complete
+621237c5f445: Download complete
+83ceb432a03a: Download complete
+c37ca07ee26b: Download complete
+a88fc71dbe14: Download complete
+a9fb66cede44: Download complete
+91797085f47b: Download complete
+0926a8eb0e60: Pull complete
+f81af7e401c0: Download complete
+80176ee82f59: Download complete
+4ece0b14d843: Pull complete
+fcda54a501a4: Download complete
+ba32f2bc25de: Download complete
+e844e28e8c44: Download complete
+6c88a08a646d: Download complete
+cf9834331a8d: Download complete
+b23942cc0d7e: Download complete
+85e1f264532f: Download complete
+93bc27b44a7e: Download complete
+b6a131eee0b3: Download complete
+7c0c283833a9: Download complete
+c84219e46264: Download complete
+20d7aa64b1b4: Pull complete
+239932e76c05: Pull complete
+5164569969ba: Pull complete
+83ceb432a03a: Pull complete
+5e756c46c0db: Pull complete
+4f4fb700ef54: Pull complete
+a88fc71dbe14: Pull complete
+188764ceb928: Pull complete
+5782826be1aa: Pull complete
+5612216304ac: Pull complete
+3d6161c52fcf: Pull complete
+a9fb66cede44: Pull complete
+80176ee82f59: Pull complete
+e844e28e8c44: Pull complete
+473abc134071: Pull complete
+c83f318726b9: Pull complete
+856f50842db5: Pull complete
+6d45293936fc: Pull complete
+c84219e46264: Pull complete
+621237c5f445: Pull complete
+c22a0199a8a8: Pull complete
+38a0c33945e0: Pull complete
+2403dd4b8e78: Pull complete
+034cff7b1a70: Pull complete
+5583cc262a9c: Pull complete
+71639c6d4b36: Pull complete
+5eee03240b9e: Pull complete
+29f1a580940f: Pull complete
+85e1f264532f: Pull complete
+344d7b6b4157: Pull complete
+7c0c283833a9: Pull complete
+282ce7b8afef: Pull complete
+87b679d168be: Pull complete
+c37ca07ee26b: Pull complete
+91797085f47b: Pull complete
+fcda54a501a4: Pull complete
+ba32f2bc25de: Pull complete
+cf9834331a8d: Pull complete
+b6a131eee0b3: Pull complete
+Digest: sha256:3c371645b19c6f6564dc8c7b21e39ad1c1833d274fe5b85639afe1ba9d7987e7
+Status: Downloaded newer image for hpretl/iic-osic-tools:2026.08
+typical 27 trip [0.6265]  diode1/0.5 0.627245256  1/4 0.707551571  stack 1/4x2 1.65607926 0.707035025  pdiode 3.3 vbs 2.41649961
+ss 0 trip [0.7695]  diode1/0.5 0.771133247  1/4 0.846835194  stack 1/4x2 1.98913995 0.846175332  pdiode 3.3 vbs 2.26384004
+ff 85 trip [0.4425]  diode1/0.5 0.444142263  1/4 0.537619143  stack 1/4x2 1.25509556 0.537226523  pdiode 3.29999997 vbs 2.59884235

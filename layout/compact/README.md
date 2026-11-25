@@ -45,6 +45,7 @@ development, so it never clashes with `layout/slot`.
 | cslot_ah_f (F) | 28.0 × 31.22 | MOM_STYLE=tall, seed 1, CHAN 1.8 | 0 | 0 | match | Cfb 6.30 fF; f–I 0.885–0.906 (old 0.837–0.842) |
 | cslot_ah_50 (AH50) | 28.0 × 31.22 | single-finger cap kept west of the column band, MOM_STYLE=tall, seed 2, CHAN 1.8 | 0 | 0 | match | Cfb 2.95 fF (on 50 fF); f–I 0.742–0.847 (old 0.789–0.799) |
 | cslot_ref (REF) | 28.0 × 31.22 | seed 0, CHAN 1.8 | 0 | 0 | match | – |
+| ce1_fb (E1, MIL-362: fixed-bias S twin, docs/r2/e1-fixed-bias.md) | 28.0 × 34.29 | two short n rows (EXTRA_N=1), CHANS 0.93/0.93/0.935/0.935, seed 6, CB_W 4, STEPS 40000 | 0 | 0 | match | Cfb 6.37 fF; PEX/sch f at 2× rheo 0.83–0.98 |
 | cslot_ah_h (H) | 35.36 / 37.76 tried; ladder rows moved below the band (`SHORT_ROWS=low`) | CHAIN_MAX 13, STEPS 80000 | **not routed**: best 12 nets fail at 37.76 | | | |
 
 Post-layout f–I (typical 27 °C, S = 100), PEX/schematic over 1.5–8× rheobase: baseline **0.850–0.860**, smallest

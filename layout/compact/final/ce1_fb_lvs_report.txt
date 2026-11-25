@@ -1,0 +1,108 @@
+
+Circuit 1 cell pfet_03v3 and Circuit 2 cell pfet_03v3 are black boxes.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell pfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: pfet_03v3                       |Circuit 2: pfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes pfet_03v3 and pfet_03v3 are equivalent.
+
+Circuit 1 cell nfet_03v3 and Circuit 2 cell nfet_03v3 are black boxes.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+Warning: Equate pins:  cell nfet_03v3 is a placeholder, treated as a black box.
+
+Subcircuit pins:
+Circuit 1: nfet_03v3                       |Circuit 2: nfet_03v3                       
+-------------------------------------------|-------------------------------------------
+1                                          |1                                          
+2                                          |2                                          
+3                                          |3                                          
+4                                          |4                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes nfet_03v3 and nfet_03v3 are equivalent.
+
+Cell ce1_fb (0) disconnected node: vbp_syn
+Cell ce1_fb (0) disconnected node: el
+Cell ce1_fb (0) disconnected node: aux
+Cell ce1_fb (0) disconnected node: vbn_leak
+Cell ce1_fb (0) disconnected node: vsrc
+Cell ce1_fb (0) disconnected node: vbn_ref
+Cell ce1_fb (0) disconnected node: vreset
+Cell ce1_fb (0) disconnected node: sub
+Cell ce1_fb (1) disconnected node: sub
+Cell ce1_fb (1) disconnected node: el
+Cell ce1_fb (1) disconnected node: vsrc
+Cell ce1_fb (1) disconnected node: vreset
+Cell ce1_fb (1) disconnected node: vbn_leak
+Cell ce1_fb (1) disconnected node: vbn_ref
+Cell ce1_fb (1) disconnected node: aux
+Cell ce1_fb (1) disconnected node: vbp_syn
+Class ce1_fb (0):  Merged 13 parallel devices.
+Cell ce1_fb (0) disconnected node: vbp_syn
+Cell ce1_fb (0) disconnected node: el
+Cell ce1_fb (0) disconnected node: aux
+Cell ce1_fb (0) disconnected node: vbn_leak
+Cell ce1_fb (0) disconnected node: vsrc
+Cell ce1_fb (0) disconnected node: vbn_ref
+Cell ce1_fb (0) disconnected node: vreset
+Cell ce1_fb (0) disconnected node: sub
+Cell ce1_fb (1) disconnected node: sub
+Cell ce1_fb (1) disconnected node: el
+Cell ce1_fb (1) disconnected node: vsrc
+Cell ce1_fb (1) disconnected node: vreset
+Cell ce1_fb (1) disconnected node: vbn_leak
+Cell ce1_fb (1) disconnected node: vbn_ref
+Cell ce1_fb (1) disconnected node: aux
+Cell ce1_fb (1) disconnected node: vbp_syn
+Subcircuit summary:
+Circuit 1: ce1_fb                          |Circuit 2: ce1_fb                          
+-------------------------------------------|-------------------------------------------
+pfet_03v3 (23)                             |pfet_03v3 (23)                             
+nfet_03v3 (47->34)                         |nfet_03v3 (34)                             
+Number of devices: 57                      |Number of devices: 57                      
+Number of nets: 44                         |Number of nets: 44                         
+---------------------------------------------------------------------------------------
+Resolving symmetries by property value.
+Resolving symmetries by pin name.
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: ce1_fb                          |Circuit 2: ce1_fb                          
+-------------------------------------------|-------------------------------------------
+vbn_prb                                    |vbn_prb                                    
+rsel                                       |rsel                                       
+sub_b                                      |sub_b                                      
+abus                                       |abus                                       
+mreset                                     |mreset                                     
+vm                                         |vm                                         
+en                                         |en                                         
+hold                                       |hold                                       
+sta                                        |sta                                        
+stb                                        |stb                                        
+vss                                        |vss                                        
+vbp_st                                     |vbp_st                                     
+vdd                                        |vdd                                        
+grp_en                                     |grp_en                                     
+spk                                        |spk                                        
+vbp_syn                                    |vbp_syn                                    
+el                                         |el                                         
+aux                                        |aux                                        
+vbn_leak                                   |vbn_leak                                   
+vsrc                                       |vsrc                                       
+vbn_ref                                    |vbn_ref                                    
+vreset                                     |vreset                                     
+sub                                        |sub                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes ce1_fb and ce1_fb are equivalent.
+
+Final result: Circuits match uniquely.
+.

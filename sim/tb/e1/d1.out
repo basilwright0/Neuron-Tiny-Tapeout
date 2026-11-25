@@ -1,0 +1,15 @@
+dc {'EL': 1.384961743386301, 'Vth': 1.4932512892057457, 'gap': 0.10828954581944461, 'rheo': 9.834839410271904e-10, 'g': 1.0553482570393658e-08}
+legs {'I_leak': -1.63938853e-09, 'I_ref': -8.15855211e-09, 'I_w': -1.94596042e-09, 'I_st': -1.29836636e-07, 'V_el': 1.37668944, 'V_mid': 0.56830857, 'V_vsrc': 0.627245256}
+121765 points in 33 s; spikes 4
+  v(vm)          min 1.3195 max 1.7845  mean |dv| per step 3.65e-04
+  v(spk)         min -0.0001 max 3.2855  mean |dv| per step 3.77e-03
+  v(xn.vsl)      min 0.6267 max 1.0307  mean |dv| per step 2.62e-02
+  v(xn.el_l)     min 1.3200 max 1.7419  mean |dv| per step 6.28e-04
+  v(xn.mid)      min 0.5458 max 0.7082  mean |dv| per step 2.53e-04
+  v(xn.vr)       min -0.0061 max 3.3318  mean |dv| per step 2.44e-04
+  v(xn.vbw)      min 2.5741 max 2.6526  mean |dv| per step 2.54e-05
+  v(xn.xd.n1)    min 0.6717 max 3.2972  mean |dv| per step 1.17e-01
+  v(xn.xd.p)     min 0.6267 max 3.3124  mean |dv| per step 1.18e-01
+  v(xn.xd.pb)    min 0.6450 max 3.3095  mean |dv| per step 7.39e-02
+  v(xn.vl)       min 1.3199 max 1.7840  mean |dv| per step 3.63e-04
+points per 10 us: [43, 20, 894, 3787, 4409, 4616, 4757, 5196, 5840, 825, 21, 22, 1824, 4124, 4488, 4635, 4875, 5365, 5408, 20, 23, 20, 2699, 4296, 4486, 4656, 4949, 5532, 3606, 20, 23, 419, 3521, 4337, 4587, 4701, 5106, 5731, 1863, 21]
