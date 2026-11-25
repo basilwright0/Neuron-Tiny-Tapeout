@@ -542,7 +542,7 @@ def conflicts(g, paths):
 
 
 # power ties between stripe islands (the islands are otherwise joined only by the TT power grid)
-TIES = [("VDPWR", 121.8, 186.72), ("VDPWR", 286.72, 345.4), ("VGND", 124.4, 190.02), ("VGND", 290.02, 343.0)]
+TIES = [("VDPWR", 121.8, 183.36), ("VDPWR", 283.36, 345.4), ("VGND", 124.4, 186.66), ("VGND", 286.66, 343.0)]
 
 
 def tie_tasks():

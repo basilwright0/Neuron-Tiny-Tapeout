@@ -33,8 +33,9 @@ ANALOG_USED = ("ua[0]", "ua[1]")
 
 # --------------------------------------------------------------------- control macro (rev E, run revE2_166)
 MACRO_X, MACRO_Y, MACRO_S = 170.0, 151.0, 166.0
-MACRO_STRAPS = [(15.92, "VDD"), (19.22, "VSS"), (65.92, "VDD"), (69.22, "VSS"),
-                (115.92, "VDD"), (119.22, "VSS")]                      # LEF, Metal4, 1.6 wide
+# R2 (C1 variant a, LEFT/RIGHT_MARGIN_MULT 6): the PDN straps moved 3.36 um west of rev E's 15.92/19.22/...
+MACRO_STRAPS = [(12.56, "VDD"), (15.86, "VSS"), (62.56, "VDD"), (65.86, "VSS"),
+                (112.56, "VDD"), (115.86, "VSS")]                      # LEF, Metal4, 1.6 wide
 EXTENDED_STRAP_PAIRS = (0, 2)            # macro strap pairs extended full height as tile power stripes
 
 # --------------------------------------------------------------------- blocks (x0, y0, x1, y1)
@@ -101,7 +102,7 @@ for p in EXTENDED_STRAP_PAIRS:                                 # macro straps (a
 TIE_ROW_Y = 318.4      # uio_oe tie-high cells (one tieh + filltie under each uio_oe pin), rails drawn across
 # probe-enable / D1 tap-select glue (or4, 4x nor3, 3x inv, fillties): M3 (TOP-4) two R0 rows in hole H3 (CH_MID east,
 # between the B1 code lines from the macro S edge (x <= 281.2) and bias_en (x 312)), lower-left corners; each row's
-# rails are tied to the strap-pair-2 stripes (x 286.72 / 290.02). Was one row in CH_BOT at (170, 5.5).
+# rails are tied to the strap-pair-2 stripes (x 283.36 / 286.66 since C1 variant a). Was one row in CH_BOT at (170, 5.5).
 GLUE_ROWS = [(282.6, 130.4), (282.6, 136.4), (119.5, 58.0)]   # R2: + bay glue row (or3) over the x 121/123.6 stripes
 
 # --------------------------------------------------------------------- NA slot map

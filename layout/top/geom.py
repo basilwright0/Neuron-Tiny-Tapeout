@@ -297,7 +297,8 @@ def bay(F):
             F.p("via2", (xe - 0.14, ty - 0.14, xe + 0.14, ty + 0.14), net)
             yt = gy(cy + trk0 - 1.38)
             F.p("metal2", (xe - 0.14, yt - 0.14, xe + 0.14, ty + 0.2), net)
-            F.term(net, [("metal2", (xe - 0.14, yt - 0.14, xe + 0.14, yt + 0.42))])
+            # terminal = the on-grid centre column only (a wire landing 0.14 off centre left 0.14-wide slivers)
+            F.term(net, [("metal2", (xe - 0.07, yt - 0.14, xe + 0.07, yt + 0.42))])
     # column-top terminals (top cell)
     k, name, cell, cx, cy, h = cells[-1]
     top = cy + h
@@ -329,11 +330,13 @@ def ties(F):
     pins = geo("neuron_ctrl")["pins"]
     xr = round(mx - 0.35, 3)
     ys = []
+    import route as RT                         # the router's own edge stub (same rectangle as a routed pin)
+    bbox = geo("neuron_ctrl")["bbox"]
     for inst, pn in sorted(C.GEOM_TIES):
-        q = [r for g in pins[pn] if g["layer"] == "metal3" for r in g["rects"] if r[0] <= 0.06][0]
-        y = round(my + (q[1] + q[3]) / 2, 3)
+        lay, st, _ = [RT.edge_stub(g, bbox, mx, my) for g in pins[pn] if g["layer"] == "metal3"][0]
+        y = round((st[1] + st[3]) / 2, 3)
         ys.append(y)
-        F.p("metal3", (mx - 0.7, y - 0.14, mx + q[2], y + 0.14), "VGND")
+        F.p("metal3", st, "VGND")
         F.via("via2", xr, y, "VGND")
         F.via("via1", xr, y, "VGND", pads=("lo",))
     ring = [r for g in geo("adex_a1")["pins"]["vss"] for r in g["rects"] if r[0] > 37 and r[3] - r[1] > 30][0]
@@ -465,8 +468,8 @@ def blocks_power(F):
         raise ValueError(f"no B1 {net} Metal3 line under local x {x0}-{x1}")
 
     hook = []
-    for snet, bnet, xc in (("VDPWR", "vdd", 186.72), ("VGND", "vss", 190.02), ("VDPWR", "vdd", 286.72),
-                           ("VGND", "vss", 290.02), ("VGND", "vss", 343.0)):
+    for snet, bnet, xc in (("VDPWR", "vdd", 183.36), ("VGND", "vss", 186.66), ("VDPWR", "vdd", 283.36),
+                           ("VGND", "vss", 286.66), ("VGND", "vss", 343.0)):
         sx = [(x, w) for n, x, w in fp.STRIPES if n == snet and x <= xc <= x + w][0]
         # 1.6 wide stripes: 2 cuts; the 0.8 wide east VGND stripe: 1 cut (two would violate via3 spacing)
         cuts, y = b1_cuts(bnet, sx[0] + 0.1 - bx, sx[0] + sx[1] - 0.1 - bx, 2 if sx[1] > 1 else 1)
@@ -483,13 +486,14 @@ def blocks_power(F):
     gr = geo("r1_ua1")["pins"]
     bb = lambda rs: (min(q[0] for q in rs), min(q[1] for q in rs), max(q[2] for q in rs), max(q[3] for q in rs))
     vd, vs = bb(gr["vdd"][0]["rects"]), bb(gr["vss"][0]["rects"])
-    yv, ys = 9.6, 7.0
-    F.p("metal3", (rx + vd[0], yv - 0.6, rx + vd[2], ry + 14.5), "VDPWR")
+    # R2: the strap-pair-2 VDPWR stripe (x 282.56, C1 variant a) lies over the ua[1] strap, so vdd now runs east
+    # under the vss jog to the x 345 stripe (vdd rail is west of the vss rail: no crossing)
+    yv, ys = 5.6, 7.0
+    F.p("metal3", (rx + vd[0], yv - 0.4, rx + vd[2], ry + 14.5), "VDPWR")
     F.p("metal3", (rx + vs[0], ys - 0.6, rx + vs[2], ry + 14.5), "VGND")
-    xa = stripe_at("VDPWR", 286.7)
-    F.p("metal3", (xa + 0.35, yv - 0.6, rx + vd[2], yv + 0.6), "VDPWR")
-    F.via("via3", xa + 0.53, yv - 0.25, "VDPWR", pads=("hi",))
-    F.via("via3", xa + 0.53, yv + 0.3, "VDPWR", pads=("hi",))
+    xa = stripe_at("VDPWR", 345.4)
+    F.p("metal3", (rx + vd[0], yv - 0.4, xa + 0.3, yv + 0.4), "VDPWR")
+    F.via("via3", xa, yv, "VDPWR", pads=("hi",))
     xb = stripe_at("VGND", 343.0)
     F.p("metal3", (rx + vs[0], ys - 0.6, xb + 0.3, ys + 0.6), "VGND")
     F.via("via3", xb, ys - 0.25, "VGND", pads=("hi",))
