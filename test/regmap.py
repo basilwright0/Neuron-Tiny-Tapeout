@@ -176,3 +176,13 @@ def lif_sr(shift=0, refr=0):
 
 def frame(addr, data):
     return ((addr & 0x1F) << 8) | (data & 0xFF)
+
+
+# --------------------------------------------------------------- R2 (MIL-362) firmware view, docs/info.md "R2 additions"
+GRP_E2_LEAK, GRP_E1_EN = 0, 1             # ANA GRP_EN bits (cfg_out[0], cfg_out[1]); bits 2-3 spare (latched, unconnected)
+BAY_NAME = {16: "S4", 17: "F4", 18: "E1"}   # bay column, spike channel = SEL (spk_in[16..18]); spk_in[19..23] tied low
+assert {BAY_NAME[s]: s for s in BAY_SEL} == {n: _fp.SPIKE_CH[n] for n in ("S4", "F4", "E1")}
+# E2 leakage nodes: PROBE_SUB = 1 position of array row 3, columns 2 / 3 (AH50 / AH400 slots, no SUB = 1 tap of their own)
+E2_SLOT = {"E2a": (3, 2), "E2b": (3, 3)}
+E2_SEL = {n: next(k for k, rc in SLOT.items() if rc == s) for n, s in E2_SLOT.items()}
+assert E2_SEL == {"E2a": 11, "E2b": 15} and (PROBE_NAME[11], PROBE_NAME[15]) == ("AH50", "AH400"), E2_SEL

@@ -1,7 +1,8 @@
 """cocotb tests for neuron_ctrl rev E: SCK/DATA/LOAD config port and latches,
 latch reset, row x column probe decode (AdEx line, dummy slot never selected),
 packed bias_b1 DAC codes + master lines vs the Python model, direct spike pins
-+ output mux + OUT_BANK (24 channels), PROBE_SEL[4] (bay / column 4), config echo, rt pass-through, LIF tick / event-source / enable paths."""
++ output mux + OUT_BANK (24 channels), PROBE_SEL[4] (bay / column 4), R2 GRP_EN bits
++ probe addresses, config echo, rt pass-through, LIF tick / event-source / enable paths."""
 import os
 import random
 
@@ -12,7 +13,8 @@ from cocotb.utils import get_sim_time
 from nc_driver import setup, wr, shift_bits, ns, stop_task, CLK_NS, _V2
 from regmap import (A, NREG, FW, N_SPK, reg_used, cfg_pack, ana, probe, probe_fields, mode, lif_ctl,
                     idac_word, probe_lines, probe_lines_old, bias_lines, IDACS, VDACS, SLOT, SLOT_HI,
-                    BAY_SEL, D1_CH, ADEX_CH, DUMMY_SLOT, REF_SLOT, TRIM_MASK_DEFAULT)
+                    BAY_SEL, D1_CH, ADEX_CH, DUMMY_SLOT, REF_SLOT, TRIM_MASK_DEFAULT, BIAS_PORTS,
+                    BAY_NAME, E2_SEL, E2_SLOT)
 
 U = lambda s: int(s.value)  # noqa: E731
 NTRIM = 16
@@ -464,3 +466,78 @@ async def test_lif_event_sources(dut):
         stop_task(m)
         assert cnt["n"] == npulse, f"src {src}: {cnt['n']} events, {npulse} pulses"
     await wr(dut, pins, A["LIF_CTL"], lif_ctl(lif_en=0))
+
+
+@cocotb.test()
+async def test_r2_grp_en_and_addresses(dut):
+    """R2 firmware view (docs/info.md "R2 additions"). GRP_EN (ANA[3:0]: bit 0 E2 leakage, bit 1 E1 enable, 2-3 spare)
+    resets to 0 and each bit sets / clears only its own cfg_out bit, with every other cfg_out bit, pin and analog line
+    unchanged. Each R2 probe address raises exactly its lines: bay S4 / F4 / E1 = SEL 16 / 17 / 18 (SUB 0..2) ->
+    probe_sel_bay[k] only; E2 A / B = SUB 1 at slots (3,2) / (3,3) -> probe_rsel[3] + probe_en_c[c] + probe_sub.
+    EN = 0 selects nothing. OUT_BANK = 1: uo[2:0] = ch 16..18, uo[7:3] = 0 with spk_in[19..23] = 0."""
+    pins = await setup(dut)
+    assert U(dut.cfg_out) & 0xF == 0, "GRP_EN resets to 0"
+    rng = random.Random(362)
+    # background: random image, GRP_EN = 0, OUT_MUX = 1 (uio = spikes only, no echo), LIF off
+    shadow = [0] * NREG
+    for a in range(NREG):
+        v = rng.getrandbits(8) & USED[a]
+        if a == A["ANA"]:
+            v &= 0xF0
+        elif a == A["MODE"]:
+            v = (v & ~(1 << 2)) | (1 << 2)
+        elif a == A["LIF_CTL"]:
+            v = 0
+        shadow[a] = v
+        await wr(dut, pins, a, v)
+    check_image(dut, shadow, "preload")
+    pins.set_spk_all(0x5A3C96)
+    for b, v in zip(range(3, 7), (1, 0, 1, 1)):
+        pins.set_ui(b, v)
+    await ns(1)
+
+    def outs():
+        return (U(dut.uo_out), U(dut.uio_out), U(dut.uio_oe), U(dut.rt_out), probe_got(dut),
+                tuple(U(getattr(dut.u_ctrl, n)) for n in BIAS_PORTS), U(dut.cfg_out) >> 4)
+
+    ref = outs()
+    cfg_hi = U(dut.cfg_out) & ~0xF
+    for bg in (0x0, 0xF):                                  # each bit toggled against all-clear and all-set
+        for g in (bg, bg ^ 1, bg, bg ^ 2, bg, bg ^ 4, bg, bg ^ 8, bg):
+            shadow[A["ANA"]] = (shadow[A["ANA"]] & 0xF0) | g
+            await wr(dut, pins, A["ANA"], shadow[A["ANA"]])
+            await ns(1)
+            check_image(dut, shadow, f"GRP_EN={g:#x}")
+            assert U(dut.cfg_out) == cfg_hi | g, f"GRP_EN={g:#x}: cfg_out {U(dut.cfg_out):#x}"
+            assert outs() == ref, f"GRP_EN={g:#x} moved a pin or analog line"
+    dut.rst_n.value = 0                                    # GRP_EN = 0xF here; reset clears it
+    await ns(50)
+    assert U(dut.cfg_out) & 0xF == 0, "GRP_EN cleared by rst_n"
+    dut.rst_n.value = 1
+    await ns(50)
+
+    # R2 probe addresses: (name, SEL, SUB, expected lines (rsel, en_c, d1, adex, sub, sub_b, sub_raw, bay, en_c4))
+    cases = [(BAY_NAME[s], s, sub, (0, 0, 0, 0, sub & 1, 1 - (sub & 1), sub, 1 << k, 0))
+             for s, k in sorted(BAY_SEL.items()) for sub in (0, 1, 2)]
+    cases += [(n, E2_SEL[n], 1, (1 << 3, 1 << E2_SLOT[n][1], 0, 0, 1, 0, 1, 0, 0)) for n in ("E2a", "E2b")]
+    for name, sel, sub, exp in cases:
+        await wr(dut, pins, A["PROBE"], probe(sel=sel, sub=sub, en=0))
+        got = probe_got(dut)
+        assert got[1:4] == (0, 0, 0) and got[7:] == (0, 0), f"{name} EN=0 selects something: {got}"
+        await wr(dut, pins, A["PROBE"], probe(sel=sel, sub=sub, en=1))
+        got = probe_got(dut)
+        assert got == exp, f"{name} SEL {sel} SUB {sub}: got {got}, exp {exp}"
+        assert got == probe_lines(sel, sub, 1), name
+        await wr(dut, pins, A["PROBE"], probe(sel=sel, sub=sub, en=0))   # break-before-make
+    assert probe_got(dut)[1:4] == (0, 0, 0) and probe_got(dut)[7:] == (0, 0)
+
+    # OUT_BANK = 1: bay spikes on uo[2:0]; spk_in[19..23] tied low on the chip -> uo[7:3] = 0
+    await wr(dut, pins, A["OUT"], 1)
+    for bay in range(8):
+        v = (bay << 16) | rng.getrandbits(16)
+        pins.set_spk_all(v)
+        await ns(1)
+        assert U(dut.uo_out) == bay, f"OUT_BANK=1 ch16..18={bay:03b}: uo {U(dut.uo_out):#04x}"
+    await wr(dut, pins, A["OUT"], 0)
+    await ns(1)
+    assert U(dut.uo_out) == v & 0xFF
