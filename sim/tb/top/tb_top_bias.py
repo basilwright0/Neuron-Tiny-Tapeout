@@ -95,6 +95,7 @@ if MODE == "dc":
         codes["r2"] = int(os.environ["BIAS_R2"])
         tag = f"_r2c{codes['r2']}"
     body = B.chip(S, codes=codes, ib_x2=1 if S >= 300 else 0)
+    tag += B.SUFFIX
     r = B.go(B.deck(body, "op", sv), f"bias_dc_S{S:g}{tag}")
     log(f"Bias lines, DC at nominal codes (r2 {codes['r2']}), S = {S:g}, typical 27 C, full-chip PEX (ideal supplies: wiring R of the"
         f" line only; ground offsets are in pgrid.py). Far end - driver end, mV (max |.| over the block's terminals)")

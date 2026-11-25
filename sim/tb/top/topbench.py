@@ -26,6 +26,8 @@ RUNS = "top"                            # run() writes sim/results/<name>.*; we 
 CB = 200e-12                            # pad + board on ua[1]
 import os as _os                        # noqa: E402
 SUFFIX = "_vsrcfix" if _os.environ.get("TOP_VSRC_FIX") == "1" else ""   # result-name tag (topnet.vsrc_fix)
+NOBAY = _os.environ.get("NOBAY") == "1"     # R2: chip() without the bay devices (topnet.build drop_inst), tag _nobay
+SUFFIX += "_nobay" if NOBAY else ""
 
 
 def op_point(S=100.0):
@@ -101,6 +103,8 @@ def chip(S=100.0, codes=None, probe=None, rt=(0, 0, 0, 0), ib_x2=0, sources=None
     that open at T_REL = 0.5 us (the full-chip op does not converge by Newton, and ngspice's transient-op fallback
     leaves these nA-biased lines and block states unsettled)."""
     codes = codes or op_point(S)
+    if NOBAY and "drop_inst" not in kw:
+        kw["drop_inst"] = {i for _, i, _ in T.bay()}
     st = T.config(codes=codes, probe=probe, rt=rt, ib_x2=ib_x2)
     st.update(state_over or {})
     body = T.build(st, sources=sources, power=power, **kw)

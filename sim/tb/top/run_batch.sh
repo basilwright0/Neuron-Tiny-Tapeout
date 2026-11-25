@@ -73,7 +73,11 @@ elif [ "$MODE" = pex ]; then      # longest first (kick: 210 us transient); no f
   if grep -q "^E2_XY = " floorplan/floorplan.py; then      # final R2 chip (r2-int 988c8d8): E1 in by2, E2
     JOBLIST=("r2blk_e1_typ27|python3 sim/tb/top/tb_top_r2blk.py e1 typical 27"
              "r2blk_e2A_ff85|python3 sim/tb/top/tb_top_r2blk.py e2 A ff 85"
-             "r2blk_e2B_ff85|python3 sim/tb/top/tb_top_r2blk.py e2 B ff 85" "${JOBLIST[@]}")
+             "r2blk_e2B_ff85|python3 sim/tb/top/tb_top_r2blk.py e2 B ff 85"
+             "s10k_typ27_nobay|env NOBAY=1 S10K_TIMEOUT=7500 python3 sim/tb/top/tb_top_s10k.py typical 27"
+             "bias_spk_off_nobay|env NOBAY=1 python3 sim/tb/top/tb_top_bias.py spk off"
+             "bias_dc_S1000|python3 sim/tb/top/tb_top_bias.py dc 1000"
+             "bias_dc_S1000_nobay|env NOBAY=1 python3 sim/tb/top/tb_top_bias.py dc 1000" "${JOBLIST[@]}")
   fi
   if [ -n "${PEX_SKIP:-}" ]; then
     K=(); for j in "${JOBLIST[@]}"; do echo "${j%%|*}" | grep -qE "$PEX_SKIP" || K+=("$j"); done; JOBLIST=("${K[@]}")
