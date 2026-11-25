@@ -616,3 +616,53 @@ MACRO gf180mcu_fd_sc_mcu7t5v0__nor4_1
     END
   END VSS
 END gf180mcu_fd_sc_mcu7t5v0__nor4_1
+MACRO gf180mcu_fd_sc_mcu7t5v0__antenna
+  CLASS core ANTENNACELL ;
+  FOREIGN gf180mcu_fd_sc_mcu7t5v0__antenna ;
+  ORIGIN 0.000 0.000 ;
+  SIZE 1.120 BY 3.920 ;
+  SYMMETRY X Y ;
+  SITE GF018hv5v_mcu_sc7 ;
+  PIN I
+    DIRECTION INPUT ;
+    ANTENNADIFFAREA 0.410400 ;
+    PORT
+      LAYER Metal1 ;
+        RECT 0.140 0.810 0.475 2.710 ;
+    END
+  END I
+  PIN VDD
+    DIRECTION INOUT ;
+    USE POWER ;
+    SHAPE ABUTMENT ;
+    PORT
+      LAYER Metal1 ;
+        RECT 0.000 3.620 1.120 4.220 ;
+    END
+  END VDD
+  PIN VNW
+    DIRECTION INOUT ;
+    USE POWER ;
+    PORT
+      LAYER Nwell ;
+        RECT -0.430 1.760 1.550 4.350 ;
+    END
+  END VNW
+  PIN VPW
+    DIRECTION INOUT ;
+    USE GROUND ;
+    PORT
+      LAYER Pwell ;
+        RECT -0.430 -0.430 1.550 1.760 ;
+    END
+  END VPW
+  PIN VSS
+    DIRECTION INOUT ;
+    USE GROUND ;
+    SHAPE ABUTMENT ;
+    PORT
+      LAYER Metal1 ;
+        RECT 0.000 -0.300 1.120 0.300 ;
+    END
+  END VSS
+END gf180mcu_fd_sc_mcu7t5v0__antenna

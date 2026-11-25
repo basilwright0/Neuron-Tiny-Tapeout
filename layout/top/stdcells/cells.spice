@@ -63,3 +63,8 @@ X_i_6 net_1 A3 net_2 VNW pfet_05v0 W=1.22e-06 L=5e-07
 X_i_5 net_0 A2 net_1 VNW pfet_05v0 W=1.22e-06 L=5e-07
 X_i_4 ZN A1 net_0 VNW pfet_05v0 W=1.22e-06 L=5e-07
 .ENDS
+
+.SUBCKT gf180mcu_fd_sc_mcu7t5v0__antenna I VDD VNW VPW VSS
+D0 VPW I diode_nd2ps_06v0 AREA=0.2052p PJ=1.86u M=1
+D1 I VNW diode_pd2nw_06v0 AREA=0.2052p PJ=1.86u M=1
+.ENDS

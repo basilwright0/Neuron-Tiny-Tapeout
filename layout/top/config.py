@@ -224,6 +224,10 @@ def nets():
                                   ("g_ns1", "probe_sub_raw[0]")]):
         g = f"g_s{k}"
         add("g_nsel", g, "A1"); add(a2, g, "A2"); add(a3, g, "A3"); add(f"d1_sel{k}", g, "ZN")
+    # ---- R2: antenna diodes on probe_sub (C1 variant a reaches its driver through Metal4, so at the Metal3 stage the
+    #      row bands + vr-tap gates had no diffusion: ANT.16_ii_ANT.4); tie-row west end, Metal2 from the join line
+    for i in range(2):
+        add("probe_sub", f"gant{i}", "I")
     # ---- uio_oe tie-high cells
     for i in range(8):
         add(f"uio_oe[{i}]", f"tie{i}", "Z"); add(f"uio_oe[{i}]", "TT", f"uio_oe[{i}]")
@@ -232,7 +236,7 @@ def nets():
 
 # std cells: inst -> (cell, x, y)  (lower-left, R0); widths from the PDK LEF
 SC = "gf180mcu_fd_sc_mcu7t5v0__"
-SC_W = {"tieh": 2.24, "filltie": 1.12, "inv_1": 2.24, "nor3_1": 4.48, "or4_1": 6.72, "nor4_1": 5.6, "or3_1": 5.6}
+SC_W = {"tieh": 2.24, "filltie": 1.12, "inv_1": 2.24, "nor3_1": 4.48, "or4_1": 6.72, "nor4_1": 5.6, "or3_1": 5.6, "antenna": 1.12}
 SC_H = 3.92
 
 
@@ -244,6 +248,9 @@ def std_cells():
         x = round(round((px - 1.40) / 0.005) * 0.005, 3)
         S[f"tie{i}"] = ("tieh", x, fp.TIE_ROW_Y)
         S[f"tap{i}"] = ("filltie", x + SC_W["tieh"], fp.TIE_ROW_Y)
+    x7 = S["tie7"][1]                                    # R2: 2 antenna diodes west of the first tieh
+    for i in range(2):
+        S[f"gant{i}"] = ("antenna", round(x7 - SC_W["antenna"] * (2 - i), 3), fp.TIE_ROW_Y)
     # glue rows (west -> east), M3: split over the two rows in H3 (fp.GLUE_ROWS); same cells and nets
     rows = [[("gtap0", "filltie"), ("g_or", "or4_1"), ("g_enb", "nor4_1"), ("g_in", "inv_1"),
              ("g_i0", "inv_1"), ("g_i1", "inv_1"), ("gtap1", "filltie")],

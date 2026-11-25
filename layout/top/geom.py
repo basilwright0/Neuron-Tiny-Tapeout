@@ -328,7 +328,7 @@ def ties(F):
     mx, my = I["ctrl"][1:]
     ax, ay = I["ax"][1:]
     pins = geo("neuron_ctrl")["pins"]
-    xr = round(mx - 0.35, 3)
+    xr = round(mx - 0.85, 3)                   # via column 0.85 off the macro (a pad on the stub notched the pin)
     ys = []
     import route as RT                         # the router's own edge stub (same rectangle as a routed pin)
     bbox = geo("neuron_ctrl")["bbox"]
@@ -337,6 +337,7 @@ def ties(F):
         y = round((st[1] + st[3]) / 2, 3)
         ys.append(y)
         F.p("metal3", st, "VGND")
+        F.p("metal3", (xr - 0.2, y - 0.14, st[2], y + 0.14), "VGND")
         F.via("via2", xr, y, "VGND")
         F.via("via1", xr, y, "VGND", pads=("lo",))
     ring = [r for g in geo("adex_a1")["pins"]["vss"] for r in g["rects"] if r[0] > 37 and r[3] - r[1] > 30][0]
@@ -373,6 +374,21 @@ def stdcells(F, VDDB, VSSB):
     for i in range(8):
         _, x, _ = S[f"tie{i}"]
         landing(F, sc, "tieh", x, ty, "Z", f"uio_oe[{i}]", (1.40, 2.85))
+    # R2 antenna diodes on probe_sub: via1 pads on the I pins, a Metal2 line west to the probe_sub join line (its
+    # top end, row-3 track 5), all below Metal4 (no router terminal)
+    xj = join_x(fp.BLOCKS["NA neuron array 4x4"][0])[5]
+    yj = fp.row_y0(3) + fp.row_trk0(3) + TRKP * 5
+    yl = ty + 1.76
+    xs = []
+    for i in range(2):
+        _, x, _ = S[f"gant{i}"]
+        X = x + 0.31
+        xs.append(X)
+        q = sc[C.SC + "antenna"]["pins"]["I"][0]
+        F.p("metal1", (x + q[0], yl - 0.2, x + q[2], yl + 0.2), "probe_sub")
+        F.p("via1", (X - 0.13, yl - 0.13, X + 0.13, yl + 0.13), "probe_sub")
+    F.p("metal2", (xj - 0.14, yl - 0.2, max(xs) + 0.2, yl + 0.2), "probe_sub")
+    F.p("metal2", (xj - 0.14, yj - 0.2, xj + 0.14, yl + 0.2), "probe_sub")
     # ---- glue row: rails, stacks to the macro strap-pair stripes, pin landing pads
     glue_y = {gy0 for gx0, gy0 in fp.GLUE_ROWS}
     for gx0, gy0 in fp.GLUE_ROWS:
