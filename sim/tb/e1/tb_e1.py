@@ -15,8 +15,9 @@ Input: ideal current into vm (Iin, multiples of the DC rheobase), and the fixed 
 (sta = 1: weight A; sta = stb = 1: A + B) - the chip's own stimulus path.
 Definitions: EL = vm at rest (zero net current, DC sweep of a vm source); Vth = the vm where spk trips in the same
 sweep; rheobase = the current the source must supply to hold vm at Vth; g = dI/dV at EL;
-tau = 63 % time of a small current step (0.25 x rheobase); t_ref = time from the spk rising edge until vm rises
-10 mV above its clamped level at 8 x rheobase.
+tau = 63 % time of a small current step (0.25 x rheobase); t_ref = ISI at 50 x rheobase minus tau ln(50/49)
+(the reset kick through Cfb makes "time until vm leaves the clamp" ill-defined; this is also how the chip measures it:
+the saturated f-I). grp_en = 0 tran: vm starts at 1.4 V (uic; the first ~1 us spike is the uic start-up, not counted).
 """
 import json
 import os
@@ -41,11 +42,14 @@ NETS = dict(vm="vm", spk="spk", rsel="0", sub="0", sub_b="vddc", el="xel", vsrc=
             aux="xel", vbp_syn="xsy", sta="sta", stb="stb", hold="hold", mreset="mrst", grp_en="gen")
 PEX = os.environ.get("PEX")
 CM = 200e-15
+SIZES = dict(wp1="0.5u", lp1="4u", we1="0.22u", le1="7u", we2="8u", le2="1u", lt="13u", wnr="0.5u", lnr="1.3u",
+             lnw="3.3u")       # = the e1_fb defaults in cells/neuron/e1.spice (the sweep overrides them)
 
 
 def inst():
     if not PEX:
-        return "Xn " + " ".join(NETS[p] for p in PORTS) + " e1_fb", include(*LIBS)
+        return ("Xn " + " ".join(NETS[p] for p in PORTS) + " e1_fb " + " ".join(f"{k}={v}" for k, v in SIZES.items()),
+                include(*LIBS))
     txt = re.sub(r"\n\+", " ", Path(PEX).read_text())
     m = re.search(r"^\.subckt\s+(\S+)\s+(.*)$", txt, re.M | re.I)
     ports = m.group(2).split()
@@ -114,16 +118,9 @@ def fi_run(tag, hdr, iin=0.0, sta="0", stb="0", S=100.0, tstop=4e-3, tref=False)
     st = crossings(t, spk, 1.65)
     out = dict(rate=float(rate(st, t_settle=0.0)), nspk=int(len(st)),
                vm_min=float(vm[t > 2e-4 * 100 / S].min()), vm_max=float(vm[t > 2e-4 * 100 / S].max()))
-    if tref and len(st) >= 2:
-        trs = []
-        for a, b in zip(st[:-1], st[1:]):
-            m = (t > a) & (t < b)
-            tt, vv = t[m], vm[m]
-            j = int(np.argmin(vv[: max(1, len(vv) // 2)]))
-            up = np.where(vv[j:] > vv[j] + 0.010)[0]
-            if len(up):
-                trs.append(float(tt[j + up[0]] - a))
-        out["t_ref"] = float(np.median(trs)) if trs else float("nan")
+    if tref and len(st) >= 3:          # tref = (k, tau, rheo): ISI at k x rheobase minus the LIF charging time
+        k, tau = tref[0], tref[1]
+        out["t_ref"] = float(np.median(np.diff(st)) - tau * np.log(k / (k - 1)))
     return out
 
 
@@ -131,10 +128,12 @@ LEGS = """{libs}
 Vdd vdd 0 3.3
 Ist vbs 0 {ist}
 XD0 vbs vbs vdd vdd pfet_03v3 W=1u L=4u
-XP1 el_l vbs vdd vdd pfet_03v3 W=1u L=2u
-XE1 el_l el_l mid 0 nfet_03v3 W={we1} L=0.5u
-XE2 mid mid 0 0 nfet_03v3 W={we2} L=0.5u
-XP2 vsl vbs vdd vdd pfet_03v3 W=1u L=2u
+XP1 l1 vbs vdd vdd pfet_03v3 W={wp1} L={lp1}
+XG1 l1 vdd el_l 0 nfet_03v3 W=0.5u L=0.28u
+XE1 el_l el_l mid 0 nfet_03v3 W={we1} L={le1}
+XE2 mid mid 0 0 nfet_03v3 W={we2} L={le2}
+XP2 l2 vbs vdd vdd pfet_03v3 W=1u L=2u
+XG2 l2 vdd vsl 0 nfet_03v3 W=0.5u L=0.28u
 XV  vsl vsl 0 0 nfet_03v3 W=1u L=0.5u
 XNW vbw mid 0 0 nfet_03v3 W=0.22u L={lnw}
 XPW vbw vbw vdd vdd pfet_03v3 W=2u L=1u
@@ -143,29 +142,28 @@ XT  tn mid 0 0 nfet_03v3 W=0.22u L={lt}
 Vr  rn 0 2.0
 XR  rn mid 0 0 nfet_03v3 W={wnr} L={lnr}
 Vw  wn 0 1.5
-XW  wn vbw vdd vdd pfet_03v3 W=2u L=4u
+XW  wn vbw vdd vdd pfet_03v3 W=1u L=2u
 Vs  sn 0 1.5
 XS  sn vbs vdd vdd pfet_03v3 W=1u L=2u
 Vdum dum 0 0
 """
-SIZES = dict(we1="0.7u", we2="4u", lt="11u", wnr="0.5u", lnr="2.6u", lnw="2.4u")
 
 
 def legs(tag, hdr, S=100.0):
     r = run(deck(LEGS.format(libs=include("neuron/membrane.spice"), ist=62.5e-9 * S / 100, **SIZES), "dc Vdum 0 0 1",
                  ["i(Vt)", "i(Vr)", "i(Vw)", "i(Vs)", "v(el_l)", "v(mid)", "v(vsl)"], **hdr), f"e1/{tag}_legs")
     g = lambda k: float(r[k][0])
-    return dict(I_leak=g("i(vt)"), I_ref=g("i(vr)"), I_w=-g("i(vw)"), I_st=-g("i(vs)"),
+    return dict(I_leak=-g("i(vt)"), I_ref=-g("i(vr)"), I_w=g("i(vw)"), I_st=g("i(vs)"),
                 V_el=g("v(el_l)"), V_mid=g("v(mid)"), V_vsrc=g("v(vsl)"))
 
 
 def off_state(tag, hdr, S=100.0):
     """grp_en = 0: supply current of the cell (op), vm parking from 1.4 V, then grp_en 0 -> 1 at 300 us (sta = 1)."""
-    r = run(deck(body(S, gen="0"), "op", ["i(Vddc)", "v(vm)", "v(xn.vbpl)", "v(xn.el_l)", "v(spk)"], **hdr),
+    r = run(deck(body(S, gen="0"), "op", ["i(Vddc)", "v(vm)", "v(xn.vsl)", "v(xn.el_l)", "v(spk)"], **hdr),
             f"e1/{tag}_off_op") if not PEX else None
     out = {}
     if r is not None:
-        out.update(I_vdd_off=-float(r["i(vddc)"][0]), vm_off=float(r["v(vm)"][0]), vbpl_off=float(r["v(xn.vbpl)"][0]),
+        out.update(I_vdd_off=-float(r["i(vddc)"][0]), vm_off=float(r["v(vm)"][0]), vsl_off=float(r["v(xn.vsl)"][0]),
                    el_off=float(r["v(xn.el_l)"][0]), spk_off=float(r["v(spk)"][0]))
     r2 = run(deck(body(S, gen="0"), "op", ["i(Vddc)"], **hdr).replace("Vgen gen 0 0", "Vgen gen 0 3.3"),
              f"e1/{tag}_on_op")
@@ -176,7 +174,7 @@ def off_state(tag, hdr, S=100.0):
     t, vm, spk = r3["_x"], r3["v(vm)"], r3["v(spk)"]
     st = crossings(t, spk, 1.65)
     out.update(vm_at_100us=float(np.interp(100e-6, t, vm)), vm_at_290us=float(np.interp(290e-6, t, vm)),
-               spikes_before_on=int((st < t_on).sum()), first_spike_after_on=float(st[st > t_on][0] - t_on)
+               spikes_before_on=int(((st > 5e-6) & (st < t_on)).sum()), first_spike_after_on=float(st[st > t_on][0] - t_on)
                if (st > t_on).any() else float("nan"), I_vdd_off_tran=float(-np.mean(r3["i(vddc)"][(t > 200e-6) & (t < t_on)])))
     return out
 
@@ -192,12 +190,12 @@ def corners(S=100.0):
         if not PEX:
             d.update(legs(tag, hdr, S))
         fi = []
-        for k in (0.9, 1.5, 2, 3, 5, 8):
-            f = fi_run(f"{tag}_fi{k}", hdr, iin=k * d["rheo"], S=S, tref=(k == 8))
+        for k in (0.9, 1.1, 1.5, 2, 3, 5, 8):
+            f = fi_run(f"{tag}_fi{k}", hdr, iin=k * d["rheo"], S=S)
             f["k"] = k
             fi.append(f)
-            if k == 8:
-                d["t_ref"] = f.get("t_ref", float("nan"))
+        f = fi_run(f"{tag}_fi50", hdr, iin=50 * d["rheo"], S=S, tstop=0.4e-3, tref=(50, d["tau"]))
+        d["t_ref"], d["rate50"] = f.get("t_ref", float("nan")), f["rate"]
         syn = {nm: fi_run(f"{tag}_syn{nm}", hdr, sta="3.3", stb=b, S=S) for nm, b in (("A", "0"), ("AB", "3.3"))}
         d["fi"], d["syn"] = fi, syn
         d.update(off_state(tag, hdr, S))
@@ -211,7 +209,7 @@ def corners(S=100.0):
         txt.append("   f-I (ideal Iin): " + "  ".join(f"{f['k']}x {f['rate']:.0f} Hz" for f in fi))
         txt.append(f"   fixed weights (DC): A {syn['A']['rate']:.0f} Hz, A+B {syn['AB']['rate']:.0f} Hz")
         txt.append("   grp_en: " + "  ".join(f"{k} {v:.4g}" for k, v in d.items() if k in (
-            "I_vdd_off", "vm_off", "vbpl_off", "el_off", "spk_off", "I_vdd_on_rest", "vm_at_100us", "vm_at_290us",
+            "I_vdd_off", "vm_off", "vsl_off", "el_off", "spk_off", "I_vdd_on_rest", "vm_at_100us", "vm_at_290us",
             "spikes_before_on", "first_spike_after_on", "I_vdd_off_tran")))
         print("\n".join(txt[-5:]), flush=True)
     name = f"{'pex_' if PEX else ''}corners_S{S:g}"
@@ -228,8 +226,10 @@ def mc(n, first=1, S=100.0):
         try:
             d = dc_char(tag, hdr, S)
             d.update(tau_step(tag, hdr, d, S))
-            f = fi_run(f"{tag}_fi8", hdr, iin=8 * d["rheo"], S=S, tstop=1e-3, tref=True)
-            d["t_ref"], d["rate8"] = f.get("t_ref", float("nan")), f["rate"]
+            f = fi_run(f"{tag}_fi50", hdr, iin=50 * d["rheo"], S=S, tstop=0.4e-3, tref=(50, d["tau"]))
+            d["t_ref"], d["rate50"] = f.get("t_ref", float("nan")), f["rate"]
+            f = fi_run(f"{tag}_fi2", hdr, iin=2 * d["rheo"], S=S, tstop=2e-3)
+            d["rate2"] = f["rate"]
             f = fi_run(f"{tag}_synA", hdr, sta="3.3", S=S, tstop=2e-3)
             d["rateA"] = f["rate"]
         except Exception as e:      # keep going; a failed die is reported
@@ -241,14 +241,23 @@ def mc(n, first=1, S=100.0):
         (OUTD / f"mc_{first}_{n}.json").write_text(json.dumps(res, indent=1))
 
 
-if __name__ == "__main__":
-    a = sys.argv[1:]
-    if a[0] == "corners":
-        corners(float(a[1]) if len(a) > 1 else 100.0)
-    elif a[0] == "diag":
-        diag()
-    elif a[0] == "mc":
-        mc(int(a[1]), int(a[2]) if len(a) > 2 else 1, float(a[3]) if len(a) > 3 else 100.0)
+def sweep():
+    """Sizing grid for the EL stack / mirror master at tt/27, ss/0, ff/85: EL, Vth, gap (DC) and the copy currents."""
+    import itertools
+    rows = []
+    grid = itertools.product([("0.5u", "4u")], [("8u", "1u")], [("0.22u", "6u"), ("0.22u", "8u"), ("0.22u", "10u")])
+    for (wp1, lp1), (we2, le2), (we1, le1) in grid:
+        SIZES.update(wp1=wp1, lp1=lp1, we2=we2, le2=le2, we1=we1, le1=le1)
+        line = f"P1 {wp1}/{lp1} E2 {we2}/{le2} E1 {we1}/{le1}:"
+        for corner, T in (("typical", 27), ("ss", 0), ("ff", 85)):
+            hdr = dict(corner=corner, temp=T)
+            d = dc_char("sw", hdr)
+            d.update(legs("sw", hdr))
+            line += (f" | {corner[:2]} EL {d['EL']:.3f} gap {1e3 * d['gap']:.0f} rh {1e12 * d['rheo']:.0f}p g {1e9 * d['g']:.2f}n"
+                     f" Il {1e12 * d['I_leak']:.0f}p Ir {1e9 * d['I_ref']:.2f}n Iw {1e12 * d['I_w']:.0f}p mid {d['V_mid']:.3f}")
+        print(line, flush=True)
+        rows.append(line)
+    (OUTD / "sweep.txt").write_text("\n".join(rows) + "\n")
 
 
 def diag(S=100.0):
@@ -269,3 +278,15 @@ def diag(S=100.0):
         print(f"  {n:14s} min {v.min():.4f} max {v.max():.4f}  mean |dv| per step {np.mean(np.abs(np.diff(v))):.2e}")
     h, e = np.histogram(t, bins=40)
     print("points per 10 us:", h.tolist())
+
+
+if __name__ == "__main__":
+    a = sys.argv[1:]
+    if a[0] == "corners":
+        corners(float(a[1]) if len(a) > 1 else 100.0)
+    elif a[0] == "sweep":
+        sweep()
+    elif a[0] == "diag":
+        diag()
+    elif a[0] == "mc":
+        mc(int(a[1]), int(a[2]) if len(a) > 2 else 1, float(a[3]) if len(a) > 3 else 100.0)

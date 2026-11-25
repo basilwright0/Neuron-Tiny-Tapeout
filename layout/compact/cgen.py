@@ -77,7 +77,7 @@ if EXTRA_N:
         ROWPLAN = ROWPLAN[:i + 1] + [("row", "n", "down", 0.5, "N5"), ("ptap",), ("row", "n", "up", 0.5, "N4"),
                                      ("chan", 0.6)] + ROWPLAN[i + 1:]
 # E1 (e1_fb): one short n row (W <= 0.5: switches, long-L mirror copies) on its own p-tap strip above the cap row
-if CELL == "e1_fb" or os.environ.get("SHORT_N") == "1":
+if (CELL == "e1_fb" and not EXTRA_N) or os.environ.get("SHORT_N") == "1":
     i = ROWPLAN.index(("chan", 0.6))
     ROWPLAN = ROWPLAN[:i + 1] + [("row", "n", "down", 0.5, "N5"), ("ptap",), ("chan", 0.6)] + ROWPLAN[i + 1:]
 if os.environ.get("CHAN"):

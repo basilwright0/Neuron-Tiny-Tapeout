@@ -1,0 +1,32 @@
+P1 0.5u/4u E2 8u/1u E1 0.22u/6u: | ty EL 1.392 gap 94 rh 177p g 2.12n Il 325p Ir 2.93n Iw 372p mid 0.503 | ss EL 1.732 gap 88 rh 169p g 2.19n Il 308p Ir 2.79n Iw 354p mid 0.650 | ff EL 0.961 gap 107 rh 174p g 1.82n Il 327p Ir 3.05n Iw 364p mid 0.309
+P1 0.5u/4u E2 8u/1u E1 0.22u/8u: | ty EL 1.416 gap 70 rh 137p g 2.13n Il 325p Ir 2.93n Iw 372p mid 0.503 | ss EL 1.757 gap 63 rh 128p g 2.19n Il 308p Ir 2.79n Iw 354p mid 0.650 | ff EL 0.987 gap 82 rh 138p g 1.82n Il 327p Ir 3.05n Iw 364p mid 0.309
+P1 0.5u/4u E2 8u/1u E1 0.22u/10u: | ty EL 1.437 gap 49 rh 99p g 2.13n Il 324p Ir 2.93n Iw 372p mid 0.503 | ss EL 1.777 gap 43 rh 89p g 2.20n Il 308p Ir 2.79n Iw 354p mid 0.650 | ff EL 1.008 gap 60 rh 104p g 1.83n Il 327p Ir 3.05n Iw 363p mid 0.309
+Traceback (most recent call last):
+  File "/work/sim/tb/e1/tb_e1.py", line 290, in <module>
+    corners(float(a[1]) if len(a) > 1 else 100.0)
+  File "/work/sim/tb/e1/tb_e1.py", line 207, in corners
+    d.update(off_state(tag, hdr, S))
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/sim/tb/e1/tb_e1.py", line 168, in off_state
+    r = run(deck(body(S, gen="0"), "op", ["i(Vddc)", "v(vm)", "v(xn.vbpl)", "v(xn.el_l)", "v(spk)"], **hdr),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/sim/lib/ngs.py", line 82, in run
+    raise RuntimeError(f"ngspice produced no data for {name}; see {log}\n{tail}")
+RuntimeError: ngspice produced no data for e1/typical27_S100_off_op; see /work/sim/results/e1/typical27_S100_off_op.log
+
+Note: Compatibility modes selected: hs a
+
+
+Circuit: * tb
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+ngspice-47 done
+Warning: m=xx on .subckt line will override multiplier m hierarchy!
+
+Error: no such vector xn.vbpl
+  in term: v(xn.vbpl)
+
