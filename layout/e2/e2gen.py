@@ -109,8 +109,6 @@ itemsA = ["vdd", ("MFA", 4.0, 2.0, "na"), "pa", ("MEA", 1.0, 0.28, "en_a"), "sa"
 capw = 0.44 + LC + 0.44
 XA = snap(X0 + capw + GAP)
 A = chain("n", itemsA, XA, YA, contacted={0, 1, 2, 3, 4, 5, 6})
-W = snap(XA + A["width"] + GAP + capw + 0.34 + RING)
-XCB = snap(XA + A["width"] + GAP)                     # cap B diffusion left
 for nm, d_, g, s in (("MFA", "vdd", "na", "pa"), ("MEA", "pa", "en_a", "sa"), ("MBA", "sa", "vbn_prb", "vss"),
                      ("MBB", "sb", "vbn_prb", "vss"), ("MEB", "pb", "en_b", "sb"), ("MFB", "vdd", "nb", "pb")):
     w, l = {"MF": (4, 2), "ME": (1, 0.28), "MB": (2, 2)}[nm[:2]]
@@ -133,11 +131,13 @@ dev("SA", "vreset", "grp_en", "na", "vss", "nfet_03v3", 1, 0.5)
 dev("SB1", "vreset", "grp_en", "mid", "vss", "nfet_03v3", 1, 0.5)
 dev("SB2", "mid", "grp_en", "nb", "vss", "nfet_03v3", 1, 0.5)
 
-# row B: pMOS mid clamp (vreset -> mid while grp_en = 0), in an n-well with its own n-tap (vdd)
+# row B (rev B): local CMOS inverter grp_en -> gb (pMOS in an n-well with its own n-tap), then the mid clamp
+# vreset -[NC, clamp_en]- cx -[NG, gb]- mid (both nMOS 1/0.28): mid held at vreset while grp_en = 0 and clamp_en = 1;
+# clamp_en = 0 leaves mid floating (plain 2-stack). nMOS pass vreset down to 0 V (the rev A pMOS stopped at |Vtp|).
 NW_ENC = 0.43
 XP = snap(XR + Rc["width"] + 2 * NW_ENC + 0.02)
-P = chain("p", ["mid", ("PC", 1.0, 0.28, "grp_en"), "vreset"], XP, YB, contacted={0, 1})
-dev("PC", "vreset", "grp_en", "mid", "vdd", "pfet_03v3", 1, 0.28)
+P = chain("p", ["vdd", ("PI", 1.0, 0.28, "grp_en"), "gb"], XP, YB, contacted={0, 1})
+dev("PI", "gb", "grp_en", "vdd", "vdd", "pfet_03v3", 1, 0.28)
 XNT = snap(XP + P["width"] + 0.34)           # n-tap
 NT = (XNT, YB, XNT + 0.42, YB + 1.0)
 R("nsubdiff", NT, "vdd")
@@ -145,6 +145,15 @@ R("nsubdiffcont", (XNT + 0.095, YB + 0.065, XNT + 0.325, YB + 0.935), "vdd")
 R("metal1", (XNT + 0.095, YB + 0.01, XNT + 0.325, YB + 0.99), "vdd")
 NWELL = (XP - NW_ENC, YB - NW_ENC, NT[2] + 0.16, YB + 1.0 + NW_ENC)
 R("nwell", NWELL)
+XNI = snap(NWELL[2] + NW_ENC + 0.02)
+NI = chain("n", ["vss", ("NI", 1.0, 0.28, "grp_en"), "gb"], XNI, YB, contacted={0, 1})
+dev("NI", "gb", "grp_en", "vss", "vss", "nfet_03v3", 1, 0.28)
+XNC = snap(XNI + NI["width"] + 0.40)
+NC = chain("n", ["mid", ("NG", 1.0, 0.28, "gb"), "cx", ("NC", 1.0, 0.28, "clamp_en"), "vreset"], XNC, YB, contacted={0, 2})
+dev("NG", "cx", "gb", "mid", "vss", "nfet_03v3", 1, 0.28)
+dev("NC", "vreset", "clamp_en", "cx", "vss", "nfet_03v3", 1, 0.28)
+XCB = snap(max(XA + A["width"], XNC + NC["width"]) + GAP)     # cap B diffusion left
+W = snap(XCB + capw + 0.34 + RING)
 
 # caps: nfet, gate = node, S/D = vss (contact columns both sides), poly up to the bridge
 CAP_TOP = YA + 4.0                     # cap diffusion top = row A diffusion top (bridge above both)
@@ -209,10 +218,15 @@ for nm, net in (("SCA", "en_a"), ("SCB", "en_b")):
     xc = (Tg[nm][0] + Tg[nm][1]) / 2
     polycon(xc, tB + 1.67, net); term(net, "m1", pad_of(xc, tB + 1.67))
 # R chain + pMOS: one grp_en bar
-Rg = dict(Rc["gates"]); Rg["PC"] = P["gates"]["PC"]
+Rg = dict(Rc["gates"]); Rg["PI"] = P["gates"]["PI"]; Rg["NI"] = NI["gates"]["NI"]
 for nm in Rg:
     gstem(YB, Rg[nm], tB + 0.63, "grp_en")
-R("polysilicon", (Rg["SA"][0], tB + 0.27, Rg["PC"][1], tB + 0.63), "grp_en")
+R("polysilicon", (Rg["SA"][0], tB + 0.27, Rg["NI"][1], tB + 0.63), "grp_en")
+for nm, net, hy in (("NG", "gb", tB + 0.45), ("NC", "clamp_en", tB + 1.06)):     # staggered heads
+    g = NC["gates"][nm]
+    gstem(YB, g, hy + 0.18, net)
+    xn = (g[0] + g[1]) / 2
+    polycon(xn, hy, net); term(net, "m1", pad_of(xn, hy))
 xg = (Rg["SA"][0] + Rg["SA"][1]) / 2
 polycon(xg, tB + 0.45, "grp_en"); term("grp_en", "m1", pad_of(xg, tB + 0.45))
 # row A
@@ -238,7 +252,7 @@ for net, (x, y) in NODE_PAD.items():
     polycon(x, y, net); term(net, "m1", pad_of(x, y))
 
 # diffusion terminals
-for ch in (A, T, Rc, P):
+for ch in (A, T, Rc, P, NI, NC):
     for net, r in ch["stripes"]:
         if net in ("sa", "sb"):
             continue
@@ -248,7 +262,8 @@ term("vdd", "m1", (XNT + 0.095, YB + 0.01, XNT + 0.325, YB + 0.99))
 term("vss", "m1", (0, 0, W, RING))
 
 # ------------------------------------------------------------------ pins (labels on the cell edge)
-PIN_X = {"en_a": 2.0, "rsel": 3.2, "sub": 4.4, "abus": 5.6, "vbn_prb": 22.4, "grp_en": 23.6, "vreset": 24.8, "en_b": 26.0}
+PIN_X = {"en_a": 2.0, "rsel": 3.2, "sub": 4.4, "abus": 5.6, "vbn_prb": 22.4, "grp_en": 23.6, "vreset": 24.8, "en_b": 26.0,
+         "clamp_en": 27.2}
 PIN_X = {k: float(os.environ.get("E2_PIN_" + k, v)) for k, v in PIN_X.items()}
 PINS = []            # (net, layer, rect, use)
 for net, x in PIN_X.items():
@@ -314,7 +329,7 @@ def route(log=print):
             if not n:
                 log(f"  !! {net}: terminal {t} without a grid node")
         nets[net] = [n for n in tn if n]
-    order = ["na", "nb", "pa", "pb", "abus", "en_a", "en_b", "rsel", "sub", "vbn_prb", "grp_en", "vreset", "mid",
+    order = ["na", "nb", "pa", "pb", "abus", "en_a", "en_b", "rsel", "sub", "vbn_prb", "grp_en", "clamp_en", "vreset", "mid", "gb",
              "vdd", "vss"]
     order = [n for n in order if n in nets] + [n for n in nets if n not in order]
     unrouted, bad = Rt.route_all(nets, order, iters=60, log=log)
@@ -322,7 +337,7 @@ def route(log=print):
 
 
 def lvs_ref(path):
-    ports = "vdd vss vreset abus vbn_prb grp_en en_a en_b rsel sub"
+    ports = "vdd vss vreset abus vbn_prb grp_en clamp_en en_a en_b rsel sub"
     L = [f"* LVS reference for {NAME} (layout/e2/e2gen.py): E2 leakage test cell, MIL-362",
          f".subckt {NAME} {ports}"]
     for nm, d_, g, s, b, model, w, l in DEV:

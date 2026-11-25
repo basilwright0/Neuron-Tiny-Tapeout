@@ -84,18 +84,18 @@ Circuit nfet_03v3 contains no devices.
 Circuit pfet_03v3 contains no devices.
 
 Contents of circuit 1:  Circuit: 'e2_leak'
-Circuit e2_leak contains 18 device instances.
-  Class: nfet_03v3             instances:  17
+Circuit e2_leak contains 21 device instances.
+  Class: nfet_03v3             instances:  20
   Class: pfet_03v3             instances:   1
-Circuit contains 21 nets.
+Circuit contains 24 nets.
 Contents of circuit 2:  Circuit: 'e2_leak'
-Circuit e2_leak contains 18 device instances.
-  Class: nfet_03v3             instances:  17
+Circuit e2_leak contains 21 device instances.
+  Class: nfet_03v3             instances:  20
   Class: pfet_03v3             instances:   1
-Circuit contains 21 nets.
+Circuit contains 24 nets.
 
-Circuit 1 contains 18 devices, Circuit 2 contains 18 devices.
-Circuit 1 contains 21 nets,    Circuit 2 contains 21 nets.
+Circuit 1 contains 21 devices, Circuit 2 contains 21 devices.
+Circuit 1 contains 24 nets,    Circuit 2 contains 24 nets.
 
 
 Final result: 

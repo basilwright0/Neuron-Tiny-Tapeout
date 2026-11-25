@@ -41,3 +41,25 @@ for r in rows:
              f"{1e3 * p['dna_tap']:+.2f} | {1e3 * p['drift_na_probing_100us']:+.3f} |")
 (D / "summary.md").write_text("\n".join(L) + "\n")
 print("\n".join(L))
+
+# rev B: vreset step after release, clamp_en = 0 / 1 (V1 = 1.5 V)
+S = ["", "## rev B: vreset stepped to V1 - dV after release (V1 = 1.5 V); dV = 0 is the junction-leakage floor", "",
+     "| corner | dV | na dV/dt (mV/s) | nb clamp off | nb clamp on | t -10 mV na / nb off / nb on | t -100 mV na / nb off / nb on |",
+     "|---|---|---|---|---|---|---|"]
+for c, T in ORDER:
+    f = D / f"e2_{c}_{T}_1.50.json"
+    if not f.exists():
+        continue
+    st = json.loads(f.read_text()).get("step", {})
+    for dv in (0, 300, 600, 1200, 1500):
+        a, b0, b1 = st[f"c1_d{dv}"]["na"], st[f"c0_d{dv}"]["nb"], st[f"c1_d{dv}"]["nb"]
+        S.append(f"| {c}/{T} | {dv / 1e3:.1f} | {1e3 * a['dvdt']:.3g} | {1e3 * b0['dvdt']:.3g} | {1e3 * b1['dvdt']:.3g} | "
+                 f"{ft(a['t10'])} / {ft(b0['t10'])} / {ft(b1['t10'])} | {ft(a['t100'])} / {ft(b0['t100'])} / {ft(b1['t100'])} |")
+    for k in ("c0_d300", "c0_d600", "c1_d300", "c1_d600", "c0_d1500", "c1_d1500"):
+        tr = st.get(k, {}).get("tran")
+        if tr:
+            S.append(f"| {c}/{T} tran {k} | | na 10 s: {1e3 * (tr['na']['v10s'] - tr['na']['v2ms']):+.2f} mV | "
+                     f"nb 10 s: {1e3 * (tr['nb']['v10s'] - tr['nb']['v2ms']):+.2f} mV | | | |")
+with open(D / "summary.md", "a") as fh:
+    fh.write("\n".join(S) + "\n")
+print("\n".join(S))

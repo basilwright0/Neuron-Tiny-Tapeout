@@ -9,6 +9,10 @@ Writes sim/tb/e2/results/e2_<corner>_<temp>_<vreset>.json and prints a summary.
   droop : charge (grp_en = 1 for 20 us), release (fall 10 ns), transient to 10 s; vdd / vreset / abus currents.
   leak  : na / nb forced by DC sources, sweep vreset - 0.2 V .. vreset (+ 0.02): I(V); C from a 1 us ramp;
           dV/dt = I / C and the droop time to -10 / -100 mV integrated from the post-release voltage.
+  step  : rev B. Charge to VR, release, then vreset steps to VR - dV (dV = 0, 0.3, 0.6, 1.2, VR) with clamp_en = 0 (mid
+          floats: plain 2-stack) and 1 (mid held at vreset). DC I(V) of na / nb (forced together) at the stepped
+          vreset, / C, integrated from VR; 10 s transients (dV = VR; at ff/85 also 0.3 / 0.6) (step 1 ms after release).
+          Old modes run with clamp_en = 1 (rev A behaviour).
   probe : tap A then tap B on (en, rsel, sub = 1) into 5 pF + the pad pull-down; a schematic copy of the
           array tap (XPM_*, sub switch) on an ideal source at the same voltage gives the reference offset.
 Leakage-level options: DC gmin 1e-22 (the shared header's gmin 1e-15 S would be 1 fA at 1 V); transients gmin 1e-18
@@ -29,7 +33,7 @@ from ngs import header  # noqa: E402
 corner = sys.argv[1] if len(sys.argv) > 1 else "typical"
 temp = int(sys.argv[2]) if len(sys.argv) > 2 else 27
 VR = float(sys.argv[3]) if len(sys.argv) > 3 else 1.0
-MODES = sys.argv[4].split(",") if len(sys.argv) > 4 else ["reset", "droop", "leak", "probe"]
+MODES = sys.argv[4].split(",") if len(sys.argv) > 4 else ["reset", "droop", "leak", "probe", "step"]
 PEX = Path(REPO / "layout/e2/final/e2_leak_pex.spice")
 TAG = f"e2_{corner}_{temp}_{VR:.2f}"
 OUTD = REPO / "sim/tb/e2/results"
@@ -49,7 +53,7 @@ GMIN_USED = {}
 
 def run_dc(text, name):
     """DC at the smallest gmin that converges cleanly (1e-22 .. 1e-18): the floor gmin x V is recorded."""
-    for gm in ("1e-22", "1e-21", "1e-20", "1e-19", "1e-18"):
+    for gm in ("1e-22", "1e-21", "1e-20", "1e-19", "1e-18", "1e-17", "1e-16"):
         t = text.replace(OPT_DC, f".option gmin={gm} abstol={gm} reltol=1e-6")
         try:
             r = ngs.run(t, name)
@@ -85,6 +89,7 @@ Ibp vbb vbn_prb 1u
 Vbb vbb 0 3.3
 Xbp vbn_prb 0 nmaster w=2u l=2u
 Vvr vreset 0 {VR}
+Vce clamp_en 0 3.3
 Cab abus 0 5p
 XPD abus hi 0 0 nfet_03v3 W=0.22u L=20u
 {body}
@@ -251,6 +256,73 @@ XPDr rabus hi 0 0 nfet_03v3 W=0.22u L=20u
     k = np.where((t > T1) & (t < T2) & (np.abs(v - p["abus_a"]) > 1e-3))[0]
     p["tsettle_a"] = float(t[k[-1]] - T1) if len(k) else 0.0
 
-(OUTD / f"{TAG}.json").write_text(json.dumps(res, indent=1))
+
+def droop_times(V, I, C, v0):
+    dvdt = I / C
+    vv = np.linspace(v0, v0 - 0.1, 2001)
+    rate = np.interp(vv, V, dvdt)
+    acc, times = 0.0, {}
+    for k in range(1, len(vv)):
+        rr = 0.5 * (rate[k] + rate[k - 1])
+        if rr >= 0:
+            acc = float("inf")
+            break
+        acc += (vv[k] - vv[k - 1]) / rr
+        for dv in (0.01, 0.1):
+            if dv not in times and v0 - vv[k] >= dv - 1e-9:
+                times[dv] = acc
+    return float(np.interp(v0 - 0.002, V, dvdt)), times.get(0.01, float("inf")), times.get(0.1, float("inf"))
+
+
+if "step" in MODES:
+    assert "C_na" in res, "step needs leak (C)"
+    st = res["step"] = {}
+    for ce in (0, 1):
+        for dV in (0.0, 0.3, 0.6, 1.2, VR):
+            b = f"""Vg grp_en 0 0
+Vea en_a 0 0
+Veb en_b 0 0
+Vrs rsel 0 0
+Vsb sub 0 0
+Vdrv drv 0 {VR}
+Vna na drv 0
+Vnb nb drv 0
+.nodeset v(mid)={VR} v(cx)={VR}
+"""
+            txt = deck(b, f"dc Vdrv {VR - 0.2:.3f} {VR + 0.001:.3f} 0.005", ["i(Vna)", "i(Vnb)", "i(Vdd)"])
+            txt = txt.replace(f"Vvr vreset 0 {VR}", f"Vvr vreset 0 {VR - dV:.3f}").replace(
+                "Vce clamp_en 0 3.3", f"Vce clamp_en 0 {3.3 * ce}")
+            name = f"{TAG}_step_c{ce}_d{int(dV * 1e3)}"
+            r = run_dc(txt, name)
+            V = r["_x"]
+            k = f"c{ce}_d{int(dV * 1e3)}"
+            st[k] = dict(gmin=GMIN_USED.get(name), idd=float(-r["i(vdd)"][-1]))
+            for n in ("na", "nb"):
+                I = r[f"i(v{n})"]
+                rate, t10, t100 = droop_times(V, I, res[f"C_{n}"], VR)
+                st[k][n] = dict(dvdt=rate, t10=t10, t100=t100, I_at_v0=float(np.interp(VR - 0.002, V, I)))
+    for ce in (0, 1):
+        for dV in ((0.3, 0.6, VR) if corner == "ff" else (VR,)):
+            if True:
+                b = f"""Vg grp_en 0 PWL(0 3.3 {T_REL} 3.3 {T_REL + 10e-9} 0)
+Vea en_a 0 0
+Veb en_b 0 0
+Vrs rsel 0 0
+Vsb sub 0 0
+.ic v(na)={VR} v(nb)={VR}
+"""
+                txt = deck(b, "tran 10n 10 0 20m uic", ["v(na)", "v(nb)"], OPT_TR)
+                txt = txt.replace(f"Vvr vreset 0 {VR}", f"Vvr vreset 0 PWL(0 {VR} 1m {VR} 1.001m {VR - dV:.3f})").replace(
+                    "Vce clamp_en 0 3.3", f"Vce clamp_en 0 {3.3 * ce}")
+                r = run(txt, f"{TAG}_steptr_c{ce}_d{int(dV * 1e3)}")
+                t = r["_x"]
+                st[f"c{ce}_d{int(dV * 1e3)}"]["tran"] = {
+                    n: dict(v2ms=float(np.interp(2e-3, t, r[f"v({n})"])), v1s=float(np.interp(1.0, t, r[f"v({n})"])),
+                            v10s=float(np.interp(10.0, t, r[f"v({n})"]))) for n in ("na", "nb")}
+
+prev = OUTD / f"{TAG}.json"          # keep results of modes not run this time
+if prev.exists():
+    res = {**json.loads(prev.read_text()), **res}
+prev.write_text(json.dumps(res, indent=1))
 short = {k: v for k, v in res.items() if not k.startswith("leak_")}
 print(json.dumps(short, indent=1))

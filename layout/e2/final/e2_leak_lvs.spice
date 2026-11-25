@@ -1,5 +1,5 @@
 * LVS reference for e2_leak (layout/e2/e2gen.py): E2 leakage test cell, MIL-362
-.subckt e2_leak vdd vss vreset abus vbn_prb grp_en en_a en_b rsel sub
+.subckt e2_leak vdd vss vreset abus vbn_prb grp_en clamp_en en_a en_b rsel sub
 XMFA vdd na pa vss nfet_03v3 W=4u L=2u
 XMEA pa en_a sa vss nfet_03v3 W=1u L=0.28u
 XMBA sa vbn_prb vss vss nfet_03v3 W=2u L=2u
@@ -15,7 +15,10 @@ XSCB pb en_b mcb vss nfet_03v3 W=1u L=0.28u
 XSA vreset grp_en na vss nfet_03v3 W=1u L=0.5u
 XSB1 vreset grp_en mid vss nfet_03v3 W=1u L=0.5u
 XSB2 mid grp_en nb vss nfet_03v3 W=1u L=0.5u
-XPC vreset grp_en mid vdd pfet_03v3 W=1u L=0.28u
+XPI gb grp_en vdd vdd pfet_03v3 W=1u L=0.28u
+XNI gb grp_en vss vss nfet_03v3 W=1u L=0.28u
+XNG cx gb mid vss nfet_03v3 W=1u L=0.28u
+XNC vreset clamp_en cx vss nfet_03v3 W=1u L=0.28u
 XCA vss na vss vss nfet_03v3 W=8.56u L=5.84u
 XCB vss nb vss vss nfet_03v3 W=8.56u L=5.84u
 .ends e2_leak
