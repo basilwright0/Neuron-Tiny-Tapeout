@@ -1,17 +1,13 @@
-2026-11-25 01:08:42 start 4 CPUs, 7 GB, no-git
-2026-11-25 01:10:41 build rc=0 LVS: Final result: Circuits match uniquely.
+2026-11-25 01:46:50 start 4 CPUs, 7 GB, no-git
+2026-11-25 01:48:31 build rc=0 LVS: Final result: Circuits match uniquely.
 KLAYOUT main 0
 KLAYOUT antenna 0
 MAGIC_DRC_COUNT 0
-2026-11-25 01:10:52 build rc=0 LVS: Final result: Circuits match uniquely.
-KLAYOUT main 0
-KLAYOUT antenna 0
-MAGIC_DRC_COUNT 0
-2026-11-25 01:12:31 precheck rc=0
-2026-11-25 02:12:10 +0100: Memory Usage (487356K) : Executing deck antenna_via5 from /foss/pdks/gf180mcuD/libs.tech/klayout/tech/drc/rule_decks/antenna.rb
-2026-11-25 02:12:10 +0100: Memory Usage (487996K) : 
-2026-11-25 02:12:10 +0100: Memory Usage (487996K) : DRC RESULT: SUCCESS (0 violations)
-2026-11-25 02:12:10 +0100: Memory Usage (487996K) : # DRC Total Run time 3.516758151 seconds
+2026-11-25 01:50:16 precheck rc=0
+2026-11-25 02:49:53 +0100: Memory Usage (488364K) : Executing deck antenna_via5 from /foss/pdks/gf180mcuD/libs.tech/klayout/tech/drc/rule_decks/antenna.rb
+2026-11-25 02:49:53 +0100: Memory Usage (489004K) : 
+2026-11-25 02:49:53 +0100: Memory Usage (489004K) : DRC RESULT: SUCCESS (0 violations)
+2026-11-25 02:49:53 +0100: Memory Usage (489004K) : # DRC Total Run time 3.387996418 seconds
 INFO: Running Verilog syntax check on /work/gds/tt_um_basilwright0_analog_neurons.v
 Preparing to run yowasp-yosys. This might take a while...
 
@@ -33,33 +29,5 @@ End of script. Logfile hash: 8d88e6c524, time: 0.00s, user: 0.00s, system: 0.00s
 Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
 Time spent: 99% 2x read_verilog (0 sec), 0% 0x id_gc (0 sec)
 INFO: Precheck passed for /work/gds/tt_um_basilwright0_analog_neurons.gds! 🎉
-2026-11-25 01:12:31 gate ok=1
-2026-11-25 01:12:31 end
-2026-11-25 01:12:34 precheck rc=0
-2026-11-25 02:12:13 +0100: Memory Usage (487456K) : Executing deck antenna_via5 from /foss/pdks/gf180mcuD/libs.tech/klayout/tech/drc/rule_decks/antenna.rb
-2026-11-25 02:12:13 +0100: Memory Usage (488096K) : 
-2026-11-25 02:12:13 +0100: Memory Usage (488096K) : DRC RESULT: SUCCESS (0 violations)
-2026-11-25 02:12:13 +0100: Memory Usage (488096K) : # DRC Total Run time 3.856046704 seconds
-INFO: Running Verilog syntax check on /work/gds/tt_um_basilwright0_analog_neurons.v
-Preparing to run yowasp-yosys. This might take a while...
-
- /----------------------------------------------------------------------------\
- |  yosys -- Yosys Open SYnthesis Suite                                       |
- |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
- |  Distributed under an ISC-like license, type "license" to see terms        |
- \----------------------------------------------------------------------------/
- Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
-
--- Running command `read_verilog -sv "/work/gds/tt_um_basilwright0_analog_neurons.v"' --
-
-1. Executing Verilog-2005 frontend: /work/gds/tt_um_basilwright0_analog_neurons.v
-Parsing SystemVerilog input from `/work/gds/tt_um_basilwright0_analog_neurons.v' to AST representation.
-Generating RTLIL representation for module `\tt_um_basilwright0_analog_neurons'.
-Successfully finished Verilog frontend.
-
-End of script. Logfile hash: 8d88e6c524, time: 0.00s, user: 0.00s, system: 0.00s
-Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
-Time spent: 99% 2x read_verilog (0 sec), 0% 0x id_gc (0 sec)
-INFO: Precheck passed for /work/gds/tt_um_basilwright0_analog_neurons.gds! 🎉
-2026-11-25 01:12:34 gate ok=1
-2026-11-25 01:12:34 end
+2026-11-25 01:50:16 gate ok=1
+2026-11-25 01:50:16 end
