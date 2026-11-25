@@ -611,7 +611,9 @@ def reroute(nets):
         R[net] = {"wires": [[l, list(r)] for l, r in kw], "vias": [list(v) for v in kv]}
     order = {n: i for i, n in enumerate(nets)}                 # route in the order given on the command line
     for net, grps in sorted([t for t in tasks + tie_tasks() if t[0] in nets], key=lambda t: order[t[0]]):
-        seed = [(LI[l], r) for l, r in kept[net][0]]
+        # seed = kept wires shrunk to their centre-line nodes: a branch starting on a node 0.14 off the centre of a
+        # 0.28 wire left a corner-touch sliver (R2 top4: M2.1 / M4.1 on vbn_prb / abus)
+        seed = [(LI[l], (r[0] + 0.07, r[1] + 0.07, r[2] - 0.07, r[3] - 0.07)) for l, r in kept[net][0]]
         paths, ok, msg = route_net(g, ids[net], grps, net=net, seed=seed)
         if not ok:
             paths, ok, msg = route_net(g, ids[net], grps, margin=60.0, max_exp=8_000_000, full=True, net=net,
