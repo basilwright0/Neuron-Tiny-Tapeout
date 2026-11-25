@@ -42,12 +42,13 @@ codes = B.op_point(S)
 if MODE == "e1":
     CORNER = ARGS[1] if len(ARGS) > 1 else "typical"
     TEMP = int(ARGS[2]) if len(ARGS) > 2 else 27
-    TAG = f"e1_{CORNER}_{TEMP}"
+    TAG = f"e1_{CORNER}_{TEMP}" + os.environ.get("E1_TAG", "")
     E1 = [i for n, i, c in T.bay() if c == "ce1_fb"]
     assert E1, "no ce1_fb in the bay (E1 not integrated)"
     E1 = E1[0]
     K = int(E1[2:])
-    T_EN, T_A, T_AB, TEND = 60e-6, 120e-6, 820e-6, float(os.environ.get("E1_TEND", "1.5e-3"))
+    T_EN, T_A = 60e-6, 120e-6
+    T_AB, TEND = float(os.environ.get("E1_TAB", "820e-6")), float(os.environ.get("E1_TEND", "1.5e-3"))
     pr = dict(blk="bay", k=K, sub=0)
     ev = [(0.0, T.config(codes=codes, probe=pr, grp_en=0)),
           (T_EN, T.config(codes=codes, probe=pr, grp_en=2)),
