@@ -58,3 +58,20 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
    re-extend the 10 column nets.
 4. Merge r2-doc; full-chip PEX benches (S4/F4 firing, E1 f–I, E2 droop, ua[1] probe of the new addresses, bias-line
    settling at S = 10); Nov 28 checkpoint comment.
+
+## Status 2026-11-25 ~01:20 UTC: integration chip green (19e5af2)
+- **VM r2int/top3:** LVS match uniquely, KLayout 0, antenna 0, magic 0, TT precheck pass. GDS sha256 6c6c590d….
+- **Fixes on the way:**
+  - top1 (eb54d5a): VDPWR/VGND/uo_out[6] short. The tile stripes sat on rev E strap x; variant a's straps are 3.36 µm
+    west. `fp.MACRO_STRAPS` now comes from the new LEF.
+  - R1 vdd now hooks east to x 345: the pair-2 VDPWR stripe lies over the ua[1] strap.
+  - Tie stubs = `route.edge_stub`, and the tie vias moved 0.85 µm off the macro.
+  - Bay exit terminals are now only the on-grid column (M2.1 slivers).
+  - top2 (4e3d117): antenna ANT.16_ii_ANT.4 on probe_sub. Variant a reaches the probe_sub driver through Metal4, so at
+    the Metal3 stage the row bands + vr-tap gates had no diffusion. Fix: 2 × antenna cells (gant0/1, tie-row west
+    end, Metal2 from the probe_sub join line).
+- **Merged r2-doc** (cocotb 16/16 incl. `test_r2_grp_en_and_addresses`, lint OK, docs/info.md R2 section). E2
+  addresses: node A = SEL 11 SUB 1 (PROBE 0x5B), node B = SEL 15 SUB 1 (0x5F).
+- **Running:**
+  - `r2-pex` (/home/basil/tt-m3/r2pex): full-chip PEX regression + bay benches (sub-agent, cap ~8 VM-h).
+  - `r2-e2` / `r2-e1` cell designs.
