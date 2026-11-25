@@ -7,8 +7,11 @@
 #   4. packs /home/user/pex_out.tgz, writes /home/user/pex_done, self-stops if a VM id is given.
 # Usage (repo root):  [JOBS=2] nohup bash sim/tb/top/vm_pex.sh [<VM id>] > /home/user/pex_vm.log 2>&1 &
 # Logs: /home/user/pex_{build,ext_rc,ext_c,nodes,batch}.log; batch logs / summary in sim/results/top/batch/.
+# Env (R2, shared queue VM): PEX_H = log / checkpoint dir (default /home/user; e.g. a dir inside the tree so the queue
+#   fetches it), PEX_MODE = run_batch.sh mode (default pex; smoke = coupling + bias DC + deck check).
 cd "$(dirname "$0")/../../.."
-H=/home/user
+H=${PEX_H:-/home/user}
+mkdir -p $H
 rm -f $H/pex_done
 JOBS=${JOBS:-2}                    # ~1-2 GB per full-chip ngspice job (vectors limited by topbench.deck `save`)
 step() { echo "$(date -u '+%F %T') $*" >> $H/pex_steps.log; }
@@ -45,9 +48,9 @@ if [ -s layout/top/work/pexr/top_rc_flat.spice ]; then
     step "LVS mismatch or missing victim nodes: benches skipped"   # don't spend hours on a broken netlist
   else
     B=sim/results/top/batch                      # jobs finished by a run without markers (summary line rc=0) count as done
-    [ -f $B/summary_pex.txt ] && awk '$2=="rc=0"{print $1}' $B/summary_pex.txt | while read -r n; do
+    [ -f $B/summary_${PEX_MODE:-pex}.txt ] && awk '$2=="rc=0"{print $1}' $B/summary_${PEX_MODE:-pex}.txt | while read -r n; do
       [ -e $B/$n.ok ] || echo "from summary" > $B/$n.ok; done
-    JOBS=$JOBS bash sim/tb/top/run_batch.sh pex > $H/pex_batch.log 2>&1
+    JOBS=$JOBS bash sim/tb/top/run_batch.sh ${PEX_MODE:-pex} > $H/pex_batch.log 2>&1
     step "batch rc=$? : $(tail -1 $H/pex_batch.log)"
   fi
 else

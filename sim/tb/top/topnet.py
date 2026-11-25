@@ -30,7 +30,7 @@ import config as _C                # noqa: E402  (layout/top/config.py; floorpla
 fp = _C.fp
 UNIT = 0.005                       # um per .ext / a_x_y unit (scale 1000 1 0.5 at 10 internal units / lambda)
 MACRO = (fp.MACRO_X, fp.MACRO_Y, fp.MACRO_X + fp.MACRO_S, fp.MACRO_Y + fp.MACRO_S)
-GLUE = (169.5, 4.5, 204.5, 10.5)   # glue row box (keep its std cells)
+GLUE = (169.5, 4.5, 204.5, 10.5)   # pre-M3 glue row box (keep its std cells); the M3 / R2 rows: glue_boxes()
 R_DRV = 1.5e3                      # macro output driver (buf_1-ish, 3.3 V)
 TR = 0.5e-9
 
@@ -54,6 +54,12 @@ def slot_inst(name):
 def neurons():
     """[(name, instance, cell)] of every array neuron (REF excluded), bottom row first."""
     return [(n, f"s{r}{c}", fp.slot_cell(n)) for (r, c), n in sorted(fp.slot_map().items()) if n != "REF"]
+
+
+def bay():
+    """[(name, instance, cell)] of the R2 bay column (by0 = S4, by1 = F4, by2 = E1 slot), bottom first; [] before R2."""
+    bc = getattr(fp, "bay_cells", None)
+    return [(n, f"by{k}", c) for k, n, c, x, y, h in bc()] if bc else []
 
 
 def membrane_cap(cell):
@@ -154,6 +160,24 @@ def _inbox(p, b):
 
 def is_macro_node(n):
     return n.startswith("ctrl.") or _inbox(_xy(n), MACRO)
+
+
+def glue_boxes():
+    """Boxes of the top-level std cells kept as transistors: the old GLUE box plus every glue-row cell (g_*, gtap*)
+    and the R2 probe_sub antenna diodes (gant*) of layout/top/config.std_cells() (M3: rows at x 282.6; R2: + the
+    bay or3 row at (119.5, 58)). The uio_oe tie cells (tie*, tap*) stay dropped."""
+    if "gboxes" not in _cache:
+        import config as C
+        B = [GLUE]
+        for inst, (cell, x, y) in C.std_cells().items():
+            if inst.startswith("g"):
+                B.append((x - 0.01, y - 0.01, x + C.SC_W[cell] + 0.01, y + C.SC_H + 0.01))
+        _cache["gboxes"] = B
+    return _cache["gboxes"]
+
+
+def in_glue(p):
+    return p is not None and any(_inbox(p, b) for b in glue_boxes())
 
 
 def load():
@@ -287,12 +311,15 @@ def owner(nodes):
 
 
 def build(state: dict, sources: dict | None = None, cmin=1e-18, power="entry", r_entry=0.05,
-          vdd=3.3, keep_macro_caps=True, extra_loads=True, glue=True):
+          vdd=3.3, keep_macro_caps=True, extra_loads=True, glue=True, drop_inst=()):
     """state: macro pin -> value (V, or a SPICE source spec string). sources: extra 'name': 'line' entries.
-    power: 'entry' (stripe ends, R networks kept) | 'ideal' (all VDPWR.* / VGND.* nodes shorted)."""
+    power: 'entry' (stripe ends, R networks kept) | 'ideal' (all VDPWR.* / VGND.* nodes shorted).
+    drop_inst: block instances whose devices are removed (owner() by position), e.g. the R2 bay ('by0'..'by2') for
+    the with / without bay-load comparison; their wiring C stays."""
     d = load()
     out = []
     drop = 0
+    _cache["dropped_inst"] = 0
     if power == "gndnet":          # VDPWR ideal, VGND keeps its extracted R network, grounded at the 'VGND' port
         power = "ideal"            # node (bottom end of the B1 / R1 stripe x 342.6, magic's port location)
         _cache["keep_gnd"] = True
@@ -305,12 +332,15 @@ def build(state: dict, sources: dict | None = None, cmin=1e-18, power="entry", r
             nodes = nn[:-1]
             if model.endswith("_05v0"):
                 pts = [_xy(x) for x in nodes]
-                glue_dev = glue and any(_inbox(p, GLUE) for p in pts) or (glue and any(x.startswith("g_") for x in nodes))
+                glue_dev = glue and (any(in_glue(p) for p in pts) or any(x.startswith("g_") for x in nodes))
                 if not glue_dev:
                     drop += 1
                     continue
             if any(is_macro_node(x) for x in nodes):
                 drop += 1
+                continue
+            if drop_inst and owner(nodes) in drop_inst:
+                _cache["dropped_inst"] += 1
                 continue
             if power == "perdev":                     # one ammeter per device power terminal
                 for x in nodes:
@@ -380,7 +410,8 @@ def build(state: dict, sources: dict | None = None, cmin=1e-18, power="entry", r
         P.append(f"Rm_{san(p)} md_{san(p)} {n} {R_DRV}")
     if extra_loads:                      # macro input pins: ~ 5 fF gate + pin each
         for p, net in macro_ports().items():
-            if re.match(r"spk_in\[\d+\]", p):
+            m = re.match(r"spk_in\[(\d+)\]", p)
+            if m and int(m.group(1)) not in getattr(fp, "SPK_TIED", ()):       # R2: tied inputs sit on VGND
                 P.append(f"Cmi_{san(p)} {san(resolve(net))} 0 5f")
     for k, v in (sources or {}).items():
         P.append(v)
@@ -417,7 +448,8 @@ def config(codes=None, probe=None, rt=(0, 0, 0, 0), bias_en=1, ib_x2=0, trims=8,
            bsel=0, ua0_mode=0):
     """Macro output pin values for a chip configuration.
     codes: dict i0..i4, r0..r2 (5 bit), v0 (6 bit).  probe: None or dict(sel=k, sub=s, en=1) in physical terms:
-    dict(row=r, col=c, sub=s) for an array slot, 'd1' / 'adex' with sub, or None (probe off; rsel row 0)."""
+    dict(row=r, col=c, sub=s) for an array slot, 'd1' / 'adex' with sub, dict(blk='bay', k=0..2) for an R2 bay
+    neuron (SEL 16 + k: probe_sel_bay[k] = EN, rsel / en_c all 0 as in the RTL), or None (probe off; rsel row 0)."""
     import config as C
     st = {}
     codes = dict(codes or {})
@@ -439,8 +471,11 @@ def config(codes=None, probe=None, rt=(0, 0, 0, 0), bias_en=1, ib_x2=0, trims=8,
     rsel = [0, 0, 0, 0]
     en = [0, 0, 0, 0]
     sub, d1, ax, raw = 0, 0, 0, 0
+    bay_sel = [0, 0, 0]
     if probe:
-        if probe.get("blk") == "d1":           # rsel all 0 for D1 / AdEx
+        if probe.get("blk") == "bay":
+            bay_sel[probe["k"]], raw = probe.get("en", 1), probe.get("sub", 0)
+        elif probe.get("blk") == "d1":         # rsel all 0 for D1 / AdEx
             d1, raw = probe.get("en", 1), probe.get("sub", 0)
         elif probe.get("blk") == "adex":
             ax, raw = probe.get("en", 1), probe.get("sub", 0)
@@ -458,6 +493,8 @@ def config(codes=None, probe=None, rt=(0, 0, 0, 0), bias_en=1, ib_x2=0, trims=8,
     st["probe_sub_b"] = vdd * (1 - (raw & 1))
     st["probe_sel_d1"] = vdd * d1
     st["probe_sel_adex"] = vdd * ax
+    for k in range(3):                    # R2 bay lines (macro outputs; a pre-R2 netlist has no such pins)
+        st[f"probe_sel_bay[{k}]"] = vdd * bay_sel[k]
     st["probe_sub_raw[0]"] = vdd * (raw & 1)
     st["probe_sub_raw[1]"] = vdd * ((raw >> 1) & 1)
     # cfg_out: GRP_EN 0, plateau / chain / bsel, trims = code `trims` everywhere
@@ -477,12 +514,29 @@ if __name__ == "__main__":
     if "--nodes" in sys.argv:          # check that every victim / probe node resolves in the flat R+C netlist
         miss = 0
         for nm, n in [(f"{a} ({i}, {c}, Cm {membrane_cap(c) * 1e15:.0f} fF)", f"{i}.vm") for a, i, c in neurons()] + \
-                [(x, x) for x in ("d1.vs", "d1.d1", "d1.d2", "ax.vm", "ax.vw", "abus", "en_b", "ua[1]")]:
+                [(x, x) for x in ("d1.vs", "d1.d1", "d1.d2", "ax.vm", "ax.vw", "abus", "en_b", "ua[1]")] + \
+                [(f"bay {a} ({i}, {c})", f"{i}.{p}") for a, i, c in bay() for p in ("vm", "spk")] + \
+                [(x, x) for x in ["g_bay"] + [f"probe_sel_bay[{k}]" for k in range(len(bay()))]]:
             try:
                 print(f"{nm:36s} {n:8s} -> {net(n)}")
             except KeyError:
                 print(f"{nm:36s} {n:8s} -> MISSING")
                 miss += 1
+        # glue devices kept: old rule (GLUE box / g_* node) vs glue_boxes(); bay devices by owner(); bay macro pins
+        n05 = dict(old=0, new=0)
+        for l in load()["lines"]:
+            if l[0] not in "XD":
+                continue
+            nn = [x for x in l.split()[1:] if "=" not in x]
+            if not nn[-1].endswith("_05v0") or any(is_macro_node(x) for x in nn[:-1]):
+                continue
+            pts = [_xy(x) for x in nn[:-1]]
+            n05["old"] += any(_inbox(p, GLUE) for p in pts) or any(x.startswith("g_") for x in nn[:-1])
+            n05["new"] += any(in_glue(p) for p in pts) or any(x.startswith("g_") for x in nn[:-1])
+        print(f"_05v0 devices outside the macro kept as glue: old rule {n05['old']}, with glue_boxes() {n05['new']}")
+        build(config(), drop_inst={i for _, i, _ in bay()})
+        print(f"bay devices (owner by0..by2): {_cache['dropped_inst']}; macro outputs: " +
+              ", ".join(f"{p}->{n}" for p, n in macro_outputs().items() if "bay" in p or "probe_sel" in p))
         sys.exit(1 if miss else 0)
     b = build(config(codes=dict(CODES_S100, **vcodes())))
     print(len(b.splitlines()), "lines; dropped", _cache["dropped"], "macro devices")
