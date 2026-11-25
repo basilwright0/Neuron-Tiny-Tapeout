@@ -841,7 +841,8 @@ def sweep():
 
 
 def search(nseeds, steps, iters, jobs):
-    tasks = [(s, steps, iters, p) for p in sweep() for s in range(nseeds)]
+    s0 = int(os.environ.get("SEED0", "0"))
+    tasks = [(s, steps, iters, p) for p in sweep() for s in range(s0, s0 + nseeds)]
     res = []
     with Pool(jobs) as pool:
         for r in pool.imap_unordered(trial, tasks):
