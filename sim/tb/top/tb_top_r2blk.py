@@ -96,12 +96,14 @@ elif MODE == "e2":
     WHICH = ARGS[1] if len(ARGS) > 1 else "A"
     CORNER = ARGS[2] if len(ARGS) > 2 else "ff"
     TEMP = int(ARGS[3]) if len(ARGS) > 3 else 85
-    TAG = f"e2{WHICH}_{CORNER}_{TEMP}"
+    TAG = f"e2{WHICH}_{CORNER}_{TEMP}" + os.environ.get("E2_TAG", "")
+    OPTS = os.environ.get("E2_OPTS", "reltol=1e-4")      # block bench (sim/tb/e2): gmin=1e-18 abstol=1e-18 method=gear
+    NOPROBE = os.environ.get("E2_NOPROBE") == "1"
     TEND = float(os.environ.get("E2_TEND", "1.0"))
     T_PR, T_REL = 10e-6, 20e-6
     col = 2 if WHICH == "A" else 3                       # SEL 11 = (3,2) AH50, SEL 15 = (3,3) AH400, PROBE_SUB 1
     clamp = 0 if WHICH == "A" else 1
-    pr = dict(row=3, col=col, sub=1)
+    pr = dict(row=3, col=col, sub=1, en=0 if NOPROBE else 1)
     g0 = 1 | (clamp << 2)
     ev = [(0.0, T.config(codes=codes, probe=dict(pr, en=0), grp_en=g0)),
           (T_PR, T.config(codes=codes, probe=pr, grp_en=g0)),
@@ -110,12 +112,12 @@ elif MODE == "e2":
     na, nb = T.vnode("e2.na"), T.vnode("e2.nb")
     sv = ["v(pad)", f"v({na})", f"v({nb})", f"v({T.vnode('vreset')})", f"v({T.vnode('abus')})"]
     d = B.deck(body, f"tran 10n {TEND:g} 0 {min(2e-3, TEND / 200):g}", sv, corner=CORNER, temp=TEMP,
-               opts="reltol=1e-4")
+               opts=OPTS)
     r = B.go(d, f"r2blk_{TAG}{B.SUFFIX}", timeout=int(os.environ.get("R2BLK_TIMEOUT", "7200")))
     t = r["_x"]
     log(f"E2 droop on the full-chip PEX, {CORNER} {TEMP} C, S = {S:g}, vreset held (nominal); GRP_EN[0] 1 -> 0 at "
         f"{T_REL * 1e6:g} us, clamp (GRP_EN[2]) {clamp}; probe SEL {11 if col == 2 else 15} PROBE_SUB 1 "
-        f"(node {WHICH}) from {T_PR * 1e6:g} us; glue {T.GLUE_MODE}; reltol 1e-4")
+        f"(node {WHICH}) from {T_PR * 1e6:g} us{' (probe EN 0)' if NOPROBE else ''}; glue {T.GLUE_MODE}; options {OPTS}")
     ys = {"na": r[f"v({na})".lower()], "nb": r[f"v({nb})".lower()], "pad": r["v(pad)"],
           "vreset": r[f"v({T.vnode('vreset')})".lower()]}
     pts = [x for x in (T_REL - 1e-6, T_REL + 1e-6, 1e-3, 10e-3, 100e-3, 0.5, 1.0, TEND) if x <= TEND]
