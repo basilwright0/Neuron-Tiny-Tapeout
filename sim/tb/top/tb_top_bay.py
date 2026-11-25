@@ -52,6 +52,7 @@ if MODE == "fire":
     TOL = 0.05
     g = 200e-15 * S / 10e-3
     ARR = [(n, i, c) for n, i, c in T.neurons() if n in ("S1", "S2", "S3", "F1")]
+    BAY = [(n, i, c) for n, i, c in BAY if any(c2 == c for _, _, c2 in ARR)]   # E1 (ce1_fb): tb_top_r2blk.py e1
     DRV = ARR + BAY
     REF = {}
     for n, i, c in BAY:

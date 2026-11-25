@@ -26,6 +26,9 @@ JOBS = [("tb_top_kick.py", ["typical", "27"]), ("tb_top_probe.py", ["step", "typ
 if T.bay():
     JOBS += [("tb_top_bay.py", ["fire", "typical", "27"]), ("tb_top_bay.py", ["probe", "typical", "27"]),
              ("tb_top_bias.py#nobay", ["step", "10"])]
+if "e2" in __import__("config").instances():
+    JOBS += [("tb_top_r2blk.py", ["e1", "typical", "27"]), ("tb_top_r2blk.py", ["e2", "A", "ff", "85"]),
+             ("tb_top_r2blk.py", ["e2", "B", "ff", "85"])]
 bad = 0
 for f, args in JOBS:
     name = f

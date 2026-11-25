@@ -70,6 +70,11 @@ elif [ "$MODE" = pex ]; then      # longest first (kick: 210 us transient); no f
       "bias_dc_S100_r2c22|env BIAS_R2=22 python3 sim/tb/top/tb_top_bias.py dc 100"
     )
   fi
+  if grep -q "^E2_XY = " floorplan/floorplan.py; then      # final R2 chip (r2-int 988c8d8): E1 in by2, E2
+    JOBLIST=("r2blk_e1_typ27|python3 sim/tb/top/tb_top_r2blk.py e1 typical 27"
+             "r2blk_e2A_ff85|python3 sim/tb/top/tb_top_r2blk.py e2 A ff 85"
+             "r2blk_e2B_ff85|python3 sim/tb/top/tb_top_r2blk.py e2 B ff 85" "${JOBLIST[@]}")
+  fi
   if [ -n "${PEX_SKIP:-}" ]; then
     K=(); for j in "${JOBLIST[@]}"; do echo "${j%%|*}" | grep -qE "$PEX_SKIP" || K+=("$j"); done; JOBLIST=("${K[@]}")
   fi

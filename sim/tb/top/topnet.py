@@ -517,7 +517,7 @@ def vcodes(el=1.30, vreset=1.30, vth_cmp=1.38, vth_ref=0.505):
 
 
 def config(codes=None, probe=None, rt=(0, 0, 0, 0), bias_en=1, ib_x2=0, trims=8, vdd=3.3, plateau=0, chain=0,
-           bsel=0, ua0_mode=0):
+           bsel=0, ua0_mode=0, grp_en=0):
     """Macro output pin values for a chip configuration.
     codes: dict i0..i4, r0..r2 (5 bit), v0 (6 bit).  probe: None or dict(sel=k, sub=s, en=1) in physical terms:
     dict(row=r, col=c, sub=s) for an array slot, 'd1' / 'adex' with sub, dict(blk='bay', k=0..2) for an R2 bay
@@ -569,7 +569,10 @@ def config(codes=None, probe=None, rt=(0, 0, 0, 0), bias_en=1, ib_x2=0, trims=8,
         st[f"probe_sel_bay[{k}]"] = vdd * bay_sel[k]
     st["probe_sub_raw[0]"] = vdd * (raw & 1)
     st["probe_sub_raw[1]"] = vdd * ((raw >> 1) & 1)
-    # cfg_out: GRP_EN 0, plateau / chain / bsel, trims = code `trims` everywhere
+    # cfg_out: GRP_EN (cfg_out[0..3], reset 0; R2: [0] E2 charge, [1] E1 run, [2] E2 clamp), plateau / chain / bsel,
+    # trims = code `trims` everywhere
+    for j in range(4):
+        st[f"cfg_out[{j}]"] = vdd * ((grp_en >> j) & 1)
     st["cfg_out[4]"] = vdd * plateau
     st["cfg_out[5]"] = vdd * chain
     st["cfg_out[6]"] = vdd * bsel
