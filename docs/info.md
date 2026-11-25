@@ -76,7 +76,7 @@ The full map, timing and bit packing are in [`docs/regmap.md`](regmap.md).
 |---|---|---|
 | 0x00–0x04 | IDAC | Eight 5-bit DAC codes (leak, refractory, synapse, D1 axial, AdEx adaptation, EL, V_reset, CMP threshold), packed as a 40-bit word, LSB first |
 | 0x05 | VDAC | 6-bit threshold reference `vth_ref` |
-| 0x06 | ANA | GRP_EN [3:0] (bit 0 E2 leakage reset, bit 1 E1 bias enable, bits 2–3 spare), D1 plateau / chain / stimulus-B steering, BIAS_EN |
+| 0x06 | ANA | GRP_EN [3:0] (bit 0 E2 leakage reset, bit 1 E1 bias enable, bit 2 E2 node-B mid clamp, bit 3 spare), D1 plateau / chain / stimulus-B steering, BIAS_EN |
 | 0x07 | PROBE | SEL[3:0] and SEL[4] = bit 7 (5-bit address; see the note above), SUB (membrane / secondary node / REF; the compact slots S, F, AH50 and AH400 have no secondary-node tap; SUB = 1 at the AH50 / AH400 addresses reads E2), PROBE_EN |
 | 0x08 | MODE | `ua[0]` mode, OUT_MUX, IB_X2 (readout bias ×2), RT_EN (enables for the `ui[6:3]` pass-throughs) |
 | 0x09–0x0E | LIF | Digital LIF: enable and source, leak shift and refractory, EL, Vth, Vreset, weight |
@@ -103,13 +103,16 @@ PROBE_SUB other than 3 (no `vr` tap); SUB = 3 still selects REF.
 shared bias lines). GRP_EN[1] = 0 turns the leg off and parks `vm`; GRP_EN[1] = 1 lets it run. If E1 is dropped, the
 slot holds a plain S neuron and GRP_EN[1] does nothing.
 
-**E2** is a hold-node leakage cell with two floating ~200 fF nodes. Node A is reset to `vreset` through one nMOS
-switch; node B through two stacked switches whose middle node is held at `vreset` while the cell floats, which
-should suppress the switch leakage (design in progress; device details TBD). GRP_EN[0] = 1 charges both nodes to
+**E2** is a hold-node leakage cell with two floating ~200 fF nodes (nMOS gate caps). Node A is reset to `vreset`
+through one nMOS switch (1/0.5). Node B goes through two stacked switches; GRP_EN[2] selects whether their middle node
+is clamped to `vreset` while the cell floats (1) or floats as a plain 2-stack (0). GRP_EN[0] = 1 charges both nodes to
 `vreset`; clearing it releases them to droop. Probe addresses (PROBE_SUB = 1 of array row 3, the AH50 / AH400 slots,
 which have no SUB = 1 tap of their own): node A = SEL 11, SUB 1 (PROBE = 0x5B); node B = SEL 15, SUB 1 (PROBE = 0x5F).
+PEX (docs/r2/e2-leak.md): with `vreset` held, both nodes droop at the junction-leakage floor (tt/27 −3.3 µV/s,
+ff/85 −9 mV/s). Stepping `vreset` to 0 V (R-DAC code 0) after release makes the switch leakage visible: node B with
+the clamp off droops ~20–25 % slower than A, and with the clamp on it matches A.
 
-GRP_EN resets to 0: E1 off, E2 nodes floating. GRP_EN[3:2] are latched but not connected.
+GRP_EN resets to 0: E1 off, E2 nodes floating, E2 clamp off. GRP_EN[3] is latched but not connected.
 
 ## How to test
 
