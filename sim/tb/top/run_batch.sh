@@ -10,7 +10,8 @@
 #                                         # S = 10 with and without the bay devices, icur S10000, gndchk, s10k
 #   PEX_SKIP=<egrep pattern>: leave out the pex jobs whose name matches (e.g. 'bias_spk_on')
 #
-# Env: JOBS (default 5)  JOB_TIMEOUT (minutes per job, default 150; inside the container)  FORCE=1 reruns jobs that already have a .ok marker  STOP_SELF=1 to stop this Boat VM when the batch ends (any outcome)
+# Env: JOBS (default 5)  JOB_TIMEOUT (minutes per job, default 150; inside the container)
+#      TOP_THREADS (ngspice num_threads per job, default 4)  FORCE=1 reruns jobs that already have a .ok marker  STOP_SELF=1 to stop this Boat VM when the batch ends (any outcome)
 #      WAIT_PATTERN=<pgrep -f pattern> to wait for other jobs on the VM before stopping.
 # Logs and the summary go to sim/results/top/batch/ ; per-bench results to sim/results/top/ (as before).
 set -u
@@ -27,14 +28,14 @@ run() {  # name, command (run inside the container from /work); a finished job l
     printf '%-28s skipped (done earlier, %s)\n' "$name" "$(cat "$OUT/$name.ok")" >> "$SUMMARY"; return 0
   fi
   local t0=$(date +%s)
-  bash scripts/eda.sh "timeout ${JOB_TIMEOUT:-150}m nice -n 15 $*" > "$OUT/$name.log" 2>&1
+  bash scripts/eda.sh "timeout ${JOB_TIMEOUT:-150}m nice -n 15 env TOP_THREADS=${TOP_THREADS:-4} $*" > "$OUT/$name.log" 2>&1
   local rc=$?
   [ $rc = 0 ] && date -u '+%F %T' > "$OUT/$name.ok"
   printf '%-28s rc=%-3s %5d min   %s\n' "$name" "$rc" $(( ($(date +%s) - t0) / 60 )) "$*" >> "$SUMMARY"
   return $rc
 }
 export -f run
-export OUT SUMMARY JOB_TIMEOUT
+export OUT SUMMARY JOB_TIMEOUT TOP_THREADS
 
 if [ "$MODE" = ramp ]; then      # probe-chain DC transfer as up/down ramps, one job per tap and corner
   JOBLIST=()
