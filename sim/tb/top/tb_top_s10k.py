@@ -129,7 +129,7 @@ sv = {f"v({T.vnode(i + '.vm')})" for _, i, _ in NEUR} | {f"v({T.vnode(i + '.spk'
 sv |= {f"v({T.san(x)})" for x in at.values()} | {"i(vvdd)", f"v({T.node('ua[0]')})"}
 for _, a_, b_ in AX:
     sv |= {f"v({a_})", f"v({b_})"}
-name = f"s10k_{CORNER}_{TEMP}"
+name = f"s10k_{CORNER}_{TEMP}{B.SUFFIX}"
 r = B.go(B.deck(body, f"tran 1n {TEND:g} 0 1n", sorted(sv), corner=CORNER, temp=TEMP), name,
          timeout=int(os.environ.get("S10K_TIMEOUT", str(125 * 60))))
 t = r["_x"]

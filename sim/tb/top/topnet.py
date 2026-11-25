@@ -395,6 +395,12 @@ def build(state: dict, sources: dict | None = None, cmin=1e-18, power="entry", r
             if a == b:
                 continue
             out.append(f"{t[0]} {a} {b} {v:.6g}")
+    # ---- R2 diagnostic (TOP_VSRC_FIX=1): the R+C extraction of the R2 chip has every vsrc coupling C as a ground C
+    # ('**FLOATING' to VGND, 195 fF); the C-only extraction (layout/top/work/pex/top_c_flat.spice) has 241 fF with
+    # 37 fF to vbn_leak, 36 fF to vbp_st, 10 fF to abus, digital lines ... Replace the vsrc-VGND caps by the C-only
+    # vsrc caps, lumped at the vsrc root node (the line's R is ~0.1 mV at DC).
+    if _os.environ.get("TOP_VSRC_FIX") == "1":
+        out = vsrc_fix(out, power)
     # ---- power
     P = []
     if power in ("ideal", "perblock", "perdev"):
@@ -432,6 +438,58 @@ def build(state: dict, sources: dict | None = None, cmin=1e-18, power="entry", r
     _cache["dropped"] = drop
     _cache["keep_gnd"] = False
     return "\n".join(out + P) + "\n"
+
+
+def vsrc_fix(out, power):
+    par = {}
+
+    def f(x):
+        while par.get(x, x) != x:
+            par[x] = par.get(par[x], par[x])
+            x = par[x]
+        return x
+    for l in load()["lines"]:
+        if l[0] == "R":
+            t = l.split()
+            a, b = f(san(t[1])), f(san(t[2]))
+            if a != b:
+                par[a] = b
+    root = san(net("vsrc"))
+    g = f(root)
+    keep, removed = [], 0.0
+    for l in out:
+        if l[0] == "C":
+            t = l.split()
+            a, b = t[1], t[2]
+            if (f(a) == g and b.startswith("VGND")) or (f(b) == g and a.startswith("VGND")):
+                removed += float(t[3])
+                continue
+        keep.append(l)
+    S = {san(x) for x in names()}
+    added, mapped, gnd = 0.0, 0.0, 0.0
+    cf = ROOT / "layout/top/work/pex/top_c_flat.spice"
+    for k, l in enumerate(re.sub(r"\n\+", " ", cf.read_text()).splitlines()):
+        if not l.startswith("C"):
+            continue
+        t = l.split()
+        ends = [x for x in t[1:3] if "vsrc" in x and "vsrcp" not in x]
+        if len(ends) != 1:
+            continue
+        o = t[2] if t[1] in ends else t[1]
+        v = _unit(t[3])
+        cand = san(resolve(o.replace("/", ".")))
+        if o in ("0", "VSUBS", "VGND") or o.startswith(("VGND", "VDPWR")) or cand not in S:
+            other = "VGND" if not o.startswith("VDPWR") else "VDPWR"
+            if power not in ("ideal", "perblock", "perdev"):
+                other = "0" if other == "VGND" else other
+            gnd += v
+        else:
+            other = "0" if is_macro_node(o.replace("/", ".")) else cand
+            mapped += v
+        added += v
+        keep.append(f"Cvfix{k} {root} {other} {v:.6g}")
+    _cache["vsrc_fix"] = (removed, added, mapped, gnd)
+    return keep
 
 
 def _pw(n):

@@ -24,6 +24,8 @@ OUT = T.ROOT / "sim/results/top"
 RUNS = "top"                            # run() writes sim/results/<name>.*; we prefix names with top/
 
 CB = 200e-12                            # pad + board on ua[1]
+import os as _os                        # noqa: E402
+SUFFIX = "_vsrcfix" if _os.environ.get("TOP_VSRC_FIX") == "1" else ""   # result-name tag (topnet.vsrc_fix)
 
 
 def op_point(S=100.0):

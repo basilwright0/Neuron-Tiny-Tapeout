@@ -205,7 +205,7 @@ elif MODE == "spk":
     sv += [f"v({T.vnode(s + '.vm')})" for s in SLOTS]
     CMP = T.slot_inst("CMP")
     sv += [f"v({T.vnode(s + '.spk')})" for s in SPIKERS + [CMP]]
-    name = f"bias_spk_{'on' if ON else 'off'}{tag}"
+    name = f"bias_spk_{'on' if ON else 'off'}{tag}{B.SUFFIX}"
     r = B.go(B.deck(body, f"tran 5n {TEND:g} 0 5n", sorted(set(sv))), name)
     t = r["_x"]
     sp = crossings(t, r[f"v({T.vnode(VICTIM + '.spk')})".lower()], 1.65)
