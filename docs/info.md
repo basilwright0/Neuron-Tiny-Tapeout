@@ -22,9 +22,10 @@ reference model, and to measure what per-neuron configurability buys in accuracy
 | Digital LIF | 12-bit bit-serial LIF in the control block. It is clocked by `clk` and performs one update per `ui[7]` tick, reproducing the software model exactly. |
 | B1 bias generator | Takes its reference current from `ua[0]` or an internal reference. Five 5-bit current DACs, three 5-bit voltage DACs and a 6-bit threshold DAC. The `ua[0]` current sets the operating speed, S = 10–1000× biological real time. |
 | R1 readout | Buffers one selected node (membrane, adaptation or dendrite) onto `ua[1]` with a 400 µA source follower. It also holds the reset-voltage and detector-rail buffers. |
-| Control block | Synthesized digital macro: 3-wire configuration port, 23 bytes of write-only latches, probe decoder and the digital LIF. |
+| Control block | Synthesized digital macro: 3-wire configuration port, 24 bytes of write-only latches, probe decoder and the digital LIF. |
+| R2 additions | Bay column (S4, F4, E1 on spike channels 16–18) and the E2 leakage cell; see [R2 additions](#r2-additions). |
 
-All 16 spike outputs are plain digital levels on `uo[7:0]` and `uio[7:0]`. Spike timing and counting, stimulus
+All spike outputs (channels 0–15, plus 16–18 via OUT_BANK) are plain digital levels on `uo[7:0]` and `uio[7:0]`. Spike timing and counting, stimulus
 sequencing and the LIF tick are handled off-chip by the demo board's RP2040/RP2350 (PIO).
 
 ## Pinout
@@ -39,7 +40,7 @@ sequencing and the LIF tick are handled off-chip by the demo board's RP2040/RP23
 | ui[5] | Hold (`rt_out[2]`) |
 | ui[6] | Membrane reset (`rt_out[3]`) |
 | ui[7] | Digital-LIF tick (one update per rising edge) |
-| uo[7:0] | Spikes of analog channels 0–7 |
+| uo[7:0] | OUT_BANK = 0 (reset): spikes of analog channels 0–7; OUT_BANK = 1: channels 16–23 (16–18 = S4, F4, E1; uo[7:3] read 0) |
 | uio[5:0] | Spikes of analog channels 8–13 |
 | uio[6] | OUT_MUX = 0: digital-LIF spike; OUT_MUX = 1: channel 14 |
 | uio[7] | OUT_MUX = 0: configuration echo (shift-register MSB); OUT_MUX = 1: channel 15 |
@@ -56,9 +57,11 @@ All `uio` pins are outputs (`uio_oe` tied high). `uio_in`, `ena` and `ua[2..5]` 
 | 1, 5, 9 | F1, F2, F3 | 12 | CMP |
 | 2, 6, 10 | H1, H2, H3 | 13 | D1 |
 | 3 | AdEx | 14, 15 | AH50, AH400 |
+| 16, 17, 18 | S4, F4, E1 (bay, OUT_BANK = 1) | 19–23 | none (tied low) |
 
 **Probe select:** PROBE SEL equals the spike channel for every neuron except two. SEL = 4 shows CMP's membrane and
-SEL = 12 shows S2's (CMP and S2 swapped array positions after the control block was frozen).
+SEL = 12 shows S2's (CMP and S2 swapped array positions after the control block was frozen). SEL 16–18 (PROBE[7] = 1)
+probe the bay neurons; see [R2 additions](#r2-additions).
 
 ## Register map (summary)
 
@@ -73,15 +76,40 @@ The full map, timing and bit packing are in [`docs/regmap.md`](regmap.md).
 |---|---|---|
 | 0x00–0x04 | IDAC | Eight 5-bit DAC codes (leak, refractory, synapse, D1 axial, AdEx adaptation, EL, V_reset, CMP threshold), packed as a 40-bit word, LSB first |
 | 0x05 | VDAC | 6-bit threshold reference `vth_ref` |
-| 0x06 | ANA | Group enables, D1 plateau / chain / stimulus-B steering, BIAS_EN |
-| 0x07 | PROBE | SEL (channel to probe; see the note above), SUB (membrane / secondary node / REF; the compact slots S, F, AH50 and AH400 have no secondary-node tap), PROBE_EN |
+| 0x06 | ANA | GRP_EN [3:0] (bit 0 E2 leakage reset, bit 1 E1 bias enable, bits 2–3 spare), D1 plateau / chain / stimulus-B steering, BIAS_EN |
+| 0x07 | PROBE | SEL[3:0] and SEL[4] = bit 7 (5-bit address; see the note above), SUB (membrane / secondary node / REF; the compact slots S, F, AH50 and AH400 have no secondary-node tap; SUB = 1 at the AH50 / AH400 addresses reads E2), PROBE_EN |
 | 0x08 | MODE | `ua[0]` mode, OUT_MUX, IB_X2 (readout bias ×2), RT_EN (enables for the `ui[6:3]` pass-throughs) |
 | 0x09–0x0E | LIF | Digital LIF: enable and source, leak shift and refractory, EL, Vth, Vreset, weight |
 | 0x0F–0x16 | TRIM | 4-bit trims: H/P/CMP thresholds, D1 plateau thresholds, P leak-τ |
+| 0x17 | OUT | OUT_BANK (bit 0): `uo` = channels 0–7 (0) or 16–23 (1); `uio` is unaffected |
+| 0x18–0x1F | — | Unused; writes are ignored |
 
 **P leak-τ trim.** Code c (nibbles 14 and 15) sets that P neuron's leak current to (8 + c)/16 of the S neurons' at the
 same leak DAC code, so τ_P ≈ τ_S · 16/(8 + c). Code 8 gives τ_S, code 0 gives 2 τ_S, and code 15 gives 0.7 τ_S. On
 hot, fast silicon, keep the leak current above about 30 pA per neuron, or the range compresses.
+
+### R2 additions
+
+**Bay neurons** (a column of three compact slots outside the array). The bay taps read the membrane `vm` for any
+PROBE_SUB other than 3 (no `vr` tap); SUB = 3 still selects REF.
+
+| Neuron | PROBE SEL (PROBE[7] = 1) | Spike channel | Seen on |
+|---|---|---|---|
+| S4 (S twin, shared biases) | 16 | 16 | `uo[0]` with OUT_BANK = 1 |
+| F4 (F twin) | 17 | 17 | `uo[1]` with OUT_BANK = 1 |
+| E1 | 18 | 18 | `uo[2]` with OUT_BANK = 1 |
+
+**E1** is an S neuron with its own local bias leg (a fixed-bias twin of S4, for comparing a local bias against the
+shared bias lines). GRP_EN[1] = 0 turns the leg off and parks `vm`; GRP_EN[1] = 1 lets it run. If E1 is dropped, the
+slot holds a plain S neuron and GRP_EN[1] does nothing.
+
+**E2** is a hold-node leakage cell with two floating ~200 fF nodes. Node A is reset to `vreset` through one nMOS
+switch; node B through two stacked switches whose middle node is held at `vreset` while the cell floats, which
+should suppress the switch leakage (design in progress; device details TBD). GRP_EN[0] = 1 charges both nodes to
+`vreset`; clearing it releases them to droop. Probe addresses (PROBE_SUB = 1 of array row 3, the AH50 / AH400 slots,
+which have no SUB = 1 tap of their own): node A = SEL 11, SUB 1 (PROBE = 0x5B); node B = SEL 15, SUB 1 (PROBE = 0x5F).
+
+GRP_EN resets to 0: E1 off, E2 nodes floating. GRP_EN[3:2] are latched but not connected.
 
 ## How to test
 
@@ -107,7 +135,15 @@ oscilloscope or ADC reads `ua[1]`.
       that over-corrects (code 21: no firing at 1.1 × rheobase). Repeat after a large temperature change.
 6. **Run the analog neurons:** set RT_EN, drive stimulus A/B on `ui[3]`/`ui[4]` and count spikes on `uo`/`uio`. Move the
    probe to observe membranes on `ua[1]`.
-7. **Run the digital LIF:** write the LIF parameters with LIF_EN = 0, then set LIF_EN = 1. Drive `clk` and tick `ui[7]`,
+7. **R2 measurements** (values marked TBD are pending the E1 / E2 post-layout benches):
+   - **E2 droop:** set GRP_EN[0] = 1 for at least 10 µs, then clear it (that is the t = 0 of the droop). Select node A
+     (PROBE = 0x1B, then 0x5B, break-before-make), sample `ua[1]` from milliseconds to seconds and take the droop rate as
+     the slope dV/dt. Repeat for node B (SEL 15) and compare A against B. Expected rates: TBD. Keep `clk` stopped and
+     avoid other probe or configuration activity during the droop.
+   - **E1 f–I:** set GRP_EN[1] = 1 and bias `ua[0]` for S = 100. Stimulate E1 through its synapse (**TBD**: which
+     stimulus line drives E1 depends on the E1 design). Count its spikes on `uo[2]` with OUT_BANK = 1, or probe its
+     `vm` at SEL 18 (PROBE[7] = 1). Compare with S4 (SEL 16 / `uo[0]`) under the same stimulus. Expected rates: TBD.
+8. **Run the digital LIF:** write the LIF parameters with LIF_EN = 0, then set LIF_EN = 1. Drive `clk` and tick `ui[7]`,
    at least 48 clock cycles apart.
 
 ### Firmware rules
@@ -118,6 +154,10 @@ oscilloscope or ADC reads `ua[1]`.
   typical, 2.05 µs at ss / 0 °C).
   Enabling or disabling the D1 probe kicks D1's compartments by up to +6 / −8 mV (post-layout, ss / 0 °C; the
   two edges nearly cancel). Switch the D1 probe while D1 is at rest, not mid-measurement.
+- **Switch OUT_BANK only between measurements.** `uo` changes bank at once; spikes on the bank being left or
+  entered during the write are lost or seen as edges.
+- **Probe break-before-make applies to the R2 addresses too**, including PROBE[7] (SEL 16–18): write EN = 0 with the
+  old address, then EN = 0 with the new one, then EN = 1.
 - **Hold BIAS_EN = 0 while changing bias codes**, because a 5-bit code can straddle two bytes.
 - **Change digital-LIF parameters only while LIF_EN = 0**, and wait at least 3 clock cycles after clearing it.
 - **Stop `clk` during analog measurements.** The configuration latches, spike outputs and stimulus pass-throughs work
