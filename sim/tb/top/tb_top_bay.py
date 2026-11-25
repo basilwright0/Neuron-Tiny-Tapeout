@@ -21,6 +21,9 @@ import sys
 
 import numpy as np
 
+if "probe" in sys.argv[1:2]:              # the bay en (g_bay) comes from the bay glue or3: needs the full glue model
+    os.environ.setdefault("TOP_GLUE", "full")
+
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 import topbench as B          # noqa: E402
 import topnet as T            # noqa: E402
@@ -129,7 +132,7 @@ elif MODE == "probe":
     r = B.go(B.deck(body, f"tran 2n {tend:g}", sv, corner=CORNER, temp=TEMP), f"bay_probe_{TAG}")
     t, y = r["_x"], r["v(pad)"]
     enb = r[f"v({T.vnode('en_b')})".lower()]
-    log(f"Bay probe steps (SEL 16-18), {CORNER} {TEMP} C, S = {S:g}, 200 pF board after 500 ohm; firmware 3-step "
+    log(f"Bay probe steps (SEL 16-18), {CORNER} {TEMP} C, glue model {T.GLUE_MODE}, S = {S:g}, 200 pF board after 500 ohm; firmware 3-step "
         f"move; forced taps " + ", ".join(f"{k} {v[2]:g} V" for k, v in TAPS.items()))
     log("move                                   pad before -> after (V)   t_settle 1 % (ns)   overshoot (%)   "
         "ripple last 1 us (mV)   en_b (V)")

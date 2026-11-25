@@ -32,6 +32,13 @@ UNIT = 0.005                       # um per .ext / a_x_y unit (scale 1000 1 0.5 
 MACRO = (fp.MACRO_X, fp.MACRO_Y, fp.MACRO_X + fp.MACRO_S, fp.MACRO_Y + fp.MACRO_S)
 GLUE = (169.5, 4.5, 204.5, 10.5)   # pre-M3 glue row box (keep its std cells); the M3 / R2 rows: glue_boxes()
 R_DRV = 1.5e3                      # macro output driver (buf_1-ish, 3.3 V)
+# Glue std cells kept as transistors. 'm3' (default, the rule of every bench up to M3): a device is glue if one of its
+# nodes is an a_x_y node inside GLUE or is named g_*. Since M3 moved the glue rows to x 282.6, that keeps only 20 of
+# the 50 glue transistors (no nfet pull-down of en_b / d1_sel*: their nodes are all named nets + VGND.t*), and none of
+# the R2 bay or3 (g_bor -> g_bay). 'full' (TOP_GLUE=full, needed for the bay probe): every device with an internal
+# node or a power terminal inside a glue-row box of config.std_cells() (50 / 50 on the R2 netlist).
+import os as _os                   # noqa: E402
+GLUE_MODE = _os.environ.get("TOP_GLUE", "m3")
 TR = 0.5e-9
 
 _cache = {}
@@ -332,7 +339,14 @@ def build(state: dict, sources: dict | None = None, cmin=1e-18, power="entry", r
             nodes = nn[:-1]
             if model.endswith("_05v0"):
                 pts = [_xy(x) for x in nodes]
-                glue_dev = glue and (any(in_glue(p) for p in pts) or any(x.startswith("g_") for x in nodes))
+                if GLUE_MODE == "full":       # device in a glue-row box by an internal node or its power terminal
+                    if "pw_rn" not in _cache:
+                        _cache["pw_rn"] = {**rnodes("VDPWR"), **rnodes("VGND")}
+                    pts += [_cache["pw_rn"].get(x) for x in nodes]
+                    glue_dev = glue and (any(in_glue(p) for p in pts) or any(x.startswith("g_") for x in nodes))
+                else:                         # M3 rule (benches up to M3): old GLUE box or a g_* node name
+                    glue_dev = glue and (any(_inbox(p, GLUE) for p in pts) or any(x.startswith("g_") for x in nodes))
+                _cache["glue_kept"] = _cache.get("glue_kept", 0) + bool(glue_dev)
                 if not glue_dev:
                     drop += 1
                     continue

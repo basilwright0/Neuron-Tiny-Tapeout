@@ -30,7 +30,7 @@ TAPS = {  # name: (forced node, probe config, schematic tap kind)
     "D1 soma": ("d1.vs", dict(blk="d1", sub=0), "d1"),
     "AdEx vm": ("ax.vm", dict(blk="adex", sub=0), "adex"),
 }
-TAG = f"{CORNER}_{TEMP}"
+TAG = f"{CORNER}_{TEMP}" + ("_fullglue" if T.GLUE_MODE == "full" else "")   # TOP_GLUE=full: R2 run, all glue devices
 lines = []
 
 

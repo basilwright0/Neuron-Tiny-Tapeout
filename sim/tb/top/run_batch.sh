@@ -53,7 +53,7 @@ elif [ "$MODE" = pex ]; then      # longest first (kick: 210 us transient); no f
   )
   if grep -q "^BAY = " floorplan/floorplan.py; then
     JOBLIST=(                     # R2 (MIL-362), longest first; the M3 jobs keep their definitions
-      "s10k_typ27|env S10K_TIMEOUT=6000 python3 sim/tb/top/tb_top_s10k.py typical 27"
+      "s10k_typ27|env S10K_TIMEOUT=7500 python3 sim/tb/top/tb_top_s10k.py typical 27"
       "bias_spk_off|python3 sim/tb/top/tb_top_bias.py spk off"
       "bay_fire_typ27|python3 sim/tb/top/tb_top_bay.py fire typical 27"
       "bias_spk_on|python3 sim/tb/top/tb_top_bias.py spk on"
@@ -61,6 +61,7 @@ elif [ "$MODE" = pex ]; then      # longest first (kick: 210 us transient); no f
       "bias_step_S10|env STEP_TW=2 python3 sim/tb/top/tb_top_bias.py step 10"
       "bias_step_S10_nobay|env NOBAY=1 STEP_TW=2 python3 sim/tb/top/tb_top_bias.py step 10"
       "bay_probe_typ27|python3 sim/tb/top/tb_top_bay.py probe typical 27"
+      "probe_step_typ27_fullglue|env TOP_GLUE=full python3 sim/tb/top/tb_top_probe.py step typical 27"
       "kick_typ27|python3 sim/tb/top/tb_top_kick.py typical 27"
       "icur_pgrid_S10000|env ICUR_CASES=S10000 python3 sim/tb/top/tb_top_icur.py typical 27 && python3 sim/tb/top/pgrid.py /work/sim/results/top/icur_S10000_typical_27.json S10000_ibx2"
       "gndchk_S100|python3 sim/tb/top/tb_top_gndchk.py 100"
