@@ -86,7 +86,7 @@ The latch enable is `le[a] = LOAD & (sr[12:8] == a)`. Because SCK has no edge fr
 |---|---|---|---|
 | 0x00..0x04 | IDAC | 40-bit word, LSB first | **Analog.** Eight 5-bit current-DAC codes, code k = word[5k+4 : 5k]; 0 = off (§3.2) |
 | 0x05 | VDAC | [5:0] | **Analog.** Voltage-DAC code (6 bit); [7:6] no storage |
-| 0x06 | ANA | [3:0] GRP_EN | **Analog.** Group enables |
+| 0x06 | ANA | [3:0] GRP_EN | **Analog.** Group enables. R2: [0] E2 leakage cells (1 = charge to vreset), [1] E1 local bias leg (1 = run), [3:2] spare |
 | | | [4] PLATEAU_EN | **Analog.** D1 plateau enable |
 | | | [5] D1_CHAIN | **Analog.** D1 subunit topology: 0 star, 1 chain |
 | | | [6] BIAS_EN | **Analog.** Master bias enable (`bias_en`); also gates `ua0_int` |
@@ -142,8 +142,10 @@ AH50 and AH400 have no vr tap since M2, so PROBE_SUB = 1 reads nothing on them; 
 | target | bay neuron 0 | bay neuron 1 | bay neuron 2 | nothing | column 4, row 2 | column 4, row 3 | nothing |
 | lines | `probe_sel_bay[0]` | `probe_sel_bay[1]` | `probe_sel_bay[2]` | — | `probe_rsel[2]` + `probe_en_c4` | `probe_rsel[3]` + `probe_en_c4` | — |
 
-Spike channels: bay neurons 0..2 = `spk_in[16..18]`, column 4 rows 2/3 = `spk_in[22]` / `spk_in[23]`; `spk_in[19..21]` are spares
-(tied low at the top level). PROBE_SUB = 3 still selects REF (slot (0,0)) for every SEL.
+Spike channels: bay neurons 0..2 = `spk_in[16..18]` (S4, F4, E1). Column 4 (`spk_in[22]` / `spk_in[23]`, `probe_en_c4`) is
+option D and is not built on the R2 chip, so `spk_in[19..23]` are all tied low at the top level and SEL 22 / 23 select
+nothing there. PROBE_SUB = 3 still selects REF (slot (0,0)) for every SEL. On the bay, `sub_b` is tied high and `sub` is
+open at the top level, so PROBE_SUB = 0, 1 or 2 all read vm.
 Spike channels are unchanged (`SPIKE_CH`); channel 15 is AH400 since M2 (MIL-127 N11: AH800 became AH400, so the
 capacitance sweep is AH50 / S / AH400 = 0.25 / 1 / 2×).
 
