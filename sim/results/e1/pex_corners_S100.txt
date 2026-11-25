@@ -1,0 +1,16 @@
+e1_fb PEX /work/layout/compact/out/ce1_fb_pex.spice  S = 100 (I_nd = 1 uA, vbp_st = I_nd/16)
+
+typical/27C: EL 1.407 V  Vth 1.486 V  gap 78.6 mV  rheobase 157 pA  g 2.20 nS  tau 110.3 us  t_ref 18.0 us
+   f-I (ideal Iin): 0.9x 0 Hz  1.1x 2055 Hz  1.5x 4840 Hz  2x 7422 Hz  3x 11552 Hz  5x 17631 Hz  8x 23913 Hz
+   fixed weights (DC): A 9242 Hz, A+B 16968 Hz
+   grp_en: I_vdd_on_rest 3.645e-07  vm_at_100us 4.142e-08  vm_at_290us 1.424e-08  spikes_before_on 0  first_spike_after_on 0.0001164  I_vdd_off_tran 1.044e-11
+
+ss/0C: EL 1.750 V  Vth 1.820 V  gap 69.4 mV  rheobase 153 pA  g 2.41 nS  tau 97.5 us  t_ref 8.0 us
+   f-I (ideal Iin): 0.9x 0 Hz  1.1x 2562 Hz  1.5x 6092 Hz  2x 9541 Hz  3x 15464 Hz  5x 25608 Hz  8x 37536 Hz
+   fixed weights (DC): A 12593 Hz, A+B 25213 Hz
+   grp_en: I_vdd_on_rest 3.702e-07  vm_at_100us 1.719e-08  vm_at_290us 9.878e-09  spikes_before_on 0  first_spike_after_on 8.799e-05  I_vdd_off_tran 5.98e-12
+
+ff/85C: EL 0.971 V  Vth 1.068 V  gap 97.1 mV  rheobase 149 pA  g 1.70 nS  tau 146.6 us  t_ref 34.9 us
+   f-I (ideal Iin): 0.9x 0 Hz  1.1x 1462 Hz  1.5x 3355 Hz  2x 5041 Hz  3x 7598 Hz  5x 11078 Hz  8x 14330 Hz
+   fixed weights (DC): A 5757 Hz, A+B 10246 Hz
+   grp_en: I_vdd_on_rest 3.573e-07  vm_at_100us 8.343e-07  vm_at_290us 7.27e-07  spikes_before_on 0  first_spike_after_on 0.0001801  I_vdd_off_tran 8.852e-10

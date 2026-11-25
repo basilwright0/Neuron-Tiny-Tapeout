@@ -54,7 +54,7 @@ XNW vbw mid vss vss nfet_03v3 W=0.22u L={lnw}
 XPW vbw vbw vdd vdd pfet_03v3 W=2u L=1u
 * the S neuron
 XC  vm vss mcap wl=7.07u
-XL  vl el_l la mid vdd vss leak_ota_degx wt=0.22u lt={lt}
+XL  vl el_l la mid vdd vss leak_ota_degx wt=0.22u lt={lt} wl=1u ll=2u
 XD  vm spk vsl vs2 vbp_st vdd vss det_ah_e1 cfb={cfb}
 XR  spk vm vr el_l mid vdd vss refrac_e1 wcr=3.54u wsw=1u wnr={wnr} lnr={lnr}
 XPM vm abus en rsel sub_b vbn_prb vdd vss prb_tap wf={wf} lf={lf}
