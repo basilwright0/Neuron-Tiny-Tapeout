@@ -1,13 +1,13 @@
-2026-11-25 01:46:50 start 4 CPUs, 7 GB, no-git
-2026-11-25 01:48:31 build rc=0 LVS: Final result: Circuits match uniquely.
+2026-11-25 03:00:26 start 4 CPUs, 7 GB, no-git
+2026-11-25 03:02:14 build rc=0 LVS: Final result: Circuits match uniquely.
 KLAYOUT main 0
 KLAYOUT antenna 0
 MAGIC_DRC_COUNT 0
-2026-11-25 01:50:16 precheck rc=0
-2026-11-25 02:49:53 +0100: Memory Usage (488364K) : Executing deck antenna_via5 from /foss/pdks/gf180mcuD/libs.tech/klayout/tech/drc/rule_decks/antenna.rb
-2026-11-25 02:49:53 +0100: Memory Usage (489004K) : 
-2026-11-25 02:49:53 +0100: Memory Usage (489004K) : DRC RESULT: SUCCESS (0 violations)
-2026-11-25 02:49:53 +0100: Memory Usage (489004K) : # DRC Total Run time 3.387996418 seconds
+2026-11-25 03:04:19 precheck rc=0
+2026-11-25 04:03:55 +0100: Memory Usage (487924K) : Executing deck antenna_via5 from /foss/pdks/gf180mcuD/libs.tech/klayout/tech/drc/rule_decks/antenna.rb
+2026-11-25 04:03:55 +0100: Memory Usage (488692K) : 
+2026-11-25 04:03:55 +0100: Memory Usage (488692K) : DRC RESULT: SUCCESS (0 violations)
+2026-11-25 04:03:55 +0100: Memory Usage (488692K) : # DRC Total Run time 3.713159585 seconds
 INFO: Running Verilog syntax check on /work/gds/tt_um_basilwright0_analog_neurons.v
 Preparing to run yowasp-yosys. This might take a while...
 
@@ -25,9 +25,9 @@ Parsing SystemVerilog input from `/work/gds/tt_um_basilwright0_analog_neurons.v'
 Generating RTLIL representation for module `\tt_um_basilwright0_analog_neurons'.
 Successfully finished Verilog frontend.
 
-End of script. Logfile hash: 8d88e6c524, time: 0.00s, user: 0.00s, system: 0.00s
+End of script. Logfile hash: 8d88e6c524, time: 0.01s, user: 0.01s, system: 0.00s
 Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
 Time spent: 99% 2x read_verilog (0 sec), 0% 0x id_gc (0 sec)
 INFO: Precheck passed for /work/gds/tt_um_basilwright0_analog_neurons.gds! 🎉
-2026-11-25 01:50:16 gate ok=1
-2026-11-25 01:50:16 end
+2026-11-25 03:04:19 gate ok=1
+2026-11-25 03:04:19 end
