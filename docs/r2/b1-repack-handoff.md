@@ -130,3 +130,18 @@
   - b has more setup slack (+1.70 ns) but drops the input buffers.
   - Next: copy a's LEF/GDS/netlist into macros/neuron_ctrl on the C1 branch, then the info.md docs (user approved
     OUT_BANK and SEL[4], 22:21).
+
+## Status 2026-11-25 ~00:00 UTC: step 1 complete
+- **Full chip verified** (702a24c, VM r2b1top5): LVS match, KLayout 0, antenna 0, magic 0, TT precheck passed.
+  - GDS sha256 af1fbcb7….
+- **Fixes on the way:**
+  - stale `_stubs` after reroute: `reroute` now refreshes them (ecff004);
+  - Metal3 Z-joint fill in `assemble.py` (9998b78).
+- **Renders:** before/after in `docs/r2/renders/` (7050a4f).
+- **Free space:** 15,637 → 17,663 µm²; largest rectangle 50.8 × 103.8 at x 80–131.
+- **Report:** MIL-344 document `b1-repack`. Daily report MIL-2 `tiny-tapeout-2026-11-24`. VM-h booked on MIL-6 (≈ 4.75).
+- **Next step (new task):**
+  1. Integrate C1 variant a (r2-c1-spk 03e57fc, `rtl/librelane/c1spk_results_c1spk_a`) into `macros/neuron_ctrl`.
+  2. Top-level config for the new spk_in/probe pins.
+  3. Place the 3 bay neurons (one slot column at x ~80–108, channel x ~108–129); feed column lines from B1's west-edge outputs.
+  4. Full-chip checks + PEX benches; `docs/info.md` for OUT_BANK and SEL[4].
