@@ -240,3 +240,22 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
     in info.md (HOLD toggle → wait ≥ 1 τ on D1); no layout change.
   - Bench hygiene for later: make kick-victim nets get consistent resistance in ext_rc.tcl.
   - Optional: shield `d1/hold` from the chain-select node inside D1 (≈ 11 mV); not needed for the gate.
+
+## Status 2026-11-26 ~10:30 UTC: checkpoint prep (Chief #43)
+- **Decision #43 applied:** D1 vs ← HOLD kick re-baselined to c91f33e (+16.16 / −24.32 mV) in r2_compare.py
+  (`KICK_REBASE`, r2-pex 0f4025f); info.md firmware rule "after HOLD toggles wait ≥ 1 τ before reading D1" (5b98daf).
+- **e1trip fix (0f4025f):** Vth was read on the spike upstroke through the 1 kΩ force R. Re-processed from the saved
+  data: **EL 1.4197 V, Vth 1.4960 V, gap 76.3 mV** (block 78.6 → PASS; the earlier "89 mV" was wrong). Rheobase
+  344 pA vs block 156 pA, still to understand (cell current peaks near 1.489 V before takeoff).
+- **vm_pex.sh exit code (0f4025f):** the trailing `[ -n "$1" ] && selfstop` returned 1 when no VM id was given. It
+  now exits 0 only if the batch reports 0 failed.
+- **Kick edges after the re-baseline:** FAIL, worst −2.66 mV (AdEx vm at HOLD off; HOLD on +2.30). The kick compare
+  has failed by 2–3 mV in every R2 version (19e5af2 +2.95 D1 vs PROBE off, 988c8d8 −2.93 D1 vs PROBE on, c91f33e
+  −2.66 AdEx HOLD off). This is a criterion question: the description's 0.5 mV rule covers the probe/bias benches,
+  which all pass. Asked Chief.
+- **Option D facts** (CH_ROW x 120.5–169.5, y 213.5–317):
+  - a cslot + czslot stack (28 × 63.7 µm) fits rows 2–3 at x 120–148, leaving a ~21 µm channel to the macro;
+  - 49 routed nets cross that strip and would need re-routing;
+  - the macro already has spk_in[22/23] and probe_en_c4 pins (no re-harden);
+  - estimate 2–3 layout sessions + 1–2 VM boots; risk medium-high.
+  - **Recommendation: no option D for Dec 7** (keep 22–23 tied as documented reserve).
