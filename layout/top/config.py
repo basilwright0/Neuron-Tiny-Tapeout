@@ -131,7 +131,8 @@ def nets():
         # sub_b tied high (geom.bay: via2 on the cell's vdd column), sub open (S/F have no PROBE_SUB = 1 tap): the
         # bay taps read vm for any PROBE_SUB != 3, and probe_sub / probe_sub_b need no branch into the bay
         add(f"probe_sel_bay[{k}]", s, "rsel"); add("VDPWR", s, "sub_b")
-        add(f"spk_in[{fp.SPIKE_CH[name]}]", s, "spk")
+        if name in fp.SPIKE_CH:                       # E1 is probe-only: spk pin open
+            add(f"spk_in[{fp.SPIKE_CH[name]}]", s, "spk")
         if cell == "ce1_fb":                          # E1 local bias leg enable = GRP_EN[1] (band track 8)
             add("cfg_out[1]", s, "grp_en"); add("cfg_out[1]", "ctrl", "cfg_out[1]")
     # ---- R2 E2 leakage cells: GRP_EN[0] charge, GRP_EN[2] clamp mode; taps on AH50 / AH400 PROBE_SUB = 1

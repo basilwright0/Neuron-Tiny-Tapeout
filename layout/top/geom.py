@@ -280,7 +280,9 @@ def bay(F):
         pins = geo(cell)["pins"]
         trk0 = round(h - 11.12, 3)
         net_of = {0: "rt_out[0]", 1: "rt_out[1]", 2: "rt_out[2]", 3: "rt_out[3]", 4: f"probe_sel_bay[{k}]",
-                  7: f"spk_in[{fp.SPIKE_CH[name]}]", 8: "cfg_out[1]"}
+                  8: "cfg_out[1]"}
+        if name in fp.SPIKE_CH:                      # E1 is probe-only (spk open)
+            net_of[7] = f"spk_in[{fp.SPIKE_CH[name]}]"
         used = {BAY_TRK[pn]: pins[pn][0]["pt"][0] for pn in BAY_TRK if pn in pins and BAY_TRK[pn] in net_of}
         # sub_b (track 6) tied to the cell's vdd column inside the band; sub (track 5) left open (config.nets)
         ty, px, q = cy + trk0 + TRKP * 6, pins["sub_b"][0]["pt"][0], pins["vdd"][0]["rects"][0]
