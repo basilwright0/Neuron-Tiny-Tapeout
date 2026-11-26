@@ -204,3 +204,26 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
 - **04:45Z, top7 on c91f33e/80aab43: GREEN.** LVS match uniquely, KLayout DRC 0, antenna 0, magic 0, TT precheck rc=0,
   gate ok; cocotb 16/16 (test/r2_ah50_tests.log). r2pex/ah50: build noroute LVS match, extraction done, node check
   0 missing, batch running since 04:28Z (results in r2pex sim/results/top, steps in vm_ah50/pex_steps.log).
+
+## Status 2026-11-26 ~08:20 UTC: PEX on the AH50B bay (r2pex/ah50, c91f33e)
+- Batch 04:28–07:50Z, 20 benches rc=0 (JOBS=2). Fetched with a 1 min resume; VM stopped. Table:
+  r2pex `sim/results/top/r2_vs_m3_c91f33e.txt`.
+- **PASS:**
+  - bias DC S = 100: worst +0.004 mV;
+  - probe step: 0.10 mV, 1754 ns;
+  - bias_spk off ≤ 1 %;
+  - s10k vs M3: worst −1.35 % (F2). The earlier +3.5 % is gone; normal / bayquiet / nobay S2 = 0.849 / 0.884 / 0.861,
+    i.e. one-spike quantisation;
+  - bay_fire: S4 = S1–S3 and AH50B = AH50 s32 (165.0 kHz), both ratio 1.0000;
+  - bay_probe: 1719 ns, pad − tap ≤ 0.03 mV;
+  - icur S10000: by2 (E1) 0 / 0 µA at GRP_EN = 0 (off at reset proven); by0 / by1 0.34 / 0.16 µA.
+- **E1 full chip:**
+  - e1trip: EL 1.420 V, Vth 1.509 V, gap 89.1 mV (block 1.407 / 1.486 / 78.6). +10.5 mV is within MC σ 19 mV and the
+    corner range 69–97 → accept. The e1trip rheobase printout (−1.2e7 pA) is a bench bug.
+  - e1short: EL 1.411 V; rate +11.6 / +7.5 % vs block.
+- **bias_step S = 10:** worst vbp_st 3.44 ms with the bay (3.45 without). vbp_syn is 2.96 vs 2.76 ms (AH50B load).
+- **FAIL, kick edges:** worst +5.19 mV on D1 vs at HOLD on (10.97 → 16.16 mV vs M3). HOLD = rt_out[2] is a run-time
+  line, so the 04:08Z config-time waiver does not cover it. Suspect the rt_out[2] extend/bridge in the bay channel or
+  new coupling near D1. **Next: debug in a fresh wake** (local netlist coupling check on rt_out[2] vs d1.vs first, then
+  one fix + top + kick bench run in one boot at JOBS=3).
+- The outer job rc=1 with 0 failed benches: vm_pex exit code; check with the next run.
