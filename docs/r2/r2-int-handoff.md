@@ -227,3 +227,16 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   new coupling near D1. **Next: debug in a fresh wake** (local netlist coupling check on rt_out[2] vs d1.vs first, then
   one fix + top + kick bench run in one boot at JOBS=3).
 - The outer job rc=1 with 0 failed benches: vm_pex exit code; check with the next run.
+- **08:45Z, kick D1 vs ← HOLD +5.19 mV: extraction artifact, not a layout change** (Sonnet sub-agent, local netlists
+  in /home/basil/tt-m3/kickdiag, plus my spot check).
+  - D1's chain-select node (`d1/a_318_18520#`, RC deck `a_1912_20076`) connects to d1.vs through X8892 (chain = 0) and
+    has 388 aF to `d1/hold`, inside the D1 cell.
+  - In 988c8d8 / M3, magic `extresist` gave this net resistors (988c8d8 RC deck: 4 R, 0 hold caps), which writes its C
+    to VGND and drops the hold coupling. In c91f33e the net got no resistors (0 R, the hold cap is kept).
+  - C-only couplings on d1.vs / d1.d1 / d1.d2 are identical between the two netlists; rt_out[2] only gained via pads
+    32 µm east of D1. 388 aF × 3.3 V on ~270 fF ≈ 4.7 mV, matching the +5.2 mV.
+  - So the physical kick is ~16 mV in every version, including M3 / main fdcf2ad.
+  - **Proposal:** re-baseline the D1 vs HOLD kick reference to the c91f33e values (+16.2 / −24.3 mV) and document it
+    in info.md (HOLD toggle → wait ≥ 1 τ on D1); no layout change.
+  - Bench hygiene for later: make kick-victim nets get consistent resistance in ext_rc.tcl.
+  - Optional: shield `d1/hold` from the chain-select node inside D1 (≈ 11 mV); not needed for the gate.
