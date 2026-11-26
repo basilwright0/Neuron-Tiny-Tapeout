@@ -15,6 +15,7 @@ mkdir -p $H
 rm -f $H/pex_done
 JOBS=${JOBS:-2}                    # ~1-2 GB per full-chip ngspice job (vectors limited by topbench.deck `save`)
 step() { echo "$(date -u '+%F %T') $*" >> $H/pex_steps.log; }
+RC=1                               # exit status of the job (set to 0 below on a clean batch)
 step "start, $(nproc) CPUs, $(free -g | awk '/Mem/{print $2}') GB, JOBS=$JOBS, $(git log --oneline -1)"
 
 # Checkpoints: steps 1-2 leave $H/pex_ext.ok (the extracted netlists stay on the VM disk), and run_batch.sh leaves a
@@ -51,7 +52,10 @@ if [ -s layout/top/work/pexr/top_rc_flat.spice ]; then
     [ -f $B/summary_${PEX_MODE:-pex}.txt ] && awk '$2=="rc=0"{print $1}' $B/summary_${PEX_MODE:-pex}.txt | while read -r n; do
       [ -e $B/$n.ok ] || echo "from summary" > $B/$n.ok; done
     JOBS=$JOBS bash sim/tb/top/run_batch.sh ${PEX_MODE:-pex} > $H/pex_batch.log 2>&1
-    step "batch rc=$? : $(tail -1 $H/pex_batch.log)"
+    BRC=$?
+    step "batch rc=$BRC : $(tail -1 $H/pex_batch.log)"
+    # job status: 0 only if build/LVS/extraction/node check got us here and the batch reported 0 failed benches
+    [ $BRC = 0 ] && tail -1 $H/pex_batch.log | grep -q "done, 0 failed" && RC=0
   fi
 else
   step "no top_rc_flat.spice: benches skipped"
@@ -64,4 +68,7 @@ tar czf $H/pex_out.tgz $H/pex_*.log layout/top/work/lvs_report.txt layout/top/wo
   sim/results/top/batch/*.log sim/results/top/batch/summary_*.txt 2>/dev/null
 step "packed $(ls -l $H/pex_out.tgz 2>&1)"
 echo DONE > $H/pex_done
-[ -n "$1" ] && bash layout/compact/vm_selfstop.sh "$1" $H/pex_done 300
+# (a bare `[ -n "$1" ] && ...` as the last command made the job exit 1 whenever no VM id was given)
+if [ -n "$1" ]; then bash layout/compact/vm_selfstop.sh "$1" $H/pex_done 300; fi
+step "exit $RC"
+exit $RC

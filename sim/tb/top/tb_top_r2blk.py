@@ -149,16 +149,23 @@ elif MODE == "e1trip":
     g = np.polyfit(xs[m], iav[m], 1)[0] if m.sum() > 3 else float("nan")
     up2 = t > t2
     tr = crossings(t[up2], spk[up2], 1.65)
-    vth = float(np.interp(tr[0], t, vm)) if len(tr) else float("nan")
+    # Vth = the forced source voltage at the trip. vm itself is no good there: through RF the cell's regenerative
+    # upstroke runs vm ~13 mV past the ramp before spk reaches VDD/2 (the source then sinks ~ -12 uA), so vm at the
+    # spk crossing overstates Vth, and interpolating the current at Vth - 1 mV against vm lands in the upstroke
+    # (the -11844043 pA printout). On the ramp below the takeoff vm = v(fe1) within < 1 uV (I x 1 kohm).
+    fe = r["v(fe1)"]
+    vth = float(np.interp(tr[0], t, fe)) if len(tr) else float("nan")
+    vm_tr = float(np.interp(tr[0], t, vm)) if len(tr) else float("nan")
     tr1 = crossings(t[t <= t2], spk[t <= t2], 1.65)
     log(f"EL (zero of the up/down-averaged source current) {el:.4f} V (block PEX 1.407 V, {1e3 * (el - 1.407):+.1f} mV); "
         f"g at EL {g * 1e9:.2f} nS (block 2.1); C dV/dt current {np.mean(ic) * 1e12:.0f} pA = C_eff "
         f"{np.mean(ic) / RATE * 1e15:.0f} fF; zero of the raw up / down current {zc(xs, iu):.4f} / {zc(xs, idn):.4f} V")
-    log(f"Vth (vm at the first rising spk crossing of 1.65 V, final up ramp) {vth:.4f} V (block PEX 1.486 V, "
+    log(f"Vth (forced vm = v(fe1) at the first rising spk crossing of 1.65 V, final up ramp; vm there {vm_tr:.4f} V, "
+        f"past the ramp by the upstroke) {vth:.4f} V (block PEX 1.486 V, "
         f"{1e3 * (vth - 1.486):+.1f} mV) at {tr[0] * 1e6 if len(tr) else float('nan'):.1f} us; "
         f"{len(tr)} spk crossings on that ramp" + (f"; WARNING: spk tripped {len(tr1)}x in the trip-free pair" if len(tr1) else ""))
-    mm = up2 & (t < (tr[0] if len(tr) else TEND))
-    rh = np.interp(vth - 1e-3, vm[mm], ii[mm]) - np.mean(ic) if len(tr) else float("nan")
+    mm = up2 & (t < (tr[0] if len(tr) else TEND)) & (np.abs(vm - fe) < 1e-4)   # final ramp, vm still on the source
+    rh = np.interp(vth - 1e-3, fe[mm], ii[mm]) - np.mean(ic) if len(tr) else float("nan")
     log(f"gap Vth - EL {1e3 * (vth - el):.1f} mV (block PEX 78.6 mV); rheobase (source current at Vth - 1 mV minus "
         f"the C dV/dt current) {rh * 1e12:.0f} pA (block 156)")
     log("after the trip the reset fights the forced source (vm held by the source); only the first crossing is used")

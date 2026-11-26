@@ -145,6 +145,16 @@ def probe():
 
 
 # ---------------------------------------------------------------- kick: edge (step) per victim / event
+# Per-entry re-baseline (Chief decision #43, 2026-11-26): D1 vs at HOLD on / off is compared against the R2 c91f33e
+# values (kick_typical_27.txt, edge (step) mV) instead of M3. The M3 / fdcf2ad difference (+5.2 / -4.9 mV) is a magic
+# extresist net-selection artifact: the C coupling of d1/hold to D1's chain-select node is identical, so the physical
+# kick is the same in M3 and fdcf2ad. The M3 result files are not edited; only these entries are overridden here.
+KICK_REBASE = {
+    ("HOLD on", "D1 vs"): (+16.16, +15.9),
+    ("HOLD off", "D1 vs"): (-24.32, -22.3),
+}
+
+
 def kick():
     o, n = rd(OLD, "kick_typical_27.txt"), rd(NEW, "kick_typical_27.txt")
     if not (o and n):
@@ -164,6 +174,11 @@ def kick():
                 out[(ev, nm)] = (float(m[0]), float(m[1]))
         return out, names
     (po, no_), (pn, nn) = parse(o), parse(n)
+    for k, v in KICK_REBASE.items():
+        if k in po:
+            log(f"  re-baselined (Chief #43, extresist net-selection artifact): {k[1]} at {k[0]} M3 edge "
+                f"{po[k][0]:+.2f} -> baseline {v[0]:+.2f} mV (c91f33e)")
+            po[k] = v
     log(f"[kick typ 27] edge kick (mV), events x victims: |new - old| > 0.5 mV listed; M3 victims {len(no_)}, R2 {len(nn)}")
     worst = (0.0, "")
     cnt = 0
