@@ -122,3 +122,15 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   The VM self-stops 10 min after the queue empties. Fetch: `cd /home/basil/tt-m3/r2pex && bash /home/basil/tt-m3/vmwait.sh r2pex final2 5`.
 - **Next:** fetch final2 → ≤ 0.5 mV regression table vs 702a24c; E2 droop root cause; E1 full-chip DC gap; Nov 28
   checkpoint comment; approvals (E1 deviations, GRP_EN[2]).
+- **02:20Z update:**
+  - final2 has finished bias_step_S10_nobay, bay_probe and probe_step on 988c8d8, and is running the full r2blk_e1_typ27
+    (130 min cap, from 01:11Z).
+  - Found that kick, icur_pgrid, gndchk, coupling, bias_dc_S100 and bias_dc_S100_r2c22 were marked done from the
+    **19e5af2 (pre-E1/E2) batch**. `vm_pex.sh` lines 50–52 re-create `.ok` files from any rc=0 line in
+    `batch/summary_pex.txt`, so those six never ran on 988c8d8.
+  - `r2pex/final4` waits for final2, moves the summary aside (`summary_pex_pre_final4.txt`), deletes those six `.ok`
+    files and reruns them. Fetch both: `vmwait.sh r2pex final2 5` and then `vmwait.sh r2pex final4 5`.
+  - Queue hygiene: removed stale `q/r2pex_final` (from the killed overnight job), which would have blocked the self-stop
+    forever. final3 was cancelled (rc 130 marker written).
+  - **Lesson:** after an external VM kill, clear its `q/` marker; before a "resume", check that `.ok` timestamps are
+    after the netlist extraction.
