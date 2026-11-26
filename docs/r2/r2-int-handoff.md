@@ -139,3 +139,38 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   the block. Fix: r2-pex bc6bd96. Notes: /home/basil/tt-m3/e2diag/findings.md (full-chip 988c8d8 netlists are also
   in /home/basil/tt-m3/e2diag/). Confirming job `r2pex/e2fix` is queued in the same boot as final2/final4; fetch with
   `vmwait.sh r2pex e2fix 5`.
+
+## Status 2026-11-26 ~04:00 UTC: full-chip PEX regression on 988c8d8 complete
+- Fetched final2 / final4 / e2fix into /home/basil/tt-m3/r2pex/sim/results/top. Table:
+  `sim/results/top/r2_vs_m3_988c8d8.txt` (`r2_compare.py` vs M3 /home/basil/tt-m3/top3/sim/results/top).
+- **PASS:**
+  - bias DC S = 100: worst +0.004 mV (19e5af2 had +0.047);
+  - probe step levels: 0.10 mV;
+  - probe settling: 1754 vs 1759 ns;
+  - bias_spk off rate ≤ 1 % (it failed on 19e5af2; the vsrc fix holds);
+  - VGND rise: max 1.01 mV.
+- **E2 confirmed (e2fix):**
+  - tt/27 na −0.009 mV/s (rshunt 1e20); the 1e13 control gives −566 mV/s;
+  - ff/85 nb −8.84 mV/s (block −9.0);
+  - release steps na/nb −7.5 / −14.1 mV.
+- **FAIL 1, kick edges** (vs M3; criterion 0.5 mV): worst −2.93 mV on D1 vs (PROBE D1 on). Single-line kicks:
+  - D1 d1 ← cfg_out[41] is 6.42 mV vs 4.82 in M3. It was already 6.44 on 19e5af2, so it comes from C1 variant a
+    routing, not E1/E2.
+  - New: AdEx vm ← cfg_out[0] (GRP_EN[0]) 4.76 mV and H1 vm ← cfg_out[67] 3.54 mV.
+  - E1 vm ← cfg_out[68] is E1's own stimulus.
+  - Next: check whether these lines toggle in normal use (the cfg latch is static after configuration, so the kick
+    happens once, at configuration time). Propose either accepting it as "config-time only" or shielding/re-routing
+    cfg_out[0]/[41].
+- **FAIL 2, s10k rates:** S2 +3.53 %, S3 +1.87 % (criterion 2 %). NOBAY gives S2 −0.5 %. Spike counts are identical
+  (S2 8/8); the rate is (N−1)/(t_last − t_first), so one spike moving shifts it by about 3 %. The likely cause is by0/by1
+  firing (peak I_VDD 1479 vs 1257 µA), which couples onto vreset (p-p 98.6 vs 78.5 mV), el and vbp_syn. To do: a
+  longer window or a firing-off bay run to tell measurement quantisation from a real shift.
+- **Bench artifact fixed:** in icur S10000, by2 (E1) showed I_vss 144 µA. The 1.5 V / 100 Ω vm precharge was fighting
+  E1's GRP_EN = 0 park clamp (Spre23 → by2.vm → XR_XSW → el_l → X6467 → VGND). E1 draws 0.21 µA from VDD, which is
+  correct. Fix: r2-pex eec6305, E1 excluded from the vm precharge. Rerun icur in the next boot.
+- `r2blk_e1_typ27` (the full-length E1 bench) times out at 120 min on the full chip twice; drop it in favour of
+  e1short (done) plus an E1 DC trip bench.
+- **Next boot (single, self-stopping):** AH50 top run (assembly/LVS/DRC/precheck), E1 full-chip DC trip, icur S10000
+  rerun, s10k with bay firing off, AH50 firing + bias_step_S10 with the AH50 load.
+- **Next local step:** AH50 (`czslot_ah_50`) into bay by1 in place of F4 (fp.bay_cells, config.py:81/124); re-extend the
+  column nets; `route.py check` / conncheck.
