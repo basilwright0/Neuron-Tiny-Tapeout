@@ -174,6 +174,8 @@ oscilloscope or ADC reads `ua[1]`.
   kicks two neurons through their configuration lines: D1 `d1` from cfg_out[41] (≈ 6.4 mV) and AdEx `vm` from
   cfg_out[0] / GRP_EN[0] (≈ 4.8 mV). The cfg_out lines are static latches, so the kicks happen only when the
   configuration is written, never during a measurement with the configuration held (accepted, 2026-11-26).
+- **After toggling HOLD (rt_out[2]), wait at least 1 τ before reading D1.** HOLD kicks D1 `vs` by ≈ +16 mV (on) /
+  −24 mV (off) through the in-cell coupling of `d1/hold` to D1's chain-select node (post-layout, typical 27 °C).
 - **Switch OUT_BANK only between measurements.** `uo` changes bank at once; spikes on the bank being left or
   entered during the write are lost or seen as edges.
 - **Probe break-before-make applies to the R2 addresses too**, including PROBE[7] (SEL 16–18): write EN = 0 with the
