@@ -145,7 +145,7 @@ def deck(body, analysis, save, corner="typical", temp=27, opts="", pre=""):
         pre = "save " + " ".join(_save_name(v) for v in save) + "\n" + pre
     return f"""* top-level PEX bench
 {header(corner=corner, temp=temp)}
-.option rshunt=1e14 abstol=1e-14 {opts}
+.option {'' if 'rshunt' in opts else 'rshunt=1e14 '}abstol=1e-14 {opts}
 {body}
 .control
 set wr_singlescale
