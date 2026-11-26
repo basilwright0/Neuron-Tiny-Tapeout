@@ -96,3 +96,29 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - /tmp/reach.py: BFS reachability per terminal group, which finds the trapped end of a "no path" net.
 - **Next:** the final PEX on 988c8d8 (r2-pex agent), the Nov 28 checkpoint, and the user/Chief approvals (E1
   deviations, GRP_EN[2]); push or merge only after approval.
+
+## Status 2026-11-26 ~00:55 UTC: after the overnight shutdown
+- **What happened to `r2pex/final`** (PEX regression on 988c8d8, started 03:50Z Nov 25): no done marker. The VM was
+  stopped externally at 06:31Z during the shutdown while the job was still running. No on-VM self-stop watcher had
+  been armed; jobwrap's own idle stop did not fire (queue marker + keep-alive still live). Not a jobwrap bug.
+- **Fetched** (VM up ~1 min, 00:48–00:49Z) into /home/basil/tt-m3/r2pex/sim/results/ (gitignored, local disk;
+  tarball /tmp/r2pex_final_partial.tgz). Finished on 988c8d8 before the kill:
+  - bay_fire tt/27: S4 by0 94.529 kHz and F4 by1 49.843 kHz = array cells to 0.00 % → PASS.
+  - bias_step_S10 (with bay): worst line to 1 % vbp_st 3.33 ms, vbp_syn 2.94 ms, vbn_leak 2.70 ms; vreset 12 µs.
+    The `_nobay` comparison was the job that got killed.
+  - bias_spk_off (+nobay), bias_dc_S1000 (+nobay), s10k (+nobay): finished; compare against nobay is still to do.
+  - e1short (full-chip E1, tt/27, S = 100): parked vm 0.000 mV with GRP_EN[1] = 0; EL 1.4135 V (block 1.407);
+    rate 10.16 / 18.79 kHz for A / A+B (block +10.4 / +10.6 %). "Vth − EL 168 mV" is the transient vm peak
+    (spike overshoot), not the DC trip point that the block 78.6 mV uses, so it is not comparable yet. To do: a DC
+    trip sweep on the full chip.
+  - **E2 open issue:** full-chip droop at tt/27 with vreset held is −58 mV/s on both na and nb (block PEX: µV/s at
+    tt, −9 mV/s at ff/85). gear/gmin/tmax/norshunt variants give the same result, so it is not a simulator option.
+    The e2_leakchk per-element listing gives a uniform 12.86 fA per element (270 fA total), which looks like an
+    artifact of the check itself. Next: find the real DC path out of na on the full netlist (the X7497
+    s01.vreset.t9/e2.grp_en switch and the naf0 gate-cap device are the first suspects). Diag files are in
+    sim/results/r2final_diag/.
+- **Resumed:** `r2pex/final2` = the same vm_pex.sh without FORCE (it skips finished benches), submitted 00:50Z, cap 300 min.
+  It runs bias_step_S10_nobay, probe_step, bay_probe, kick, gndchk, coupling, pgrid and bias_dc_S100 on 988c8d8.
+  The VM self-stops 10 min after the queue empties. Fetch: `cd /home/basil/tt-m3/r2pex && bash /home/basil/tt-m3/vmwait.sh r2pex final2 5`.
+- **Next:** fetch final2 → ≤ 0.5 mV regression table vs 702a24c; E2 droop root cause; E1 full-chip DC gap; Nov 28
+  checkpoint comment; approvals (E1 deviations, GRP_EN[2]).
