@@ -115,7 +115,9 @@ def chip(S=100.0, codes=None, probe=None, rt=(0, 0, 0, 0), ib_x2=0, sources=None
         tt.append(f"Rtie_{T.san(p)} {T.node(p)} 0 1k")
     el = 1.50 if S >= 300 else 1.30          # help the op: every membrane starts at EL
     vms = [f"s{r}{c}.vm" for r in range(4) for c in range(4) if f"s{r}{c}.vm" in T.names()] + ["ax.vm"]
-    vms += [f"{i}.vm" for _, i, _ in T.bay() if f"{i}.vm" in T.names()]     # R2 bay neurons (by0..by2)
+    # R2 bay neurons (by0..by2). E1 (ce1_fb) parks vm at VSS while GRP_EN[1] = 0: a 1.5 V precharge would fight
+    # that clamp (144 uA into VSS in icur S10000, 988c8d8), so E1 is left to its own park state.
+    vms += [f"{i}.vm" for _, i, c in T.bay() if f"{i}.vm" in T.names() and c != "ce1_fb"]
     ns = [f".nodeset v({T.vnode(n)})={el}" for n in vms]
     ns += [f".nodeset v({T.vnode(n)})={v:g}" for n, v in pre_extra(el)]
     if precond:
