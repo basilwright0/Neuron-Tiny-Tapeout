@@ -6,6 +6,8 @@
 e1 (docs/r2/e1-fixed-bias.md section 4): S = 100 nominal codes, probe on E1 (SEL 18, PROBE_SUB 0) for the whole run.
   0-60 us GRP_EN = 0 (E1 parked: vm and pad should read ~0 V); 60 us GRP_EN[1] = 1 (vm settles to EL, ~1.40 V);
   120 us sta = rt_out[0] = 1 (weight A, DC; every array neuron gets it too); 820 us + stb = rt_out[1] (A + B) to TEND.
+  E1 is probe-only (its spk pin is open, spk_in[18] tied low, r2-int c91f33e): spikes are the vm sawtooth resets
+  (falling crossings of EL + E1_VDET, default 40 mV), as the user counts them on ua[1].
   Reports parked vm / pad, EL, Vth (vm peaks), E1 rate in each window vs the block PEX (tt/27: A 9.2 kHz, A+B 17.0 kHz,
   first spike 116 us after sta), and S1-S3 rates in the same windows.
 e2 (docs/r2/e2-leak.md): S = 100 nominal codes, vreset held (nominal R-DAC). 0-20 us GRP_EN[0] = 1 (charge na / nb to
@@ -56,7 +58,7 @@ if MODE == "e1":
           (T_AB, T.config(codes=codes, probe=pr, grp_en=2, rt=(1, 1, 0, 0)))]
     body = B.chip(S, codes=codes, state_over=B.timeline(ev))
     ARR = [(n, i) for n, i, c in T.neurons() if n in ("S1", "S2", "S3")]
-    sv = ["v(pad)", f"v({T.vnode(E1 + '.vm')})", f"v({T.vnode(E1 + '.spk')})"]
+    sv = ["v(pad)", f"v({T.vnode(E1 + '.vm')})"]                     # E1 spk pin is open (probe-only)
     sv += [f"v({T.vnode(i + '.spk')})" for _, i in ARR]
     d = B.deck(body, f"tran 10n {TEND:g} 0 50n", sv, corner=CORNER, temp=TEMP)
     r = B.go(d, f"r2blk_{TAG}{B.SUFFIX}", timeout=int(os.environ.get("R2BLK_TIMEOUT", "7200")))
@@ -77,7 +79,8 @@ if MODE == "e1":
         s_ = sp[(sp >= a) & (sp < b)]
         return ((len(s_) - 1) / (s_[-1] - s_[0]) if len(s_) > 2 else 0.0), s_
 
-    e1sp = crossings(t, r[f"v({T.vnode(E1 + '.spk')})".lower()], 1.65)
+    e1sp = crossings(t, vm, el + float(os.environ.get("E1_VDET", "0.04")), rising=False)   # vm resets (no spk)
+    e1sp = e1sp[e1sp > T_A]
     for nm, (fr, a, b) in ref.items():
         f_, s_ = rate(e1sp, a, b)
         sub = s_[1:] if nm == "A" else s_        # A: skip the first spike (start from EL, block: 116 us)

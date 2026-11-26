@@ -1,14 +1,15 @@
-"""R2 bay column (by0 = S4 cslot_ah, by1 = F4 cslot_ah_f, by2 = E1 slot, a cslot_ah until e1_fb lands) on the
-full-chip PEX (MIL-362).
+"""R2 bay column (by0 = S4 cslot_ah, by1 = AH50B czslot_ah_50, by2 = E1 ce1_fb, probe-only: spk open, spk_in[18]
+tied low) on the full-chip PEX (MIL-362).
 
-  python3 sim/tb/top/tb_top_bay.py fire  [corner] [T]   # bay S4 / F4 / by2 and the array S1-S3 / F1 fire together
+  python3 sim/tb/top/tb_top_bay.py fire  [corner] [T]   # bay S4 / AH50B and the array S1-S3 / AH50 fire together
   python3 sim/tb/top/tb_top_bay.py probe [corner] [T]   # ua[1] probe steps onto SEL 16 / 17 / 18 (bay)
 
 fire: S = 1000, IB_X2 = 1, EL / Vth / Vreset 1.50 / 1.58 / 1.50 V (topbench.op_point, as tb_top_bias.py spk); every
   driven neuron gets the same DC input from 3.3 V, K x its nominal rheobase g * GF * 80 mV (g = 200 fF * S / 10 ms,
-  GF = 0.5 for the F cells, as tb_top_s10k.py). Same cell type in the array is the reference: by0 / by2 vs the mean
-  of S1-S3 (cslot_ah), by1 vs F1 (cslot_ah_f). Rate from the spk rising edges after T_SKIP. PASS: |rate / ref - 1|
-  <= TOL. Also every column line at the bay top (by2) vs the array (s30) while firing.
+  GF = 0.5 for the F cells, 1 for S and AH50, as tb_top_s10k.py; AH50 has the S leak, only C = 50 fF, so the same
+  current and ~4x the rate). Same cell type in the array is the reference: by0 vs the mean of S1-S3 (cslot_ah), by1
+  (AH50B) vs AH50 s32 (czslot_ah_50). by2 (E1) has no spike output and is not driven (tb_top_r2blk.py e1).
+  Rate from the spk rising edges after T_SKIP. PASS: |rate / ref - 1| <= TOL. Also the shared column lines while firing.
 probe: S = 100 (as tb_top_probe.py step); taps forced by ideal sources: near H1 1.6 V, far (3,0) 1.0 V, by0 1.0 V,
   by1 1.6 V, by2 1.0 V. Sequence near -> by0 -> by1 -> by2 -> near -> far, each move the firmware 3-step (EN 0 with
   the old SEL, then the new SEL, then EN 1; bay: probe_sel_bay[k] = EN & SEL == 16 + k, rsel / en_c all 0;
@@ -51,8 +52,9 @@ if MODE == "fire":
     T_SKIP = 20e-6
     TOL = 0.05
     g = 200e-15 * S / 10e-3
-    ARR = [(n, i, c) for n, i, c in T.neurons() if n in ("S1", "S2", "S3", "F1")]
-    BAY = [(n, i, c) for n, i, c in BAY if any(c2 == c for _, _, c2 in ARR)]   # E1 (ce1_fb): tb_top_r2blk.py e1
+    ARR = [(n, i, c) for n, i, c in T.neurons() if n in ("S1", "S2", "S3", "AH50")]
+    BAY = [(n, i, c) for n, i, c in BAY if n != "E1"]           # E1 (ce1_fb): probe-only, no spk; tb_top_r2blk.py e1
+    assert [n for n, _, _ in BAY] == ["S4", "AH50B"], BAY
     DRV = ARR + BAY
     REF = {}
     for n, i, c in BAY:

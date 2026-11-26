@@ -64,7 +64,7 @@ def neurons():
 
 
 def bay():
-    """[(name, instance, cell)] of the R2 bay column (by0 = S4, by1 = F4, by2 = E1 slot), bottom first; [] before R2."""
+    """[(name, instance, cell)] of the R2 bay column (by0 = S4, by1 = AH50B, by2 = E1, probe-only), bottom first; [] before R2."""
     bc = getattr(fp, "bay_cells", None)
     return [(n, f"by{k}", c) for k, n, c, x, y, h in bc()] if bc else []
 
