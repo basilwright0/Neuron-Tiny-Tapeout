@@ -134,3 +134,8 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
     forever. final3 was cancelled (rc 130 marker written).
   - **Lesson:** after an external VM kill, clear its `q/` marker; before a "resume", check that `.ok` timestamps are
     after the netlist extraction.
+- **02:25Z, E2 droop root cause (local netlist diff, Sonnet sub-agent, no VM):** it is a testbench artifact.
+  topbench.py hard-coded `rshunt=1e14`, which gives 12.9 fA per node = −59 mV/s on 217 fF. The na/nb layout matches
+  the block. Fix: r2-pex bc6bd96. Notes: /home/basil/tt-m3/e2diag/findings.md (full-chip 988c8d8 netlists are also
+  in /home/basil/tt-m3/e2diag/). Confirming job `r2pex/e2fix` is queued in the same boot as final2/final4; fetch with
+  `vmwait.sh r2pex e2fix 5`.
