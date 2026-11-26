@@ -174,3 +174,30 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   rerun, s10k with bay firing off, AH50 firing + bias_step_S10 with the AH50 load.
 - **Next local step:** AH50 (`czslot_ah_50`) into bay by1 in place of F4 (fp.bay_cells, config.py:81/124); re-extend the
   column nets; `route.py check` / conncheck.
+
+## Status 2026-11-26 ~04:30 UTC: bay = S4 / AH50B / E1 (user mix), one VM boot running
+- **Layout (c91f33e):**
+  - by1 = AH50B (`czslot_ah_50`, 34.29), so the stack is y 13–111 (98.0 of 103.8).
+  - E1 is probe-only: its spk pin is open and spk_in[18] is tied low (SPK_TIED 18–23).
+  - `route.py check` 0 illegal; conncheck 204 tasks, 0 disconnected.
+  - Recipe, for the next height change:
+    - drop spk_in[18] routes;
+    - clip the column nets out of x 79.5–108.5, y 105–112.2 (`/tmp/clipbay.py`, see the commit message);
+    - reroute **g_bay first** (extending the column nets first boxes its column-top terminal in);
+    - extend cfg_out[1], probe_sel_bay[1/2], rt_out[0–3] and the column nets;
+    - reroute spk_in[17];
+    - bridge the 0.28 µm gaps left at the old band-terminal positions in the rt_out channel lines (`/tmp/bridge.py`).
+- **Tests/docs (80aab43, Sonnet sub-agent):** regmap/test_ctrl AH50B; info.md/regmap.md AH50B, E1 probe-only,
+  configuration-time kick note (Chief decided for the user 04:08Z: accept the cfg_out[41]/[0] kicks, no re-route).
+  cocotb runs on the VM (no simulator locally).
+- **Benches (r2-pex 8af6984 + 0fadc3d, Sonnet sub-agents):**
+  - bay fire compares by1 AH50B against array AH50 s32;
+  - E1 spikes come from vm resets (spk open);
+  - new `r2blk e1trip` (full-chip E1 EL / Vth from a 1 mV/µs up/down vm ramp through 1 kΩ);
+  - new `S10K_BAYQUIET=1` (by0/by1 vm held at EL);
+  - s10k saves bay spikes;
+  - r2blk_e1_typ27 replaced by r2blk_e1short_typ27.
+- **VM boot (04:24Z):**
+  - `r2int/top7`: vm_r2.sh + cocotb. Fetch: `cd r2int && vmwait.sh r2int top7 5`.
+  - `r2pex/ah50`: FORCE re-extract + pex batch, skipping bias_spk_on, fullglue and r2blk_e2. Results in
+    sim/results/top/vm_ah50. Fetch: `cd r2pex && vmwait.sh r2pex ah50 5`, then `r2_compare.py` vs top3.
