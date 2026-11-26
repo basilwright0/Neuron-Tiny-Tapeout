@@ -23,9 +23,9 @@ reference model, and to measure what per-neuron configurability buys in accuracy
 | B1 bias generator | Takes its reference current from `ua[0]` or an internal reference. Five 5-bit current DACs, three 5-bit voltage DACs and a 6-bit threshold DAC. The `ua[0]` current sets the operating speed, S = 10–1000× biological real time. |
 | R1 readout | Buffers one selected node (membrane, adaptation or dendrite) onto `ua[1]` with a 400 µA source follower. It also holds the reset-voltage and detector-rail buffers. |
 | Control block | Synthesized digital macro: 3-wire configuration port, 24 bytes of write-only latches, probe decoder and the digital LIF. |
-| R2 additions | Bay column (S4, F4, E1 on spike channels 16–18) and the E2 leakage cell; see [R2 additions](#r2-additions). |
+| R2 additions | Bay column (S4 and AH50B on spike channels 16–17, E1 probe-only) and the E2 leakage cell; see [R2 additions](#r2-additions). |
 
-All spike outputs (channels 0–15, plus 16–18 via OUT_BANK) are plain digital levels on `uo[7:0]` and `uio[7:0]`. Spike timing and counting, stimulus
+All spike outputs (channels 0–15, plus 16–17 via OUT_BANK) are plain digital levels on `uo[7:0]` and `uio[7:0]`. Spike timing and counting, stimulus
 sequencing and the LIF tick are handled off-chip by the demo board's RP2040/RP2350 (PIO).
 
 ## Pinout
@@ -40,7 +40,7 @@ sequencing and the LIF tick are handled off-chip by the demo board's RP2040/RP23
 | ui[5] | Hold (`rt_out[2]`) |
 | ui[6] | Membrane reset (`rt_out[3]`) |
 | ui[7] | Digital-LIF tick (one update per rising edge) |
-| uo[7:0] | OUT_BANK = 0 (reset): spikes of analog channels 0–7; OUT_BANK = 1: channels 16–23 (16–18 = S4, F4, E1; uo[7:3] read 0) |
+| uo[7:0] | OUT_BANK = 0 (reset): spikes of analog channels 0–7; OUT_BANK = 1: channels 16–23 (16 = S4, 17 = AH50B; uo[7:2] read 0) |
 | uio[5:0] | Spikes of analog channels 8–13 |
 | uio[6] | OUT_MUX = 0: digital-LIF spike; OUT_MUX = 1: channel 14 |
 | uio[7] | OUT_MUX = 0: configuration echo (shift-register MSB); OUT_MUX = 1: channel 15 |
@@ -57,7 +57,7 @@ All `uio` pins are outputs (`uio_oe` tied high). `uio_in`, `ena` and `ua[2..5]` 
 | 1, 5, 9 | F1, F2, F3 | 12 | CMP |
 | 2, 6, 10 | H1, H2, H3 | 13 | D1 |
 | 3 | AdEx | 14, 15 | AH50, AH400 |
-| 16, 17, 18 | S4, F4, E1 (bay, OUT_BANK = 1) | 19–23 | none (tied low) |
+| 16, 17 | S4, AH50B (bay, OUT_BANK = 1) | 18–23 | none (tied low; E1 is probe-only) |
 
 **Probe select:** PROBE SEL equals the spike channel for every neuron except two. SEL = 4 shows CMP's membrane and
 SEL = 12 shows S2's (CMP and S2 swapped array positions after the control block was frozen). SEL 16–18 (PROBE[7] = 1)
@@ -96,10 +96,14 @@ PROBE_SUB other than 3 (no `vr` tap); SUB = 3 still selects REF.
 | Neuron | PROBE SEL (PROBE[7] = 1) | Spike channel | Seen on |
 |---|---|---|---|
 | S4 (S twin, shared biases) | 16 | 16 | `uo[0]` with OUT_BANK = 1 |
-| F4 (F twin) | 17 | 17 | `uo[1]` with OUT_BANK = 1 |
-| E1 | 18 | 18 | `uo[2]` with OUT_BANK = 1 |
+| AH50B (AH50 twin) | 17 | 17 | `uo[1]` with OUT_BANK = 1 |
+| E1 | 18 | none (probe only) | `ua[1]` (PROBE SEL 18) |
 
-**E1** is an S neuron with its own local bias leg (a fixed-bias twin of S4, for comparing a local bias against the
+**AH50B** is an axon-hillock LIF with a 50 fF membrane, the same cell as the array AH50 (slot s32, spike channel 14)
+on the shared bias lines, with no extra configuration bits.
+
+**E1** is probe-only: its spike pin is open and `spk_in[18]` is tied low, so it has no spike channel (`uo[2]` reads 0
+with OUT_BANK = 1). It is an S neuron with its own local bias leg (a fixed-bias twin of S4, for comparing a local bias against the
 shared bias lines). All its currents are ratioed from `vbp_st` (set only by `ua[0]`), EL = Vreset comes from a local
 diode stack and its threshold reference from a local diode (docs/r2/e1-fixed-bias.md). GRP_EN[1] = 0 turns the leg off
 and parks `vm` at 0 V; GRP_EN[1] = 1 lets it run. PEX at S = 100 (tt/27, ss/0, ff/85): τ_m 110 / 98 / 147 µs, t_ref
@@ -151,7 +155,7 @@ oscilloscope or ADC reads `ua[1]`.
      configuration activity during the droop.
    - **E1 f–I:** bias `ua[0]` for S = 100 (1 µA), set GRP_EN[1] = 1 and wait ~20 µs (vm settles to EL ≈ 1.40 V).
      Stimulate with the global stimulus lines like the array neurons: sta (A) alone, or sta + stb (fixed weights,
-     ≈ 0.37 nA each). Count spikes on `uo[2]` with OUT_BANK = 1, or probe `vm` at SEL 18 (PROBE[7] = 1). τ_m: pulse
+     ≈ 0.37 nA each). E1 has no spike output: probe `vm` at SEL 18 (PROBE[7] = 1) and count the sawtooth resets on `ua[1]`. τ_m: pulse
      sta ~20 µs and fit the decay; t_ref: the flat reset segment of the sawtooth; gap: the sawtooth peak minus EL
      (read at S = 10, where the probe lag is small). Repeat at S = 10 / 1000 and a second temperature, and compare
      with S4 (SEL 16 / `uo[0]`) and S1–S3 on the same die.
@@ -166,6 +170,10 @@ oscilloscope or ADC reads `ua[1]`.
   typical, 2.05 µs at ss / 0 °C).
   Enabling or disabling the D1 probe kicks D1's compartments by up to +6 / −8 mV (post-layout, ss / 0 °C; the
   two edges nearly cancel). Switch the D1 probe while D1 is at rest, not mid-measurement.
+- **Re-configure, then wait at least 1 τ (membrane time constant) before measuring.** Writing the configuration
+  kicks two neurons through their configuration lines: D1 `d1` from cfg_out[41] (≈ 6.4 mV) and AdEx `vm` from
+  cfg_out[0] / GRP_EN[0] (≈ 4.8 mV). The cfg_out lines are static latches, so the kicks happen only when the
+  configuration is written, never during a measurement with the configuration held (accepted, 2026-11-26).
 - **Switch OUT_BANK only between measurements.** `uo` changes bank at once; spikes on the bank being left or
   entered during the write are lost or seen as edges.
 - **Probe break-before-make applies to the R2 addresses too**, including PROBE[7] (SEL 16–18): write EN = 0 with the

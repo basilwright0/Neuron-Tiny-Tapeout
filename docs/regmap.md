@@ -142,8 +142,10 @@ AH50 and AH400 have no vr tap since M2, so PROBE_SUB = 1 reads nothing on them; 
 | target | bay neuron 0 | bay neuron 1 | bay neuron 2 | nothing | column 4, row 2 | column 4, row 3 | nothing |
 | lines | `probe_sel_bay[0]` | `probe_sel_bay[1]` | `probe_sel_bay[2]` | — | `probe_rsel[2]` + `probe_en_c4` | `probe_rsel[3]` + `probe_en_c4` | — |
 
-Spike channels: bay neurons 0..2 = `spk_in[16..18]` (S4, F4, E1). Column 4 (`spk_in[22]` / `spk_in[23]`, `probe_en_c4`) is
-option D and is not built on the R2 chip, so `spk_in[19..23]` are all tied low at the top level and SEL 22 / 23 select
+Spike channels: bay neurons 0..1 = `spk_in[16..17]` (S4, AH50B; AH50B is the array AH50 cell `czslot_ah_50`, 50 fF, on
+the shared bias lines, no extra config bits). Bay neuron 2 (E1) is probe-only: its spike pin is open and `spk_in[18]` is
+tied low. Column 4 (`spk_in[22]` / `spk_in[23]`, `probe_en_c4`) is
+option D and is not built on the R2 chip, so `spk_in[18..23]` are all tied low at the top level and SEL 22 / 23 select
 nothing there. PROBE_SUB = 3 still selects REF (slot (0,0)) for every SEL. On the bay, `sub_b` is tied high and `sub` is
 open at the top level, so PROBE_SUB = 0, 1 or 2 all read vm.
 Spike channels are unchanged (`SPIKE_CH`); channel 15 is AH400 since M2 (MIL-127 N11: AH800 became AH400, so the

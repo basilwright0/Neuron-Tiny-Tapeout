@@ -472,9 +472,10 @@ async def test_lif_event_sources(dut):
 async def test_r2_grp_en_and_addresses(dut):
     """R2 firmware view (docs/info.md "R2 additions"). GRP_EN (ANA[3:0]: bit 0 E2 leakage, bit 1 E1 enable, 2-3 spare)
     resets to 0 and each bit sets / clears only its own cfg_out bit, with every other cfg_out bit, pin and analog line
-    unchanged. Each R2 probe address raises exactly its lines: bay S4 / F4 / E1 = SEL 16 / 17 / 18 (SUB 0..2) ->
+    unchanged. Each R2 probe address raises exactly its lines: bay S4 / AH50B / E1 = SEL 16 / 17 / 18 (SUB 0..2) ->
     probe_sel_bay[k] only; E2 A / B = SUB 1 at slots (3,2) / (3,3) -> probe_rsel[3] + probe_en_c[c] + probe_sub.
-    EN = 0 selects nothing. OUT_BANK = 1: uo[2:0] = ch 16..18, uo[7:3] = 0 with spk_in[19..23] = 0."""
+    EN = 0 selects nothing. OUT_BANK = 1: uo[7:0] = ch 16..23, 16 = S4, 17 = AH50B, 18..23 read 0 (E1 is probe-only,
+    spk_in[18..23] tied low on the chip)."""
     pins = await setup(dut)
     assert U(dut.cfg_out) & 0xF == 0, "GRP_EN resets to 0"
     rng = random.Random(362)
@@ -531,13 +532,13 @@ async def test_r2_grp_en_and_addresses(dut):
         await wr(dut, pins, A["PROBE"], probe(sel=sel, sub=sub, en=0))   # break-before-make
     assert probe_got(dut)[1:4] == (0, 0, 0) and probe_got(dut)[7:] == (0, 0)
 
-    # OUT_BANK = 1: bay spikes on uo[2:0]; spk_in[19..23] tied low on the chip -> uo[7:3] = 0
+    # OUT_BANK = 1: bay spikes S4 / AH50B on uo[1:0]; spk_in[18..23] tied low on the chip (E1 probe-only) -> uo[7:2] = 0
     await wr(dut, pins, A["OUT"], 1)
-    for bay in range(8):
+    for bay in range(4):
         v = (bay << 16) | rng.getrandbits(16)
         pins.set_spk_all(v)
         await ns(1)
-        assert U(dut.uo_out) == bay, f"OUT_BANK=1 ch16..18={bay:03b}: uo {U(dut.uo_out):#04x}"
+        assert U(dut.uo_out) == bay, f"OUT_BANK=1 ch16..17={bay:02b}: uo {U(dut.uo_out):#04x}"
     await wr(dut, pins, A["OUT"], 0)
     await ns(1)
     assert U(dut.uo_out) == v & 0xFF

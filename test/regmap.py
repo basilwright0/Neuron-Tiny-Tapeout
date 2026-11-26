@@ -180,8 +180,11 @@ def frame(addr, data):
 
 # --------------------------------------------------------------- R2 (MIL-362) firmware view, docs/info.md "R2 additions"
 GRP_E2_LEAK, GRP_E1_EN = 0, 1             # ANA GRP_EN bits (cfg_out[0], cfg_out[1]); bits 2-3 spare (latched, unconnected)
-BAY_NAME = {16: "S4", 17: "F4", 18: "E1"}   # bay column, spike channel = SEL (spk_in[16..18]); spk_in[19..23] tied low
-assert {BAY_NAME[s]: s for s in BAY_SEL} == {n: _fp.SPIKE_CH[n] for n in ("S4", "F4", "E1")}
+BAY_NAME = {16: "S4", 17: "AH50B", 18: "E1"}   # bay column (probe SEL); spike channel = SEL for S4 / AH50B (spk_in[16..17])
+# E1 is probe-only: its spk pin is open and spk_in[18] is tied low; spk_in[18..23] tied low (22-23 reserved for option D)
+BAY_SPK = ("S4", "AH50B")
+assert {BAY_NAME[s]: s for s in BAY_SEL if BAY_NAME[s] in BAY_SPK} == {n: _fp.SPIKE_CH[n] for n in BAY_SPK}
+assert "E1" not in _fp.SPIKE_CH, "E1 is probe-only (no spike channel)"
 # E2 leakage nodes: PROBE_SUB = 1 position of array row 3, columns 2 / 3 (AH50 / AH400 slots, no SUB = 1 tap of their own)
 E2_SLOT = {"E2a": (3, 2), "E2b": (3, 3)}
 E2_SEL = {n: next(k for k, rc in SLOT.items() if rc == s) for n, s in E2_SLOT.items()}
