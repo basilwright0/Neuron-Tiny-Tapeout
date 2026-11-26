@@ -146,13 +146,14 @@ TAU_COLS = {0: "TE0 tau trim col 0", 2: "TE2 tau trim col 2"}         # P2 in co
 # --------------------------------------------------------------------- R2 bay column (MIL-362, branch r2-int)
 # One column of 3 compact slots in B1's old west bay, stacked bottom -> top, outside the 4x4 array (own probe
 # lines: column `en` = g_bay = OR(probe_sel_bay[2:0]) from the bay glue row, rsel of slot k = probe_sel_bay[k],
-# i.e. PROBE SEL = 16 + k). Spikes on spk_in[16 + k]. Default mix (MIL-103): 2 S/F + E1. Until e1_fb is in, the E1
-# slot holds a plain S cell (the fallback if E1 is dropped). Column lines leave the stack top to B1's west-edge
+# i.e. PROBE SEL = 16 + k). Mix (user, MIL-103 card 2026-11-25): 1 S/F + 1 AH50 + E1. S4 and AH50B spike on
+# spk_in[16] / [17]; E1 is probe-only (its spk pin is left open, spk_in[18] tied low). If E1 is dropped its slot
+# gets an S/F: ("E1", "cslot_ah") and E1 back in SPIKE_CH at 18. Column lines leave the stack top to B1's west-edge
 # outputs; row bands exit east into the channel BAY_CH (x 108-129).
 BAY_X, BAY_Y = 80.0, 13.0
-BAY = [("S4", "cslot_ah"), ("F4", "cslot_ah_f"), ("E1", "ce1_fb")]       # E1 fallback: ("E1", "cslot_ah")
+BAY = [("S4", "cslot_ah"), ("AH50B", "czslot_ah_50"), ("E1", "ce1_fb")]
 BAY_CH = (108.0, 129.0)
-SPIKE_CH.update({"S4": 16, "F4": 17, "E1": 18})
+SPIKE_CH.update({"S4": 16, "AH50B": 17})
 N_SPK = 24
 SPK_TIED = tuple(ch for ch in range(N_SPK) if ch not in SPIKE_CH.values())   # macro inputs tied to VGND
 
