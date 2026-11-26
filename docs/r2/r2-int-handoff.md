@@ -201,3 +201,6 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - `r2int/top7`: vm_r2.sh + cocotb. Fetch: `cd r2int && vmwait.sh r2int top7 5`.
   - `r2pex/ah50`: FORCE re-extract + pex batch, skipping bias_spk_on, fullglue and r2blk_e2. Results in
     sim/results/top/vm_ah50. Fetch: `cd r2pex && vmwait.sh r2pex ah50 5`, then `r2_compare.py` vs top3.
+- **04:45Z, top7 on c91f33e/80aab43: GREEN.** LVS match uniquely, KLayout DRC 0, antenna 0, magic 0, TT precheck rc=0,
+  gate ok; cocotb 16/16 (test/r2_ah50_tests.log). r2pex/ah50: build noroute LVS match, extraction done, node check
+  0 missing, batch running since 04:28Z (results in r2pex sim/results/top, steps in vm_ah50/pex_steps.log).
