@@ -71,7 +71,9 @@ elif [ "$MODE" = pex ]; then      # longest first (kick: 210 us transient); no f
     )
   fi
   if grep -q "^E2_XY = " floorplan/floorplan.py; then      # final R2 chip (r2-int 988c8d8): E1 in by2, E2
-    JOBLIST=("r2blk_e1_typ27|python3 sim/tb/top/tb_top_r2blk.py e1 typical 27"
+    JOBLIST=("s10k_typ27_bayquiet|env S10K_BAYQUIET=1 S10K_TIMEOUT=7500 python3 sim/tb/top/tb_top_s10k.py typical 27"
+             "r2blk_e1short_typ27|env E1_TAB=520e-6 E1_TEND=850e-6 E1_TAG=_short R2BLK_TIMEOUT=6300 python3 sim/tb/top/tb_top_r2blk.py e1 typical 27"
+             "r2blk_e1trip_typ27|python3 sim/tb/top/tb_top_r2blk.py e1trip typical 27"
              "r2blk_e2A_ff85|python3 sim/tb/top/tb_top_r2blk.py e2 A ff 85"
              "r2blk_e2B_ff85|python3 sim/tb/top/tb_top_r2blk.py e2 B ff 85"
              "s10k_typ27_nobay|env NOBAY=1 S10K_TIMEOUT=7500 python3 sim/tb/top/tb_top_s10k.py typical 27"

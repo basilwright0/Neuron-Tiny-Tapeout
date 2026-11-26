@@ -1,6 +1,7 @@
 """R2 blocks E1 (bay by2, ce1_fb) and E2 (e2_leak) on the full-chip PEX (MIL-362, final chip r2-int 988c8d8).
 
   python3 sim/tb/top/tb_top_r2blk.py e1 [corner] [T]          # default typical 27
+  python3 sim/tb/top/tb_top_r2blk.py e1trip [corner] [T]      # default typical 27
   python3 sim/tb/top/tb_top_r2blk.py e2 A|B [corner] [T]      # default ff 85; A: probe SEL 11 SUB 1, clamp off;
                                                               #               B: probe SEL 15 SUB 1, clamp on
 e1 (docs/r2/e1-fixed-bias.md section 4): S = 100 nominal codes, probe on E1 (SEL 18, PROBE_SUB 0) for the whole run.
@@ -10,6 +11,11 @@ e1 (docs/r2/e1-fixed-bias.md section 4): S = 100 nominal codes, probe on E1 (SEL
   (falling crossings of EL + E1_VDET, default 40 mV), as the user counts them on ua[1].
   Reports parked vm / pad, EL, Vth (vm peaks), E1 rate in each window vs the block PEX (tt/27: A 9.2 kHz, A+B 17.0 kHz,
   first spike 116 us after sta), and S1-S3 rates in the same windows.
+e1trip: E1 DC trip as tb_e1.py dc_char (EL = zero-current vm of a vm source, Vth = vm where spk trips), as a slow
+  transient ramp (full-chip DC sweeps get OOM-killed): S = 100 nominal codes, GRP_EN[1] = 1 from 0, probe off, no
+  input; by2.vm forced through E1T_R (1 kohm) at E1T_RATE (1 mV/us) around E1T_EL (1.407 V): EL - 60 -> EL + 20 ->
+  EL - 60 mV (EL from the up/down-averaged current, cancels C dV/dt), then -> EL + 160 mV (Vth: first by2.spk
+  crossing of VDD/2). 400 us. Block PEX tt/27: EL 1.407 V, Vth 1.486 V, gap 78.6 mV.
 e2 (docs/r2/e2-leak.md): S = 100 nominal codes, vreset held (nominal R-DAC). 0-20 us GRP_EN[0] = 1 (charge na / nb to
   vreset), probe on the tap from 10 us; 20 us release (t = 0 of the droop); TEND = E2_TEND (default 1 s: the ff/85
   junction floor is ~-9 mV/s, i.e. 0.09 mV in 10 ms). Reports na / nb / pad at 1 ms .. TEND and the droop slope over
@@ -21,7 +27,7 @@ import sys
 
 import numpy as np
 
-if sys.argv[1:2] == ["e1"] or sys.argv[1:2] == ["e2"]:   # the bay en (g_bay) needs the full glue model
+if sys.argv[1:2] in (["e1"], ["e1trip"], ["e2"]):   # the bay en (g_bay) needs the full glue model
     os.environ.setdefault("TOP_GLUE", "full")
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 import topbench as B          # noqa: E402
@@ -96,6 +102,66 @@ if MODE == "e1":
             rows.append(f"{n} {fa / 1e3:.2f}")
         log(f"   array S1-S3 in the same window (kHz): " + ", ".join(rows))
     log(f"pad (SEL {16 + K}) follows vm: pad - vm at EL {1e3 * (pad[w(T_A - 20e-6, T_A)].mean() - el):+.1f} mV")
+elif MODE == "e1trip":
+    CORNER = ARGS[1] if len(ARGS) > 1 else "typical"
+    TEMP = int(ARGS[2]) if len(ARGS) > 2 else 27
+    TAG = f"e1trip_{CORNER}_{TEMP}" + os.environ.get("E1_TAG", "")
+    E1 = [i for n, i, c in T.bay() if c == "ce1_fb"]
+    assert E1, "no ce1_fb in the bay (E1 not integrated)"
+    E1 = E1[0]
+    EL0 = float(os.environ.get("E1T_EL", "1.407"))       # ramp anchor: block PEX EL (tt/27, S = 100)
+    RATE = float(os.environ.get("E1T_RATE", "1e3"))      # V/s (1 mV/us)
+    RF = float(os.environ.get("E1T_R", "1e3"))           # source -> by2.vm
+    LO, MID, HI, T0 = EL0 - 0.060, EL0 + 0.020, EL0 + 0.160, 20e-6
+    # 0-T0 hold at LO; up LO -> MID, down MID -> LO (trip-free pair: averaging the two currents at the same vm
+    # cancels the C dV/dt current, ~tau x rate = 100 mV of offset at 1 mV/us); up LO -> HI (Vth: spk first crossing)
+    t1 = T0 + (MID - LO) / RATE
+    t2 = t1 + (MID - LO) / RATE
+    TEND = t2 + (HI - LO) / RATE
+    ramp = B.pwl([(0, LO), (T0, LO), (t1, MID), (t2, LO), (TEND, HI)])
+    src = {"Fe1": f"Vfe1 fe1 0 {ramp}", "Rfe1": f"Rfe1 fe1 {T.vnode(E1 + '.vm')} {RF:g}"}
+    st = T.config(codes=codes, grp_en=2)                   # GRP_EN[1] = 1 from t = 0, probe off (as the block bench)
+    body = B.chip(S, codes=codes, sources=src, state_over=st)
+    vmn, spn = T.vnode(E1 + ".vm"), T.vnode(E1 + ".spk")   # spk: internal node (the cell's spk pin is open)
+    sv = [f"v({vmn})", f"v({spn})", "i(vfe1)", "v(fe1)"]
+    d = B.deck(body, f"tran 10n {TEND:g} 0 50n", sv, corner=CORNER, temp=TEMP)
+    r = B.go(d, f"r2blk_{TAG}{B.SUFFIX}", timeout=int(os.environ.get("R2BLK_TIMEOUT", "7200")))
+    t = r["_x"]
+    vm, spk, ii = r[f"v({vmn})".lower()], r[f"v({spn})".lower()], -r["i(vfe1)"]   # ii > 0: cell sinks (vm > EL)
+    log(f"E1 ({E1}, ce1_fb) DC trip on the full-chip PEX by a slow vm ramp, {CORNER} {TEMP} C, S = {S:g}, codes "
+        f"{codes}, glue {T.GLUE_MODE}; GRP_EN[1] = 1 from 0, probe off, no input; vm forced through {RF:g} ohm, "
+        f"{RATE * 1e-3:g} mV/us: hold {LO:.3f} V to {T0 * 1e6:g} us, up to {MID:.3f} V, down to {LO:.3f} V, "
+        f"up to {HI:.3f} V at {TEND * 1e6:g} us")
+    up, dn = (t >= T0) & (t <= t1), (t > t1) & (t <= t2)
+    xs = np.arange(LO + 0.002, MID - 0.002, 0.0005)
+    o = np.argsort(vm[up])
+    iu = np.interp(xs, vm[up][o], ii[up][o])
+    o = np.argsort(vm[dn])
+    idn = np.interp(xs, vm[dn][o], ii[dn][o])
+    iav, ic = (iu + idn) / 2, (iu - idn) / 2
+
+    def zc(x, y):
+        k = np.where((y[:-1] < 0) & (y[1:] >= 0))[0]
+        return float(x[k[0]] - y[k[0]] * (x[k[0] + 1] - x[k[0]]) / (y[k[0] + 1] - y[k[0]])) if len(k) else float("nan")
+
+    el = zc(xs, iav)
+    m = np.abs(xs - el) <= 0.005
+    g = np.polyfit(xs[m], iav[m], 1)[0] if m.sum() > 3 else float("nan")
+    up2 = t > t2
+    tr = crossings(t[up2], spk[up2], 1.65)
+    vth = float(np.interp(tr[0], t, vm)) if len(tr) else float("nan")
+    tr1 = crossings(t[t <= t2], spk[t <= t2], 1.65)
+    log(f"EL (zero of the up/down-averaged source current) {el:.4f} V (block PEX 1.407 V, {1e3 * (el - 1.407):+.1f} mV); "
+        f"g at EL {g * 1e9:.2f} nS (block 2.1); C dV/dt current {np.mean(ic) * 1e12:.0f} pA = C_eff "
+        f"{np.mean(ic) / RATE * 1e15:.0f} fF; zero of the raw up / down current {zc(xs, iu):.4f} / {zc(xs, idn):.4f} V")
+    log(f"Vth (vm at the first rising spk crossing of 1.65 V, final up ramp) {vth:.4f} V (block PEX 1.486 V, "
+        f"{1e3 * (vth - 1.486):+.1f} mV) at {tr[0] * 1e6 if len(tr) else float('nan'):.1f} us; "
+        f"{len(tr)} spk crossings on that ramp" + (f"; WARNING: spk tripped {len(tr1)}x in the trip-free pair" if len(tr1) else ""))
+    mm = up2 & (t < (tr[0] if len(tr) else TEND))
+    rh = np.interp(vth - 1e-3, vm[mm], ii[mm]) - np.mean(ic) if len(tr) else float("nan")
+    log(f"gap Vth - EL {1e3 * (vth - el):.1f} mV (block PEX 78.6 mV); rheobase (source current at Vth - 1 mV minus "
+        f"the C dV/dt current) {rh * 1e12:.0f} pA (block 156)")
+    log("after the trip the reset fights the forced source (vm held by the source); only the first crossing is used")
 elif MODE == "e2":
     WHICH = ARGS[1] if len(ARGS) > 1 else "A"
     CORNER = ARGS[2] if len(ARGS) > 2 else "ff"
