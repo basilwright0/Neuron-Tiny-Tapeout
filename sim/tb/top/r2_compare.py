@@ -2,8 +2,8 @@
 
   python3 sim/tb/top/r2_compare.py <M3 results dir> <R2 results dir> [out.txt]
 
-Criteria: bias DC driver / far-end values and probe pad levels |delta| <= 0.5 mV; kick edges |delta| <= 0.5 mV (the M3
-README criterion vs run 4); firing rates (bias_spk off, s10k) |delta| <= 1 %; probe settling <= 2 us (bench criterion).
+Criteria: bias DC driver / far-end values and probe pad levels |delta| <= 0.5 mV; kick edges |delta| <= KICK_TOL_MV
+(3.0 mV, Chief #44; MRESET edges excluded); firing rates (bias_spk off, s10k) |delta| <= 1 %; probe settling <= 2 us (bench criterion).
 Host-side (plain Python, no numpy).
 """
 import json
@@ -153,6 +153,12 @@ KICK_REBASE = {
     ("HOLD on", "D1 vs"): (+16.16, +15.9),
     ("HOLD off", "D1 vs"): (-24.32, -22.3),
 }
+# Kick-edge tolerance (Chief decision #44, 2026-11-26): |R2 - ref| <= 3.0 mV accepted, with a documented >= 1 tau wait
+# after HOLD toggles. ref = M3, or the KICK_REBASE entry. Bias-DC / probe benches keep 0.5 mV.
+KICK_TOL_MV = 3.0
+# MRESET (rt_out[3]) resets every membrane by design: its edges are printed but excluded from the kick verdict.
+def is_mreset(ev):
+    return ev.startswith("MRESET")
 
 
 def kick():
@@ -179,20 +185,23 @@ def kick():
             log(f"  re-baselined (Chief #43, extresist net-selection artifact): {k[1]} at {k[0]} M3 edge "
                 f"{po[k][0]:+.2f} -> baseline {v[0]:+.2f} mV (c91f33e)")
             po[k] = v
-    log(f"[kick typ 27] edge kick (mV), events x victims: |new - old| > 0.5 mV listed; M3 victims {len(no_)}, R2 {len(nn)}")
+    log(f"[kick typ 27] edge kick (mV), events x victims: |new - old| > 0.5 mV listed (verdict tol {KICK_TOL_MV} mV, MRESET excluded); M3 victims {len(no_)}, R2 {len(nn)}")
     worst = (0.0, "")
     cnt = 0
     for k in po:
         if k not in pn:
             continue
         d = pn[k][0] - po[k][0]
-        cnt += 1
-        if abs(d) > abs(worst[0]):
-            worst = (d, f"{k[1]} at {k[0]}")
+        mr = is_mreset(k[0])
+        if not mr:
+            cnt += 1
+            if abs(d) > abs(worst[0]):
+                worst = (d, f"{k[1]} at {k[0]}")
         if abs(d) > 0.5:
+            tag = "   (MRESET, excluded)" if mr else ("   <-- > tol" if abs(d) > KICK_TOL_MV else "")
             log(f"  {k[0]:21s} {k[1]:12s} edge {po[k][0]:+7.2f} -> {pn[k][0]:+7.2f} ({d:+.2f}); step {po[k][1]:+6.1f} -> "
-                f"{pn[k][1]:+6.1f}")
-    log(f"  compared {cnt} edges; worst delta {worst[0]:+.2f} mV ({worst[1]})")
+                f"{pn[k][1]:+6.1f}{tag}")
+    log(f"  compared {cnt} non-MRESET edges; worst delta {worst[0]:+.2f} mV ({worst[1]})")
     bay = [x for x in nn if x not in no_]
     if bay:
         log("  bay victims (R2 only), edge (step) mV: ")
@@ -203,7 +212,8 @@ def kick():
     for ls, tag in ((o, "M3"), (n, "R2")):
         w = next((l for l in ls if l.startswith("worst edge")), "")
         log(f"  {tag} {w}")
-    verdict("kick edges", abs(worst[0]) <= 0.5, f"(worst {worst[0]:+.2f} mV, {worst[1]})")
+    verdict("kick edges", abs(worst[0]) <= KICK_TOL_MV,
+            f"(worst non-MRESET {worst[0]:+.2f} mV, {worst[1]}; tol {KICK_TOL_MV} mV, Chief #44)")
     # hold-window slopes
     def hold(ls):
         i = next(k for k, l in enumerate(ls) if l.startswith("hold window"))
