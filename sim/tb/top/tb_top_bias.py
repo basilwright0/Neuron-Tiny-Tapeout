@@ -2,6 +2,8 @@
 
   python3 sim/tb/top/tb_top_bias.py dc   [S]        # DC: driver end vs far end of every line (R-network lines)
   python3 sim/tb/top/tb_top_bias.py step [S]        # code step after settling, settling at the far end
+                                                    # (NOBAY=1: R2 bay devices removed = the line load without the
+                                                    # bay, wiring C kept; result names get _nobay)
   python3 sim/tb/top/tb_top_bias.py spk  [on|off]   # S = 1000, 4 neighbours spiking (on) or not (off) around a
                                                     # victim neuron driven at 2x rheobase: victim rate, line ripple
 Lines that have no R network in the extraction (extresist keeps only the nets whose R matters) are one node: their
@@ -9,6 +11,8 @@ far end equals the driver end by construction; what can still differ is the loca
 devices, which is the IR-drop result of pgrid.py (check 4).
 spk also reports the ripple of every shared line at each array slot's own terminal, per neuron row (diagnosis of
 the victim rate shift with spiking neighbours).
+BIAS_R2=<code> (dc): vth_cmp code override (M3 batch ran code 22 = 1.5261 V on aux3), result name _r2c<code>.
+R2: the bay column top (by2) is an extra far end.
 Writes sim/results/top/bias_<mode>_*.txt.   `--deck`: write the deck to $TOP_DECK_DIR (default /tmp/topdeck), no run.
 """
 import sys
@@ -27,6 +31,10 @@ LINES = ["vbn_leak", "vbn_ref", "vbp_syn", "vbp_st", "vbn_prb", "el", "vreset", 
          "aux0", "aux2", "aux3", "vbn_ax", "vbp_w"]
 DRIVER = {"vsrc": "r1", "vreset": "r1"}            # others: b1
 FAR = ["s30", "s33", "ax", "d1", "tau0", "tau2"]    # array top row ends (M2 layout B: F2, AH400), AdEx, D1, tau cells
+FAR += [i for _, i, _ in T.bay()][-1:]              # R2: bay column top (by2), listed last
+import os                     # noqa: E402
+NOBAY = os.environ.get("NOBAY") == "1"
+KW = dict(drop_inst={i for _, i, _ in T.bay()}) if NOBAY else {}
 lines = []
 
 
@@ -81,9 +89,15 @@ if MODE == "dc":
             for n in ns:
                 sv.append(f"v({T.san(n)})"); keys.append((ln, b, n))
     sv = sorted(set(sv))
-    body = B.chip(S, ib_x2=1 if S >= 300 else 0)
-    r = B.go(B.deck(body, "op", sv), f"bias_dc_S{S:g}")
-    log(f"Bias lines, DC at nominal codes, S = {S:g}, typical 27 C, full-chip PEX (ideal supplies: wiring R of the"
+    codes = B.op_point(S)
+    tag = ""
+    if os.environ.get("BIAS_R2"):
+        codes["r2"] = int(os.environ["BIAS_R2"])
+        tag = f"_r2c{codes['r2']}"
+    body = B.chip(S, codes=codes, ib_x2=1 if S >= 300 else 0)
+    tag += B.SUFFIX
+    r = B.go(B.deck(body, "op", sv), f"bias_dc_S{S:g}{tag}")
+    log(f"Bias lines, DC at nominal codes (r2 {codes['r2']}), S = {S:g}, typical 27 C, full-chip PEX (ideal supplies: wiring R of the"
         f" line only; ground offsets are in pgrid.py). Far end - driver end, mV (max |.| over the block's terminals)")
     log("line         driver(V)  " + "  ".join(f"{b:>8s}" for b in FAR) + "   R-network?")
     for ln in LINES:
@@ -99,32 +113,37 @@ if MODE == "dc":
         g = f(T.net(ln))
         row += "   yes" if any(f(k) == g for k in par) else "   no (single node)"
         log(row)
-    (B.OUT / f"bias_dc_S{S:g}.txt").write_text("\n".join(lines) + "\n")
+    (B.OUT / f"bias_dc_S{S:g}{tag}.txt").write_text("\n".join(lines) + "\n")
 
 elif MODE == "step":
     S = float(ARGV[2]) if len(ARGV) > 2 else 100.0
     c0 = B.op_point(S)
     c1 = {k: v - 4 for k, v in c0.items()}          # every DAC -4 codes (no wrap at the S >= 300 codes)
-    TS, TEND = 40e-6 * 100 / S + 5e-6, 40e-6 * 100 / S + 5e-6 + 800e-6 * 100 / S
+    TW = float(os.environ.get("STEP_TW", "1"))     # window multiplier (S = 10: 2, the leak line takes ~10 ms)
+    TS, TEND = 40e-6 * 100 / S + 5e-6, 40e-6 * 100 / S + 5e-6 + TW * 800e-6 * 100 / S
     st = B.timeline([(0.0, T.config(codes=c0, ib_x2=1 if S >= 300 else 0)),
                      (TS, T.config(codes=c1, ib_x2=1 if S >= 300 else 0))])
-    body = B.chip(S, state_over=st)
+    body = B.chip(S, state_over=st, **KW)
+    SB = ["s30", "ax", "d1", "tau0"] + FAR[6:]        # + bay top (R2)
+    nb = "_nobay" if NOBAY else ""
     probes = {}
     for ln in LINES:
         drv, far = ends(ln)
         probes[(ln, "drv")] = drv[0]
-        for b in ("s30", "ax", "d1", "tau0"):
+        for b in SB:
             if b in far:
                 probes[(ln, b)] = far[b][0]
     sv = sorted(set(f"v({T.san(n)})" for n in probes.values()))
-    r = B.go(B.deck(body, f"tran 20n {TEND:g} 0 {TEND / 2000:g}", sv), f"bias_step_S{S:g}")
+    r = B.go(B.deck(body, f"tran 20n {TEND:g} 0 {TEND / 2000:g}", sv), f"bias_step_S{S:g}{nb}")
     t = r["_x"]
-    log(f"Code step at {TS * 1e6:g} us (every DAC -4 codes at once), S = {S:g}, typical 27 C, full-chip PEX: "
+    log(f"Code step at {TS * 1e6:g} us (every DAC -4 codes at once), S = {S:g}, typical 27 C, full-chip PEX"
+        f"{' WITHOUT the bay devices (NOBAY)' if NOBAY else ''}{' (bay devices dropped: %d)' % T._cache.get('dropped_inst', 0) if NOBAY else ''}: "
         f"time from the step to within 1 % of the final change (and 0.5 LSB = 1/8 of the step), us")
-    log("line          driver: 1% / LSB/2     s30 (far col.)    AdEx            D1              tau0")
+    log("line          driver: 1% / LSB/2     s30 (far col.)    AdEx            D1              tau0" +
+        "".join(f"            {b:4s}" for b in SB[4:]))
     for ln in LINES:
         row = f"{ln:12s}"
-        for b in ("drv", "s30", "ax", "d1", "tau0"):
+        for b in ["drv"] + SB:
             if (ln, b) not in probes:
                 row += f"  {'-':>15s}"
                 continue
@@ -136,8 +155,10 @@ elif MODE == "step":
                 late = np.where((np.abs(y - yf) > tol) & (t > TS))[0]
                 res.append((t[late[-1]] - TS) * 1e6 if len(late) else 0.0)
             row += f"  {res[0]:6.1f} / {res[1]:6.1f}"
-        log(row + f"   (step {1e3 * (yf - y0):+.1f} mV at the last column)")
-    (B.OUT / f"bias_step_S{S:g}.txt").write_text("\n".join(lines) + "\n")
+        tl = t[-1] - 0.1 * (t[-1] - TS)                  # residual: change over the last 10 % of the window
+        res_ = abs(yf - np.interp(tl, t, y)) / max(abs(yf - y0), 1e-12) * 100
+        log(row + f"   (step {1e3 * (yf - y0):+.1f} mV at the last column; last-10 % drift {res_:.2f} % of it)")
+    (B.OUT / f"bias_step_S{S:g}{nb}.txt").write_text("\n".join(lines) + "\n")
 
 elif MODE == "spk":
     ON = (ARGV[2] if len(ARGV) > 2 else "on") == "on"
@@ -185,7 +206,7 @@ elif MODE == "spk":
     sv += [f"v({T.vnode(s + '.vm')})" for s in SLOTS]
     CMP = T.slot_inst("CMP")
     sv += [f"v({T.vnode(s + '.spk')})" for s in SPIKERS + [CMP]]
-    name = f"bias_spk_{'on' if ON else 'off'}{tag}"
+    name = f"bias_spk_{'on' if ON else 'off'}{tag}{B.SUFFIX}"
     r = B.go(B.deck(body, f"tran 5n {TEND:g} 0 5n", sorted(set(sv))), name)
     t = r["_x"]
     sp = crossings(t, r[f"v({T.vnode(VICTIM + '.spk')})".lower()], 1.65)

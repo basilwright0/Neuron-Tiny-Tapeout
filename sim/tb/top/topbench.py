@@ -24,6 +24,10 @@ OUT = T.ROOT / "sim/results/top"
 RUNS = "top"                            # run() writes sim/results/<name>.*; we prefix names with top/
 
 CB = 200e-12                            # pad + board on ua[1]
+import os as _os                        # noqa: E402
+SUFFIX = "_vsrcfix" if _os.environ.get("TOP_VSRC_FIX") == "1" else ""   # result-name tag (topnet.vsrc_fix)
+NOBAY = _os.environ.get("NOBAY") == "1"     # R2: chip() without the bay devices (topnet.build drop_inst), tag _nobay
+SUFFIX += "_nobay" if NOBAY else ""
 
 
 def op_point(S=100.0):
@@ -99,6 +103,8 @@ def chip(S=100.0, codes=None, probe=None, rt=(0, 0, 0, 0), ib_x2=0, sources=None
     that open at T_REL = 0.5 us (the full-chip op does not converge by Newton, and ngspice's transient-op fallback
     leaves these nA-biased lines and block states unsettled)."""
     codes = codes or op_point(S)
+    if NOBAY and "drop_inst" not in kw:
+        kw["drop_inst"] = {i for _, i, _ in T.bay()}
     st = T.config(codes=codes, probe=probe, rt=rt, ib_x2=ib_x2)
     st.update(state_over or {})
     body = T.build(st, sources=sources, power=power, **kw)
@@ -109,6 +115,9 @@ def chip(S=100.0, codes=None, probe=None, rt=(0, 0, 0, 0), ib_x2=0, sources=None
         tt.append(f"Rtie_{T.san(p)} {T.node(p)} 0 1k")
     el = 1.50 if S >= 300 else 1.30          # help the op: every membrane starts at EL
     vms = [f"s{r}{c}.vm" for r in range(4) for c in range(4) if f"s{r}{c}.vm" in T.names()] + ["ax.vm"]
+    # R2 bay neurons (by0..by2). E1 (ce1_fb) parks vm at VSS while GRP_EN[1] = 0: a 1.5 V precharge would fight
+    # that clamp (144 uA into VSS in icur S10000, 988c8d8), so E1 is left to its own park state.
+    vms += [f"{i}.vm" for _, i, c in T.bay() if f"{i}.vm" in T.names() and c != "ce1_fb"]
     ns = [f".nodeset v({T.vnode(n)})={el}" for n in vms]
     ns += [f".nodeset v({T.vnode(n)})={v:g}" for n, v in pre_extra(el)]
     if precond:
@@ -138,12 +147,12 @@ def deck(body, analysis, save, corner="typical", temp=27, opts="", pre=""):
         pre = "save " + " ".join(_save_name(v) for v in save) + "\n" + pre
     return f"""* top-level PEX bench
 {header(corner=corner, temp=temp)}
-.option rshunt=1e14 abstol=1e-14 {opts}
+.option {'' if 'rshunt' in opts else 'rshunt=1e14 '}abstol=1e-14 {opts}
 {body}
 .control
 set wr_singlescale
 set wr_vecnames
-set num_threads=4
+set num_threads={os.environ.get("TOP_THREADS", "4")}
 {pre}
 {analysis}
 wrdata __OUT__ {vecs}

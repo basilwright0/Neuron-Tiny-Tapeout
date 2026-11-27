@@ -39,6 +39,7 @@ H1 = T.slot_pos("H1")                                 # trim nibble 0 (TRIM_NIBB
 assert T.fp.TRIM_NIBBLES["H1.VTH"] == 0
 VICT = {f"{n} {i}": f"{i}.vm" for n, i, c in T.neurons()}
 VICT.update({"D1 vs": "d1.vs", "D1 d1": "d1.d1", "D1 d2": "d1.d2", "AdEx vm": "ax.vm"})
+VICT.update({f"{n} {i}": f"{i}.vm" for n, i, c in T.bay()})        # R2 bay column (extra victims, listed last)
 TRC_SLOT = T.slot_inst("S1")                          # S1 s20 (cslot_ah): vl traced for HOLD-off A/B differences
 
 import numpy as np            # noqa: E402

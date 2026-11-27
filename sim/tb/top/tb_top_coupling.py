@@ -22,7 +22,7 @@ fp = C.fp
 # ---- victims: vm of every array neuron (floorplan MAP; instance s<row><col>, CMP s13), D1, AdEx.
 # C_mem = the cell's membrane MOS caps (topnet.membrane_cap: 200 fF, AH50 50 fF, AH400 ~470 fF).
 VICT = {}                        # name -> (net, C_mem, inst, cell, pin)
-for name, inst, cell in T.neurons():
+for name, inst, cell in T.neurons() + T.bay():          # R2: + the bay column (by0..by2), listed after the array
     VICT[f"{name} vm ({inst})"] = (f"{inst}.vm", T.membrane_cap(cell), inst, cell, "vm")
 for nm, n, cm in (("D1 vs", "d1.vs", 200e-15), ("D1 d1", "d1.d1", 100e-15), ("D1 d2", "d1.d2", 100e-15),
                   ("AdEx vm", "ax.vm", 200e-15), ("AdEx vw", "ax.vw", 200e-15)):
@@ -80,13 +80,14 @@ agg = {}
 for p, n in T.macro_outputs().items():
     if not T.is_macro_node(n):
         agg[f(n)] = p
-for p in ("en_b", "d1_sel0", "d1_sel1", "d1_sel2", "g_any", "g_nsel", "g_ns0", "g_ns1"):
+for p in ("en_b", "d1_sel0", "d1_sel1", "d1_sel2", "g_any", "g_nsel", "g_ns0", "g_ns1", "g_bay"):
     try:
         agg[grp(p)] = p
     except KeyError:
         pass
-for k in range(16):
-    agg[grp(f"spk_in[{k}]")] = f"spk_in[{k}]"
+for k in range(getattr(fp, "N_SPK", 16)):                 # R2: 24 channels, the unused ones are tied to VGND
+    if k not in getattr(fp, "SPK_TIED", ()):
+        agg[grp(f"spk_in[{k}]")] = f"spk_in[{k}]"
 for p in [f"ui_in[{i}]" for i in range(8)] + [f"uo_out[{i}]" for i in range(8)] + \
         [f"uio_out[{i}]" for i in range(8)] + ["clk", "rst_n"]:
     agg[f(p)] = p

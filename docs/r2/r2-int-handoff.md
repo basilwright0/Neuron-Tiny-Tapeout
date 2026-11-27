@@ -286,3 +286,21 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
 - Extraction: by2.vm has the same 9 device terminals as the block, no extra DC path, coupling within 1 fF. No fix needed.
 - Bench: r2-pex 780c85e prints a DC estimate plus the raw value. info.md: full-chip expected values plus the
   quasi-static measurement note.
+
+## Item 3, 2026-11-27 ~02:40Z: branch `r2-shield` (worktree /home/basil/tt-m3/r2shield, off r2-int ce5830f)
+- **AdEx keep-out (1e4659e):**
+  - route.py `NET_KO` now takes a box. `ADEX_W` = Metal4 x 128–156.1, y 139–214 for rt_out[2] (HOLD) and cfg_out[2].
+  - Both are rerouted off AdEx's west half (rt_out[2] 575 µm; cfg_out[2] 769 µm with ROUTE_MARGIN=250, routed after cfg_out[0]).
+  - cfg_out[0] keeps its x 155.6 lane: it has no path out of the corner with the keep-out, and it's a config-time
+    line (waived #40).
+  - check 0 illegal; conncheck 204 / 0 disconnected.
+  - Lesson: `extend` does not rejoin a net cut in the middle; use `reroute`.
+- **cfg_out[41] shield dropped:** cfg_out[41] is D1's tb2 trim bit (it must land on D1), and its Metal4 trunk at
+  x 47.6 over D1 is identical in M3 fdcf2ad. It is config-time and waived (#40).
+- **D1 HOLD shield (in-cell):** deferred until the AdEx kick result is in.
+- **r2-pex merged in (3a53a63).**
+- **Boot `r2shield/top1` (02:36Z):** vm_r2.sh, then PEX (FORCE) with only kick / coupling / probe_step / bias_dc_S100(+r2c22) /
+  gndchk at JOBS=3. Fetch: `cd r2shield && vmwait.sh r2shield top1 5`, then
+  `r2_compare.py /home/basil/tt-m3/top3/sim/results/top sim/results/top sim/results/top/r2_vs_m3_shield.txt`.
+- **New worktree needs** untracked `layout/top/work/geo` and `.tools` copied from r2int, or the first vmrun sync fails
+  (tar error).

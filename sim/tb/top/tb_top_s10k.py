@@ -13,7 +13,8 @@ Drive: neuron i at k = 2 / 3 / 4 (cycled) x its nominal rheobase g * GF * 80 mV,
 GF = 0.5 for the F cells (half leak). Ideal LIF rate uses tau = C_m / (g GF), t_ref = 2 ms / S (informational).
 Reports: per-neuron spikes / rate / rate over ideal LIF; CMP spikes in each window and vm max vs its trip;
 supply current; every shared bias line at the B1 driver and at each slot terminal: baseline mean, shift with all
-neurons firing (droop), p-p ripple. Writes sim/results/top/s10k_<corner>_<T>.txt
+neurons firing (droop), p-p ripple; R2 bay spikes (not driven). Writes sim/results/top/s10k_<corner>_<T>.txt
+S10K_BAYQUIET=1: bay by0 / by1 kept (load) but held at EL, so they cannot fire; tag _bayquiet (vs NOBAY=1 _nobay).
 """
 import os
 import sys
@@ -85,6 +86,18 @@ try:
 except KeyError as e:
     log(f"AdEx node missing ({e}); AdEx not driven")
 
+# R2 bay (by0 S4, by1 AH50B; by2 = E1 stays parked, GRP_EN = 0): never driven here, but its vm / spk are saved so
+# bay firing shows in the report. S10K_BAYQUIET=1: the bay cells stay in the netlist (load, same bias) and are held
+# quiet: by0 / by1 vm forced to EL (1.50 V) through S10K_BAYQUIET_R (10 kohm), so they cannot fire whatever couples
+# in; the source current at rest is the cell's own leak (~0). Tag _bayquiet.
+BAYQ = os.environ.get("S10K_BAYQUIET") == "1"
+assert not (BAYQ and B.NOBAY), "S10K_BAYQUIET and NOBAY exclude each other"
+BAY = [] if B.NOBAY else [(n, i, c) for n, i, c in T.bay() if c != "ce1_fb"]
+if BAYQ:
+    assert BAY, "S10K_BAYQUIET=1 but no bay in this netlist"
+    src["Vbq"] = "Vbq vbq 0 1.5"
+    for n, i, c in BAY:
+        src[f"Rbq{i}"] = f"Rbq{i} vbq {T.vnode(i + '.vm')} {float(os.environ.get('S10K_BAYQUIET_R', '1e4')):g}"
 state = {"r2_b0": f"PWL(0 3.3 {TSW:g} 3.3 {TSW + 1e-9:g} 0)"}
 assert (27 & 1) and not (26 & 1) and (27 >> 1) == (26 >> 1)
 body = B.chip(S, codes=codes, ib_x2=1, sources=src, state_over=state)
@@ -129,7 +142,8 @@ sv = {f"v({T.vnode(i + '.vm')})" for _, i, _ in NEUR} | {f"v({T.vnode(i + '.spk'
 sv |= {f"v({T.san(x)})" for x in at.values()} | {"i(vvdd)", f"v({T.node('ua[0]')})"}
 for _, a_, b_ in AX:
     sv |= {f"v({a_})", f"v({b_})"}
-name = f"s10k_{CORNER}_{TEMP}"
+sv |= {f"v({T.vnode(i + '.' + p)})" for _, i, _ in BAY for p in ("vm", "spk")}
+name = f"s10k_{CORNER}_{TEMP}{B.SUFFIX}" + ("_bayquiet" if BAYQ else "")
 r = B.go(B.deck(body, f"tran 1n {TEND:g} 0 1n", sorted(sv), corner=CORNER, temp=TEMP), name,
          timeout=int(os.environ.get("S10K_TIMEOUT", str(125 * 60))))
 t = r["_x"]
@@ -169,6 +183,11 @@ for nm, a_, b_ in AX:
         f"{(len(sp) - 1) / (sp[-1] - sp[0]) / 1e6 if len(sp) > 2 else 0:7.3f}    (informational; vm "
         f"{V(f'v({a_})')[t > 2.5e-6].min():.3f}-{V(f'v({a_})')[t > 2.5e-6].max():.3f} V)")
 log(f"array neurons not firing: {bad}")
+for n, i, c in BAY:
+    sp = crossings(t, V(f"v({T.vnode(i + '.spk')})"), 1.65)
+    y = V(f"v({T.vnode(i + '.vm')})")[t > 2.5e-6]
+    log(f"bay {n:5s} {i:4s}  {c:14s} not driven{' (held at 1.50 V)' if BAYQ else ''}: {len(sp)} spikes "
+        f"({int((sp > 2.5e-6).sum())} after 2.5 us), vm {y.min():.3f}-{y.max():.3f} V")
 log("")
 cs, cv = V(f"v({T.vnode(CMP + '.spk')})"), V(f"v({T.vnode(CMP + '.vm')})")
 allsp = crossings(t, cs, 1.65)
