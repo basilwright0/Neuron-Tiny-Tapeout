@@ -166,8 +166,14 @@ elif MODE == "e1trip":
         f"{len(tr)} spk crossings on that ramp" + (f"; WARNING: spk tripped {len(tr1)}x in the trip-free pair" if len(tr1) else ""))
     mm = up2 & (t < (tr[0] if len(tr) else TEND)) & (np.abs(vm - fe) < 1e-4)   # final ramp, vm still on the source
     rh = np.interp(vth - 1e-3, fe[mm], ii[mm]) - np.mean(ic) if len(tr) else float("nan")
-    log(f"gap Vth - EL {1e3 * (vth - el):.1f} mV (block PEX 78.6 mV); rheobase (source current at Vth - 1 mV minus "
-        f"the C dV/dt current) {rh * 1e12:.0f} pA (block 156)")
+    # At 1 mV/us the detector's first stage couples ~2.5 fC back onto vm in the last ~30 mV before the trip (a hump
+    # that a DC sweep doesn't have), so the raw value overstates the rheobase. The DC estimate extrapolates the
+    # straight leak line fitted between EL and Vth - 20 mV.
+    lf = mm & (fe >= el) & (fe <= vth - 0.02)
+    rh_dc = (np.polyval(np.polyfit(fe[lf], ii[lf], 1), vth - 1e-3) - np.mean(ic)) if len(tr) and lf.sum() > 3 else float("nan")
+    log(f"gap Vth - EL {1e3 * (vth - el):.1f} mV (block PEX 78.6 mV); rheobase DC estimate (leak line EL..Vth - 20 mV "
+        f"at Vth - 1 mV, minus C dV/dt) {rh_dc * 1e12:.0f} pA (block 156); raw at Vth - 1 mV incl. the detector "
+        f"feedback hump {rh * 1e12:.0f} pA")
     log("after the trip the reset fights the forced source (vm held by the source); only the first crossing is used")
 elif MODE == "e2":
     WHICH = ARGS[1] if len(ARGS) > 1 else "A"
