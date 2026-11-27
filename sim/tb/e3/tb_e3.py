@@ -2,8 +2,8 @@
 internal nodes na / nb can be probed and forced.  Adapted from sim/tb/e2/tb_e2.py (r2-e2).
 
 usage (in the EDA container, from /work):
-  python3 sim/tb/e3/tb_e3.py sch|pex <corner> <temp> [vbp,vbp,...] [vreset]   corner: typical | ss | ff
-  python3 sim/tb/e3/tb_e3.py mc N [first] [vbp] [vreset]   schematic MC (statistical corner, global + mismatch), tt/27
+  python3 sim/tb/e3/tb_e3.py sch|pex <corner> <temp> [vbp,...] [vr,...] corner: typical | ss | ff
+  python3 sim/tb/e3/tb_e3.py mc N [first] [vbp] [vreset=1.3] schematic MC (statistical corner, global + mismatch), tt/27
   python3 sim/tb/e3/tb_e3.py summary                         -> sim/tb/e3/results/summary.md
 Results: sim/tb/e3/results/<tag>.json (+ raw/ decks and ngspice logs).
 
@@ -102,8 +102,8 @@ def bench(mode, hdr, vbp, vr, tag, body=None, parts=("tran", "dc", "off")):
     res = dict(vbp=vbp, vreset=vr)
     if "tran" in parts:
         src = f"""Vg grp_en 0 {pwl([(T_REL, 3.3), (T_RST0, 0), (T_RST1, 3.3), (T_OFF, 0)])}
-Vsa sta 0 {pwl([(TA0, 3.3), (TA1, 0), (TC0, 3.3), (TC1, 0)])}
-Vsb stb 0 {pwl([(TB0, 3.3), (TB1, 0), (TC0, 3.3), (TC1, 0)])}
+Vsta_src sta 0 {pwl([(TA0, 3.3), (TA1, 0), (TC0, 3.3), (TC1, 0)])}
+Vstb_src stb 0 {pwl([(TB0, 3.3), (TB1, 0), (TC0, 3.3), (TC1, 0)])}
 .ic v(na)={vr} v(nb)={vr}
 """
         r = ngs.run(deck(body, mode, hdr, vbp, vr, src, f"tran 5n {TEND} 0 5n uic",
@@ -127,8 +127,8 @@ Vsb stb 0 {pwl([(TB0, 3.3), (TB1, 0), (TC0, 3.3), (TC1, 0)])}
     if "dc" in parts:
         for name, a, b in (("sta", 3.3, 0), ("stb", 0, 3.3)):
             src = f"""Vg grp_en 0 3.3
-Vsa sta 0 {a}
-Vsb stb 0 {b}
+Vsta_src sta 0 {a}
+Vstb_src stb 0 {b}
 Vna na 0 {vr + 0.1}
 Vnb nb 0 {vr + 0.1}
 """
@@ -141,7 +141,7 @@ Vnb nb 0 {vr + 0.1}
             res[f"Iratio_{n}"] = res[f"I_stb_{n}"] / res[f"I_sta_{n}"] if res[f"I_sta_{n}"] else None
     if "off" in parts:
         for st in (0, 3.3):
-            src = f"Vg grp_en 0 0\nVsa sta 0 {st}\nVsb stb 0 {st}\n"
+            src = f"Vg grp_en 0 0\nVsta_src sta 0 {st}\nVstb_src stb 0 {st}\n"
             r = ngs.run(deck(body, mode, hdr, vbp, vr, src, "dc Vdum 0 0 1",
                              ["i(Vdd)", "i(Vvr)", "i(Vvbp)", "v(na)", "v(nb)"]), f"{tag}_off_{int(st > 0)}")
             k = f"st{int(st > 0)}"
@@ -212,13 +212,13 @@ def summary():
     L = ["# e3_syn block bench (sim/tb/e3/tb_e3.py)", "",
          "dV in mV over a 10 us pulse; ratio = dV(stb) / dV(sta) (design 3.0); B/A = nb / na for the same input; "
          "I = DC leg current into the node held at vreset + 0.1 V.", "",
-         "| netlist | corner | vbp | dV sta na / nb | dV stb na / nb | ratio na / nb | B/A sta / stb | I sta na / nb (nA) "
-         "| I ratio na / nb | vmax na / nb | grp_en=0: idd (sta=stb=1), node dev |", "|" + "---|" * 11]
+         "| netlist | corner | vreset | vbp | dV sta na / nb | dV stb na / nb | ratio na / nb | B/A sta / stb | I sta na / nb (nA) "
+         "| I ratio na / nb | vmax na / nb | grp_en=0: idd (sta=stb=1), node dev |", "|" + "---|" * 12]
     for f in sorted(OUTD.glob("e3_sch_*.json")) + sorted(OUTD.glob("e3_pex_*.json")):
         d = json.loads(f.read_text())
         for r in d["runs"]:
             try:
-                L.append(f"| {d['mode']} | {d['corner']}/{d['temp']} | {r['vbp']:.2f} | {1e3 * r['dV_sta_na']:.1f} / "
+                L.append(f"| {d['mode']} | {d['corner']}/{d['temp']} | {d['vreset']:.2f} | {r['vbp']:.2f} | {1e3 * r['dV_sta_na']:.1f} / "
                          f"{1e3 * r['dV_sta_nb']:.1f} | {1e3 * r['dV_stb_na']:.1f} / {1e3 * r['dV_stb_nb']:.1f} | "
                          f"{r['ratio_na']:.3f} / {r['ratio_nb']:.3f} | {r['BA_sta']:.3f} / {r['BA_stb']:.3f} | "
                          f"{1e9 * r['I_sta_na']:.2f} / {1e9 * r['I_sta_nb']:.2f} | {r['Iratio_na']:.3f} / "
@@ -243,7 +243,8 @@ if __name__ == "__main__":
         summary()
     elif a[0] == "mc":
         mc(int(a[1]), int(a[2]) if len(a) > 2 else 1, float(a[3]) if len(a) > 3 else 2.58,
-           float(a[4]) if len(a) > 4 else 1.0)
+           float(a[4]) if len(a) > 4 else 1.3)
     else:
         vb = tuple(float(v) for v in a[3].split(",")) if len(a) > 3 else VBP_DEFAULT
-        corners(a[0], a[1], int(a[2]), vb, float(a[4]) if len(a) > 4 else 1.0)
+        for vr in (a[4].split(",") if len(a) > 4 else ("1.3", "1.5")):
+            corners(a[0], a[1], int(a[2]), vb, float(vr))

@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / "compact"))
+sys.path[:0] = [str(HERE.parent / "compact"), str(HERE.parent / "slot")]   # slotgen_fill needs slot/router.py (as cgen.py)
 from geom import Finger, Chain, draw_chain, snap, CONT  # noqa: E402
 
 NAME = "e3_syn"
