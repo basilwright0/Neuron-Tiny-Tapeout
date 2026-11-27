@@ -300,7 +300,9 @@ NET_KO = {"rt_out[0]": [("D1 dendrite", (0, 1), 3.0), ("NA neuron array 4x4", (0
 ADEX_W = (128.0, 139.0, 156.1, 214.0)
 # cfg_out[0] (GRP_EN[0], a configuration-time line, kick waived #40) keeps its x 155.6 lane: with the keep-out it
 # has no path out of the AdEx / macro corner.
-for _n in ("rt_out[2]", "cfg_out[2]"):
+# cfg_out[2] (GRP_EN[2], config-time) also keeps its old lane: rerouted around AdEx it took 769 um along the west
+# edge into E2 and failed 5 x ANT.16 at E2's gate (r2shield/top1).
+for _n in ("rt_out[2]",):
     NET_KO.setdefault(_n, []).append((ADEX_W, (2,), 0.0))
 # reroute only: keep the net's old wires inside this box (x0, y0, x1, y1).  Stim A: its run-4 branch east of the
 # array (row-2 fan-out -> macro pin -> AdEx) stays as it was (rerouted, it moved off en_c3 over AdEx: AdEx vm
