@@ -332,3 +332,13 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - **Probe:** SEL 8 / 9 + SUB = 1 → PROBE 0x58 / 0x59 (en_c0 / en_c1 + probe_rsel[3] + probe_sub). F2 / F3 have no SUB = 1 tap, so these are free.
   - **e2gen.py** (r2e2/layout/e2) is a fixed topology; the E3 legs must be added by hand.
 - **Risks:** the cfg_out[3] long route (antenna; add a diode or hop layers), and new rt_out[0/1] branches near the array top / E2 (kicks); check at integration.
+- **E3 cell v1 (dc57bce, Sonnet sub-agent):**
+  - Files: layout/e3/{e3gen.py, build.sh, build.tcl}; sim/tb/e3/{tb_e3.py, run_all.sh}.
+  - `e3_syn` is 47.65 × 12.0 µm, M1–M3, 34 devices.
+  - Synapse leg copied from cslot_ah: pMOS 2/L on vbp_syn, nMOS 0.5/0.28 pass on sta/stb, pMOS dump; the header is
+    gated by gb = NOT grp_en. Unit L stretched 4 → 6.4 µm (about 4 nA at vbp_syn 2.58 V, i.e. ~200 mV in 10 µs).
+  - Node A: 1 unit on sta + 3 units on stb. Node B: 1 unit on sta + one 6/6.4 on stb.
+  - Reset nMOS 1/0.5 on gb.
+  - VM job `r2e3/e3a` (≤ 120 min): build / DRC / LVS / PEX, schematic corners, PEX tt, MC 100; summary in sim/tb/e3/summary.md.
+  - **Decisions:** keep the array switch topology (nMOS pass + pMOS dump). **TODO:** rerun the bench with
+    vreset = 1.3 / 1.5 V (the chip value; v1 used 1.0 V), because headroom matters.
