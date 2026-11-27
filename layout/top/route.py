@@ -235,7 +235,7 @@ def build():
     for net, lst in NET_KO.items():
         m = g.netko[net] = np.zeros((3, NY, NX), np.bool_)
         for blk, layers, d in lst:
-            x0, y0, x1, y1 = fp.BLOCKS[blk]
+            x0, y0, x1, y1 = fp.BLOCKS[blk] if isinstance(blk, str) else blk     # block name or (x0, y0, x1, y1)
             i0, i1 = ispan(x0 - d, x1 + d, OX, NX); j0, j1 = ispan(y0 - d, y1 + d, OY, NY)
             for l in layers:
                 m[l, j0:j1 + 1, i0:i1 + 1] = True
@@ -295,6 +295,13 @@ BIAS_OK = set(C.COLUMN_NETS) | {"aux0", "aux1", "aux2", "aux3", "vbn_ax", "vbp_w
 # added ~206 aF on D1 vs (+ d1 128, d2 94); Metal2/3 stay 3 um off D1 (its descent over D1 is Metal4) and off the
 # array (its west join line is fixed geometry, geom.JOIN_OUTER).
 NET_KO = {"rt_out[0]": [("D1 dendrite", (0, 1), 3.0), ("NA neuron array 4x4", (0, 1), 3.0)]}
+# R2 (MIL-362 item 1/3): 93e4490 put HOLD (rt_out[2]) and GRP_EN[0]/[2] on Metal4 over AdEx's west half (vm / vw /
+# vbp_w): HOLD -> ax.vm 286 -> 457 aF (+2.3 mV kick). Keep them out of AdEx west of the macro feed lines (x < 156.1).
+ADEX_W = (128.0, 139.0, 156.1, 214.0)
+# cfg_out[0] (GRP_EN[0], a configuration-time line, kick waived #40) keeps its x 155.6 lane: with the keep-out it
+# has no path out of the AdEx / macro corner.
+for _n in ("rt_out[2]", "cfg_out[2]"):
+    NET_KO.setdefault(_n, []).append((ADEX_W, (2,), 0.0))
 # reroute only: keep the net's old wires inside this box (x0, y0, x1, y1).  Stim A: its run-4 branch east of the
 # array (row-2 fan-out -> macro pin -> AdEx) stays as it was (rerouted, it moved off en_c3 over AdEx: AdEx vm
 # <- probe_en_c[3] 8 -> 104 aF); y 265.62 = its macro-pin row (the old wire above it only led to the west).
