@@ -273,3 +273,16 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   y 140–213) for the run-time / digital nets rt_out[0..3] and cfg_out[0..2], then reroute rt_out[2], rt_out[3] and
   cfg_out[0] around it (e.g. the east band at x ≥ 167.5 as in 19e5af2, or the CH_NAE lines x 120.5–128.5).
   Expected: AdEx/HOLD back to ≈ M3, and the cfg_out[0] → AdEx kick reduced too. Verify in the item 3 boot (top + kick).
+
+## Item 2, 2026-11-27 ~02:20Z: E1 rheobase 344 vs 156 pA = bench artifact
+- Sonnet sub-agent (notes /home/basil/tt-m3/kickdiag/notes/e1_rheo.txt) plus my recheck on the saved
+  r2blk_e1trip_typical_27.dat.
+- Below 1.478 V the full-chip E1 current is a straight 2.49 nS leak line (residual ≤ 8 pA). Just below Vth, a hump of
+  up to 359 pA appears: about 2.5 fC of detector first-stage feedback (~1 fF to vm × ~2.5 V swing), so at a 1 mV/µs
+  ramp it reads as current. A DC sweep has no hump.
+- Leak-line extrapolation to Vth − 1 mV gives **192 pA**, and the raw value reproduces at 344 pA. The +23 % vs the
+  block's 156 pA is consistent with full-chip vbp_st 2.4091 V vs the block bench's 2.4165 V (7.4 mV more gate drive
+  → +10–20 % currents, also EL +13 mV, rate +11 %).
+- Extraction: by2.vm has the same 9 device terminals as the block, no extra DC path, coupling within 1 fF. No fix needed.
+- Bench: r2-pex 780c85e prints a DC estimate plus the raw value. info.md: full-chip expected values plus the
+  quasi-static measurement note.

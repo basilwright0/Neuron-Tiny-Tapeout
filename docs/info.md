@@ -107,8 +107,11 @@ with OUT_BANK = 1). It is an S neuron with its own local bias leg (a fixed-bias 
 shared bias lines). All its currents are ratioed from `vbp_st` (set only by `ua[0]`), EL = Vreset comes from a local
 diode stack and its threshold reference from a local diode (docs/r2/e1-fixed-bias.md). GRP_EN[1] = 0 turns the leg off
 and parks `vm` at 0 V; GRP_EN[1] = 1 lets it run. PEX at S = 100 (tt/27, ss/0, ff/85): τ_m 110 / 98 / 147 µs, t_ref
-18 / 8 / 35 µs, Vth − EL 79 / 69 / 97 mV, rheobase ≈ 150 pA; schematic 100-point MC: τ σ 9.6 %, gap σ 19 mV. If E1 is
-dropped, the slot holds a plain S neuron and GRP_EN[1] does nothing.
+18 / 8 / 35 µs, Vth − EL 79 / 69 / 97 mV, rheobase ≈ 150 pA; schematic 100-point MC: τ σ 9.6 %, gap σ 19 mV. Full-chip PEX (tt/27, S = 100): EL 1.42 V,
+Vth − EL 76 mV, rheobase ≈ 190 pA (the full-chip `vbp_st` sits ~7 mV higher than the block bench's), firing rates
++7–12 % vs the block. Measure the rheobase quasi-statically: a fast vm ramp picks up ~2.5 fC of detector feedback
+just below threshold and reads high (344 pA at 1 mV/µs). If E1 is dropped, the slot holds a plain S neuron and
+GRP_EN[1] does nothing.
 
 **E2** is a hold-node leakage cell with two floating ~200 fF nodes (nMOS gate caps). Node A is reset to `vreset`
 through one nMOS switch (1/0.5). Node B goes through two stacked switches; GRP_EN[2] selects whether their middle node
