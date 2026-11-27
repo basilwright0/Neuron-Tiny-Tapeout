@@ -321,3 +321,14 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   plus cocotb; JOBS=3.
 - **r2_compare follow-ups:** exclude MRESET edges in the kick verdict, and apply the ≤ 3 mV kick tolerance (#44), so
   the gate report reads PASS/FAIL directly.
+
+## E3 (user request via MIL-452, 2026-11-27): geometry-set synaptic-weight cell; branch `r2-e3` (worktree /home/basil/tt-m3/r2e3, off r2-int e07673e)
+- **Feasibility (Sonnet, local):**
+  - The strip x 5.0–53.4, y 303.4–317.8 has no other nets' wire.
+  - Metal4 stripes run inside it (VGND x 4–6, VDPWR x 50–51.6, VGND x 52.6–54.2), so the cell must be M1–M3 only, like e2gen. The cell top must be ≤ 317.8 (the uio_oe tie row is at 318.4).
+  - Nearby nets: VGND 0.5 µm away, en_c0 6.8 µm (Metal3 y 296.3), en_c1 10.2 µm (it starts at x 61.5).
+  - Further away: abus 24 µm, probe_rsel[3] 22, probe_sub 23, vbn_prb 41, vreset 43, rt_out[0] 79, rt_out[1] 94, vbp_syn 164.
+  - **cfg_out[3] is not routed:** its macro pin is on the south edge at (193.5–194.1, 151.0), a long route with antenna risk (cf. cfg_out[2] ANT.16).
+  - **Probe:** SEL 8 / 9 + SUB = 1 → PROBE 0x58 / 0x59 (en_c0 / en_c1 + probe_rsel[3] + probe_sub). F2 / F3 have no SUB = 1 tap, so these are free.
+  - **e2gen.py** (r2e2/layout/e2) is a fixed topology; the E3 legs must be added by hand.
+- **Risks:** the cfg_out[3] long route (antenna; add a diode or hop layers), and new rt_out[0/1] branches near the array top / E2 (kicks); check at integration.
