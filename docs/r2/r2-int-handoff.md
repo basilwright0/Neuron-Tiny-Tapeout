@@ -342,3 +342,16 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - VM job `r2e3/e3a` (≤ 120 min): build / DRC / LVS / PEX, schematic corners, PEX tt, MC 100; summary in sim/tb/e3/summary.md.
   - **Decisions:** keep the array switch topology (nMOS pass + pMOS dump). **TODO:** rerun the bench with
     vreset = 1.3 / 1.5 V (the chip value; v1 used 1.0 V), because headroom matters.
+  - VM-h: e3a 0.06.
+- **e3b (c41d6f8, submitted 18:14Z Nov 27, fetched 20:11Z under MIL-467): PASS, rc 0.** Summary in sim/tb/e3/results/summary.md.
+  - **Physical checks:** Magic DRC 0; **KLayout DRC 2 × PP.8b (must fix before integration, because TT precheck runs KLayout)**; LVS match; PEX 255 C.
+  - **PEX tt/27, vreset 1.3, vbp 2.58:** dV sta 223/215 mV and stb 646/666 mV give a ratio of 2.89/3.10 (na/nb). Iratio is 3.00/3.07 at every corner.
+  - **dV ratio holds only in the linear window:**
+    - at ff/85 the node saturates (~1.5 V), so the ratio is ~1.0;
+    - at ss/0 and vbp ≥ 2.58, dV is ≤ 12 mV;
+    - at vbp 2.50 tt it reaches the rail (ratio 1.1–1.3).
+  - This is a bias and window issue, not a weight issue. vbp_syn needs per-corner trim, which is a doc item for info.md.
+  - **grp_en=0:** leakage ≤ 1.5 pA, node deviation ≤ 14 mV (PEX vreset 1.5). PASS.
+  - **MC 100 (0 failed):** ratio sd/mean 10.5% (na) and 11.1% (nb); min 1.43 (outlier); Iratio sd 3.2/3.8%; absolute dV sd ~58%, as expected for subthreshold vbp.
+  - **VM-h:** ≤ 0.85 (job; the sub-agent's estimate from output timestamps) + 0.01 (the VM was resumed for the fetch, then stopped at 20:11:38Z).
+  - **Next:** fix PP.8b locally (a KLayout run is enough, no VM needed), then integrate into r2-int.
