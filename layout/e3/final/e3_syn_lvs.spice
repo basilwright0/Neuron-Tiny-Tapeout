@@ -1,0 +1,38 @@
+* LVS reference for e3_syn (layout/e3/e3gen.py): E3 synaptic-weight test cell, MIL-452 / MIL-362
+* synapse unit pfet 2/6.4 (array 2/4), caps nfet 9.510/5.2
+.subckt e3_syn vdd vss vreset abus vbn_prb grp_en en_a en_b rsel sub sta stb vbp_syn
+XMFA vdd na pa vss nfet_03v3 W=4u L=2u
+XMEA pa en_a sa vss nfet_03v3 W=1u L=0.28u
+XMBA sa vbn_prb vss vss nfet_03v3 W=2u L=2u
+XMBB sb vbn_prb vss vss nfet_03v3 W=2u L=2u
+XMEB pb en_b sb vss nfet_03v3 W=1u L=0.28u
+XMFB vdd nb pb vss nfet_03v3 W=4u L=2u
+XSCA pa en_a mca vss nfet_03v3 W=1u L=0.28u
+XSWA mca rsel ma vss nfet_03v3 W=1u L=0.28u
+XSBA ma sub abus vss nfet_03v3 W=1u L=0.28u
+XSBB mb sub abus vss nfet_03v3 W=1u L=0.28u
+XSWB mcb rsel mb vss nfet_03v3 W=1u L=0.28u
+XSCB pb en_b mcb vss nfet_03v3 W=1u L=0.28u
+XXNAa daA sta na vss nfet_03v3 W=0.5u L=0.28u
+XXNAb dbA stb na vss nfet_03v3 W=0.5u L=0.28u
+XSA vreset gb na vss nfet_03v3 W=1u L=0.5u
+XSB vreset gb nb vss nfet_03v3 W=1u L=0.5u
+XXNBa daB sta nb vss nfet_03v3 W=0.5u L=0.28u
+XXNBb dbB stb nb vss nfet_03v3 W=0.5u L=0.28u
+XNI gb grp_en vss vss nfet_03v3 W=1u L=0.28u
+XXQAa vss sta daA vdd pfet_03v3 W=1u L=0.28u
+XXQAb vss stb dbA vdd pfet_03v3 W=1u L=0.28u
+XPI gb grp_en vdd vdd pfet_03v3 W=1u L=0.28u
+XPHA hA gb vdd vdd pfet_03v3 W=1u L=2u
+XPHB hB gb vdd vdd pfet_03v3 W=1u L=2u
+XXQBa vss sta daB vdd pfet_03v3 W=1u L=0.28u
+XXQBb vss stb dbB vdd pfet_03v3 W=1u L=0.28u
+XWAa daA vbp_syn hA vdd pfet_03v3 W=2u L=6.4u
+XWAb1 dbA vbp_syn hA vdd pfet_03v3 W=2u L=6.4u
+XWAb2 dbA vbp_syn hA vdd pfet_03v3 W=2u L=6.4u
+XWAb3 dbA vbp_syn hA vdd pfet_03v3 W=2u L=6.4u
+XWBa daB vbp_syn hB vdd pfet_03v3 W=2u L=6.4u
+XWBb dbB vbp_syn hB vdd pfet_03v3 W=6u L=6.4u
+XCA vss na vss vss nfet_03v3 W=9.51u L=5.2u
+XCB vss nb vss vss nfet_03v3 W=9.51u L=5.2u
+.ends e3_syn

@@ -353,5 +353,12 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - This is a bias and window issue, not a weight issue. vbp_syn needs per-corner trim, which is a doc item for info.md.
   - **grp_en=0:** leakage ≤ 1.5 pA, node deviation ≤ 14 mV (PEX vreset 1.5). PASS.
   - **MC 100 (0 failed):** ratio sd/mean 10.5% (na) and 11.1% (nb); min 1.43 (outlier); Iratio sd 3.2/3.8%; absolute dV sd ~58%, as expected for subthreshold vbp.
-  - **VM-h:** ≤ 0.85 (job; the sub-agent's estimate from output timestamps) + 0.01 (the VM was resumed for the fetch, then stopped at 20:11:38Z).
-  - **Next:** fix PP.8b locally (a KLayout run is enough, no VM needed), then integrate into r2-int.
+  - **VM-h:** about 0.22. The job ran 18:14:00–18:16:33Z, then the VM self-stopped after 10 idle minutes; the 0.85 in the first note was wrong. Add 0.01 for the fetch resume (stopped at 20:11:38Z).
+- **e3c: PP.8b fix (MIL-467).** In e3gen.py the gap after XQA and after PH goes from 0.40 to 0.46 µm. That widens the two Pplus holes from 0.82 × 0.41 to 0.88 × 0.41, i.e. 0.361 µm² (≥ 0.35).
+  - Device W/L and nets are unchanged, and the cell is still 47.65 × 12.0.
+  - Local EDA is still down (no Docker; /tmp was wiped, so I re-extracted host KLayout from tt-m3/.renderdeps to /tmp/b1r_kl). The generator ran locally (rc 0), and the build ran as VM job `r2e3/e3c` (build.sh only).
+  - **Result:** Magic DRC 0, **KLayout DRC 0**, LVS "Circuits match uniquely". Deliverables are in layout/e3/final.
+  - VM-h about 0.22 (resumed 23:37:32Z, job about 3 min, then self-stop).
+  - The benches were not rerun: the only change is a 0.06 µm x-shift, and the e3b PEX numbers stand. The full PEX re-check is in the gate run.
+  - **E3 cell gate: PASS** (DRC/LVS clean; weight ratio 2.89–3.10 at PEX tt in the linear window; grp_en=0 reset rule OK).
+  - **Next:** integrate into r2-int: placement in the strip x 5.0–53.4 / y 303.4–317.8, a cfg_out[3] route with an antenna diode, and probe 0x58/0x59.

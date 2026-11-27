@@ -138,7 +138,7 @@ x = XM
 XQA = chain("p", ["daA", ("XQAa", 1.0, 0.28, "sta"), "vss", ("XQAb", 1.0, 0.28, "stb"), "dbA"], x, YS0, contacted={0, 1, 2})
 dev("XQAa", "vss", "sta", "daA", "vdd", "pfet_03v3", 1, 0.28)
 dev("XQAb", "vss", "stb", "dbA", "vdd", "pfet_03v3", 1, 0.28)
-x = snap(x + XQA["width"] + 0.40)
+x = snap(x + XQA["width"] + 0.46)        # 0.46: Pplus hole to the ring >= 0.35 um2 (PP.8b)
 PIc = chain("p", ["vdd", ("PI", 1.0, 0.28, "grp_en"), "gb"], x, YS0, contacted={0, 1})
 dev("PI", "gb", "grp_en", "vdd", "vdd", "pfet_03v3", 1, 0.28)
 x = snap(x + PIc["width"] + 0.34)
@@ -150,7 +150,7 @@ x = snap(x + 0.42 + 0.34)
 PH = chain("p", ["hA", ("PHA", 1.0, 2.0, "gb"), "vdd", ("PHB", 1.0, 2.0, "gb"), "hB"], x, YS0, contacted={0, 1, 2})
 dev("PHA", "hA", "gb", "vdd", "vdd", "pfet_03v3", 1, 2)
 dev("PHB", "hB", "gb", "vdd", "vdd", "pfet_03v3", 1, 2)
-x = snap(x + PH["width"] + 0.40)
+x = snap(x + PH["width"] + 0.46)         # as above
 
 # mirror: vertical columns (W along x, L along y), drain row at the bottom, source row at the top
 COLS = [("WAa", WU, "daA", "hA"), ("WAb1", WU, "dbA", "hA"), ("WAb2", WU, "dbA", "hA"), ("WAb3", WU, "dbA", "hA"),
