@@ -22,8 +22,7 @@ grep -qiE 'fail|error' <(tail -25 $L/precheck.log) && ok=0
 step "gate ok=$ok"
 if [ "$ok" = 1 ] && [ "$1" != nopex ]; then
     mkdir -p /home/user/top3_pex && rm -f /home/user/pex_ext.ok
-    sed "s|^H=/home/user$|H=/home/user/top3_pex|" sim/tb/top/vm_pex.sh > sim/tb/top/vm_pex_top3.sh
-    FORCE=1 JOBS=${JOBS:-3} bash sim/tb/top/vm_pex_top3.sh > $L/pex_vm.log 2>&1
+    PEX_H=/home/user/top3_pex FORCE=1 JOBS=${JOBS:-3} bash sim/tb/top/vm_pex.sh > $L/pex_vm.log 2>&1
     step "pex rc=$?"
     cp /home/user/top3_pex/pex_*.log $L/ 2>/dev/null
     cat /home/user/top3_pex/pex_steps.log >> $L/steps.log 2>/dev/null
