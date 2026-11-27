@@ -259,3 +259,17 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - the macro already has spk_in[22/23] and probe_en_c4 pins (no re-harden);
   - estimate 2–3 layout sessions + 1–2 VM boots; risk medium-high.
   - **Recommendation: no option D for Dec 7** (keep 22–23 tied as documented reserve).
+
+## Item 1 (MIL-103 01:15Z plan), 2026-11-27 ~01:50Z: AdEx vm ← HOLD kick (+2.30 / −2.66 mV) = REAL routing change
+- Sonnet sub-agent (local netlists; notes /home/basil/tt-m3/kickdiag/notes/adex_hold.txt) + my check of routes.json:
+  - **93e4490** (E1 into by2, the cfg_out[0/1/2/67] reroute) put **rt_out[2] (HOLD) on Metal4
+    [138.35, 9.84, 138.63, 235.1]**, crossing AdEx (129.08–167.08 × 140–213) over its west half (vm / vw / vbp_w).
+  - The same commit put cfg_out[0] on Metal4 at x 155.6 (y 124.8–217) and an rt_out[3] (MRESET) jog at
+    x 165.4–167.1 over AdEx. In 19e5af2 none of them crossed AdEx, and the AdEx/HOLD kick matched M3 (+7.69 / −8.99 mV).
+  - Coupling HOLD ↔ ax.vm: 286 aF (M3 / 19e5af2) → 457 aF (988c8d8 / c91f33e); ΔC 171 aF × 3.3 V / ~270 fF ≈ 2.1 mV,
+    matching the observed miss. vbp_w +228 aF. Not an extresist artifact: lumped caps, C-only = RC.
+  - The 988c8d8 "AdEx vm ← cfg_out[0] 4.76 mV" and MRESET +1.4 mV come from the same reroute.
+- **Proposed fix (folds into item 3's branch and boot):** a router keep-out over AdEx on Metal4 (x 129.0–167.1,
+  y 140–213) for the run-time / digital nets rt_out[0..3] and cfg_out[0..2], then reroute rt_out[2], rt_out[3] and
+  cfg_out[0] around it (e.g. the east band at x ≥ 167.5 as in 19e5af2, or the CH_NAE lines x 120.5–128.5).
+  Expected: AdEx/HOLD back to ≈ M3, and the cfg_out[0] → AdEx kick reduced too. Verify in the item 3 boot (top + kick).
