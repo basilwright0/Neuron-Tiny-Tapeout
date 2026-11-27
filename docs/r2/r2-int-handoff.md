@@ -304,3 +304,20 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   `r2_compare.py /home/basil/tt-m3/top3/sim/results/top sim/results/top sim/results/top/r2_vs_m3_shield.txt`.
 - **New worktree needs** untracked `layout/top/work/geo` and `.tools` copied from r2int, or the first vmrun sync fails
   (tar error).
+
+## Item 3 result, 2026-11-27 ~04:10Z: r2-shield merged into r2-int (c5adf74)
+- **r2shield/top2 (5c29bb0):** LVS unique, KLayout 0, antenna 0, magic 0, precheck rc 0, gate ok.
+- **PEX (kick, coupling, probe_step, bias_dc, gndchk):**
+  - AdEx vm ← HOLD +7.66 / −8.90 mV (M3 +7.71 / −8.91; c91f33e +10.01 / −11.57);
+  - none of 270 kick edges worse than c91f33e by > 0.5 mV;
+  - coupling AdEx vm 26.40 → 23.99 mV and vw 10.96 → 9.46 mV, others unchanged;
+  - bias DC +0.004 mV; probe 0.10 mV / 1754 ns.
+- **D1 vs ← HOLD** is +16.14 / −24.32 mV (identical to c91f33e). top1's 10.99 mV was the same extresist net-selection
+  flip (it moved with the cfg_out[2] route), so the #43 re-baseline stands.
+- **MRESET edges:** +0.6–0.9 mV vs M3 on 11 victims. MRESET resets every membrane by design (excluded).
+- **Shields:** cfg_out[41] dropped (route identical to M3, config-time); D1 HOLD shield not done (the kick equals the
+  fallback, and it's an extraction effect).
+- **Still to run on c5adf74 at the Dec 1–2 gate:** the full PEX batch (s10k, bias_spk, bay, e1, icur, bias_step…),
+  plus cocotb; JOBS=3.
+- **r2_compare follow-ups:** exclude MRESET edges in the kick verdict, and apply the ≤ 3 mV kick tolerance (#44), so
+  the gate report reads PASS/FAIL directly.
