@@ -398,3 +398,8 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - **Status at 03:40Z:** 9 new benches rc 0 (s10k ×3, bias_dc_S1000 ×2, bias_spk_off_nobay, r2blk e1trip / e2A / e2B). bay_fire, bias_spk_off and bias_spk_on are still running.
   - **r2blk_e1short_typ27: rc 1.** It timed out at R2BLK_TIMEOUT 6300 s (105 min). The earlier run took 91 min at lower contention, so this is a timeout, not a functional fail.
   - **Rerun (Chief #59, only that bench, no extra boot):** `r2e3/e1r` was queued at 03:43:30Z. It waits for out/r2e3_gate1_done, then runs e1short alone (TOP_THREADS 2, timeout 11400 s), into sim/results/top/vm_e3e1.
+- **Chief #60: e1r moved to its own VM.**
+  - `boat fork bx_s2uyuv76` → **bx_xqpnvtg3** (04:08:35Z, ready in 12 s, ttl 9000 s). The fork had no EDA image, so I pulled hpretl/iic-osic-tools:2026.08 (ID 3c371645b19c, matches the original; 3 min).
+  - e1short started 04:12:40Z (TOP_THREADS 4, timeout 11400 s) via /home/user/e1r_fork.sh. At the end it writes /home/user/e1r_out.tgz and /home/user/e1r_done, then sets ttl 900 s, so the VM self-stops.
+  - Fetch: `boat ssh bx_xqpnvtg3 -- cat /home/user/e1r_out.tgz > ...`.
+  - The queued e1r on bx_s2uyuv76 was cancelled (jobwrap killed, q/r2e3_e1r removed). tt-m3-queue now self-stops 10 min after gate1.
