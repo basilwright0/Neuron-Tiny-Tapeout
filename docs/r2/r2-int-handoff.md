@@ -362,3 +362,24 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - The benches were not rerun: the only change is a 0.06 µm x-shift, and the e3b PEX numbers stand. The full PEX re-check is in the gate run.
   - **E3 cell gate: PASS** (DRC/LVS clean; weight ratio 2.89–3.10 at PEX tt in the linear window; grp_en=0 reset rule OK).
   - **Next:** integrate into r2-int: placement in the strip x 5.0–53.4 / y 303.4–317.8, a cfg_out[3] route with an antenna diode, and probe 0x58/0x59.
+
+## E3 integration, 2026-11-28 ~00:15Z (MIL-467): r2-e3 801477d (r2-int 702b523 merged in, 978b928)
+- **Placement:** e3_syn at (5.7, 303.9), top 315.9. x 5.7 rather than 5.5: the vss stub at 5.5 was inside the spacing of the probe_sub Metal2 join at x 4.3.
+- **Nets:**
+  - vreset, abus, vbn_prb, vbp_syn;
+  - en_a / en_b = en_c0 / en_c1, rsel = probe_rsel[3], sub = probe_sub (PROBE 0x58 / 0x59);
+  - sta / stb = rt_out[0] / [1];
+  - grp_en = cfg_out[3] (GRP_EN[3], was spare; regmap updated).
+- **Antenna diode `gant2`** on cfg_out[3]: tie row, east of tap0 (x 85.68). It is a routed terminal (landing pad on its I pin). West of gant0 is blocked by the probe_sub diode Metal2 line.
+- **Routes:**
+  - `extend` order: VGND VDPWR rt_out[0] en_c1 en_c0 rt_out[1] probe_rsel[3] probe_sub vreset abus vbn_prb vbp_syn (ROUTE_MARGIN=120). Routing power first is needed.
+  - rt_out[0] used RT0_NA_KO=0.5 (env, default 3.0). The new branch is Metal2 x 3.0, y 141–284 along the array's west edge (4.75 µm off it), then Metal3 y 295.6 over the array top to the sta pin.
+  - cfg_out[3] `reroute` ROUTE_MARGIN=250: Metal2 124 / Metal3 169 / Metal4 374 µm, 20 vias.
+- **Local checks:** floorplan OK, prep OK, route.py check 0 illegal, conncheck 207 tasks 0 disconnected, assemble.py / plot.py OK. netlist.py needs PDK_ROOT, so it runs on the VM.
+- **Pre-gate boot `r2e3/pg1` (submitted 00:17:18Z, VM resumed 00:16:41Z):**
+  - vm_r2.sh (top / LVS / KLayout + antenna / magic / precheck);
+  - cocotb (test/r2_e3_tests.log);
+  - PEX at JOBS=3 for kick / coupling / probe_step / bias_dc_S100 / gndchk, into sim/results/top/vm_e3pg.
+  - Fetch: `cd r2e3 && vmwait.sh r2e3 pg1 5`.
+  - Compare: `python3 sim/tb/top/r2_compare.py /home/basil/tt-m3/top3/sim/results/top sim/results/top/vm_e3pg sim/results/top/r2_vs_m3_e3pg.txt` (check the arg form against item 3).
+  - Watch the rt_out[0] / [1] edges, and S column 0 / 1 victims.
