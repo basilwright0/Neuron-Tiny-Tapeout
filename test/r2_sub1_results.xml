@@ -1,0 +1,21 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1795853419" />
+    <testcase name="test_reset_defaults" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="54" time="0.008848905563354492" sim_time_ns="2900.0" ratio_time="327724.1438771386" />
+    <testcase name="test_cfg_write_all" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="78" time="0.1386427879333496" sim_time_ns="98680.0" ratio_time="711757.1816821722" />
+    <testcase name="test_load_glitch_free" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="114" time="0.04975461959838867" sim_time_ns="27900.0" ratio_time="560751.9507777235" />
+    <testcase name="test_latch_reset_and_no_clk" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="157" time="0.022335290908813477" sim_time_ns="18900.0" ratio_time="846194.4855413585" />
+    <testcase name="test_config_echo" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="185" time="0.004615306854248047" sim_time_ns="3400.0" ratio_time="736679.0784171919" />
+    <testcase name="test_spike_pins_and_out_mux" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="197" time="0.016185998916625977" sim_time_ns="8552.0" ratio_time="528357.875473199" />
+    <testcase name="test_out_reg_and_unused" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="238" time="1.6607820987701416" sim_time_ns="454396.00000000006" ratio_time="273603.62345938926" />
+    <testcase name="test_probe_decode" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="263" time="0.2670466899871826" sim_time_ns="162900.0" ratio_time="610005.6885476419" />
+    <testcase name="test_bias_decode" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="321" time="1.3163611888885498" sim_time_ns="831399.9999999999" ratio_time="631589.5720854397" />
+    <testcase name="test_rt_passthrough" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="366" time="0.02134394645690918" sim_time_ns="10696.0" ratio_time="501125.69489404955" />
+    <testcase name="test_lif_enable_and_tick" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="389" time="0.014169692993164062" sim_time_ns="29500.0" ratio_time="2081908.1976039843" />
+    <testcase name="test_lif_event_sources" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="426" time="0.0803675651550293" sim_time_ns="210400.0" ratio_time="2617971.5609666375" />
+    <testcase name="test_r2_grp_en_and_addresses" classname="test_ctrl" file="/work/test/test_ctrl.py" lineno="471" time="0.07565736770629883" sim_time_ns="47324.0" ratio_time="625504.1833296568" />
+    <testcase name="test_lif_trajectory_dc" classname="test_lif" file="/work/test/test_lif.py" lineno="119" time="0.7673203945159912" sim_time_ns="1931099.9999999998" ratio_time="2516680.1427428434" />
+    <testcase name="test_lif_trajectory_pulses" classname="test_lif" file="/work/test/test_lif.py" lineno="139" time="0.19716620445251465" sim_time_ns="618600.0000000005" ratio_time="3137454.523292726" />
+    <testcase name="test_lif_rate_vs_input" classname="test_lif" file="/work/test/test_lif.py" lineno="173" time="8.626622676849365" sim_time_ns="22475900.0" ratio_time="2605411.2764566513" />
+  </testsuite>
+</testsuites>

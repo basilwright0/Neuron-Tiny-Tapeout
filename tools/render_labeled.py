@@ -126,7 +126,10 @@ def build_model(ly, fp):
 
     # ---- neuron array: slot instances -> slot map position -> name (checked against the map's cell)
     slot_cells = set(fp.SLOT_CELL.values())
-    slots = [(n, b) for n, b, _ in inst if n in slot_cells]
+    # R2: the bay column reuses slot cells outside the array; keep only instances inside the array block
+    ax0, ay0, ax1, ay1 = fp.BLOCKS["NA neuron array 4x4"]
+    slots = [(n, b) for n, b, _ in inst if n in slot_cells
+             and ax0 - 1 <= b.left and b.right <= ax1 + 1 and ay0 - 1 <= b.bottom and b.top <= ay1 + 1]
     na = union(b for _, b in slots)
     row_y = [na.bottom]
     for h in fp.ROW_H:
@@ -193,6 +196,18 @@ def build_model(ly, fp):
     tie = union(b for b in std if b.bottom > 300)
     m["sections"].append(dict(key="GL", title="glue logic", box=glue, at="right"))
     m["sections"].append(dict(key="TIE", title="uio_oe tie row", box=tie, at="below"))
+    # ---- R2 additions (GDS instance where the cell is unique, else the floorplan box)
+    def r2box(cell, block):
+        if len(by_cell.get(cell, [])) == 1:
+            return one(cell)
+        return db.DBox(*fp.BLOCKS[block]) if block in fp.BLOCKS else None
+    for key, cell, block, title in (
+            ("BY", None, "BY bay column (R2)", "BY  bay neurons S4 / AH50B / E1 (R2)"),
+            ("E2", "e2_leak", "E2 leakage cells (R2)", "E2  leakage cells (R2, GRP_EN[0/2])"),
+            ("E3", "e3_syn", "E3 synaptic weight cell (R2)", "E3  synaptic-weight cell (R2, GRP_EN[3])")):
+        b = r2box(cell, block) if cell else (db.DBox(*fp.BLOCKS[block]) if block in fp.BLOCKS else None)
+        if b is not None:
+            m["sections"].append(dict(key=key, title=title, box=b, at="above"))
 
     # ---- routing channels (floorplan reservations, not cells)
     for k, b in fp.CHANNELS.items():

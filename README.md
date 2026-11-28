@@ -13,7 +13,10 @@ per-neuron configurability is worth in silicon area and accuracy.
 
 *Full-chip layout (device and routing layers). A labelled version is in
 [`docs/images/layout_blocks.png`](docs/images/layout_blocks.png); a high-resolution render is in
-[`docs/images/layout_hd.png`](docs/images/layout_hd.png).*
+[`docs/images/layout_hd.png`](docs/images/layout_hd.png). Renders with every section, neuron slot and R2 block
+(bay, E1, E2, E3) labelled are in [`docs/images/renders/`](docs/images/renders/)
+([`chip_labeled.svg`](docs/images/renders/chip_labeled.svg), [`array_labeled.svg`](docs/images/renders/array_labeled.svg),
+[`b1_labeled.svg`](docs/images/renders/b1_labeled.svg)).*
 
 ## Highlights
 
