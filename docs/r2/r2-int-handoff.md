@@ -394,3 +394,7 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
     - Tried the ADEX_W keep-out: the reroute (784 µm) crossed D1 for 104 µm instead, which is worse, so it was reverted.
     - Bias lines: vbp_syn ← rt_out[0] 1.7 → 4.7 fF and vbn_prb ← cfg_out[3] 2.7 fF. Their effect on the membranes is inside the kick bench (no deltas).
   - **VM-h:** 0.63 (resume 00:16:41Z to self-stop 00:54:30Z), plus 0.01 for the fetch resume (the VM was stopped, so vmwait could not reach it).
+- **Gate boot `r2e3/gate1` (submitted 01:18:01Z; VM resumed 01:17:50Z):** full PEX minus the 6 pg1 benches, JOBS=3. Results go to sim/results/top/vm_e3gate.
+  - **Status at 03:40Z:** 9 new benches rc 0 (s10k ×3, bias_dc_S1000 ×2, bias_spk_off_nobay, r2blk e1trip / e2A / e2B). bay_fire, bias_spk_off and bias_spk_on are still running.
+  - **r2blk_e1short_typ27: rc 1.** It timed out at R2BLK_TIMEOUT 6300 s (105 min). The earlier run took 91 min at lower contention, so this is a timeout, not a functional fail.
+  - **Rerun (Chief #59, only that bench, no extra boot):** `r2e3/e1r` was queued at 03:43:30Z. It waits for out/r2e3_gate1_done, then runs e1short alone (TOP_THREADS 2, timeout 11400 s), into sim/results/top/vm_e3e1.
