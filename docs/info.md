@@ -76,7 +76,7 @@ The full map, timing and bit packing are in [`docs/regmap.md`](regmap.md).
 |---|---|---|
 | 0x00–0x04 | IDAC | Eight 5-bit DAC codes (leak, refractory, synapse, D1 axial, AdEx adaptation, EL, V_reset, CMP threshold), packed as a 40-bit word, LSB first |
 | 0x05 | VDAC | 6-bit threshold reference `vth_ref` |
-| 0x06 | ANA | GRP_EN [3:0] (bit 0 E2 leakage reset, bit 1 E1 bias enable, bit 2 E2 node-B mid clamp, bit 3 spare), D1 plateau / chain / stimulus-B steering, BIAS_EN |
+| 0x06 | ANA | GRP_EN [3:0] (bit 0 E2 leakage reset, bit 1 E1 bias enable, bit 2 E2 node-B mid clamp, bit 3 E3 synaptic-weight enable), D1 plateau / chain / stimulus-B steering, BIAS_EN |
 | 0x07 | PROBE | SEL[3:0] and SEL[4] = bit 7 (5-bit address; see the note above), SUB (membrane / secondary node / REF; the compact slots S, F, AH50 and AH400 have no secondary-node tap; SUB = 1 at the AH50 / AH400 addresses reads E2), PROBE_EN |
 | 0x08 | MODE | `ua[0]` mode, OUT_MUX, IB_X2 (readout bias ×2), RT_EN (enables for the `ui[6:3]` pass-throughs) |
 | 0x09–0x0E | LIF | Digital LIF: enable and source, leak shift and refractory, EL, Vth, Vreset, weight |
@@ -122,7 +122,18 @@ PEX (docs/r2/e2-leak.md): with `vreset` held, both nodes droop at the junction-l
 ff/85 −9 mV/s). Stepping `vreset` to 0 V (R-DAC code 0) after release makes the switch leakage visible: node B with
 the clamp off droops ~20–25 % slower than A, and with the clamp on it matches A.
 
-GRP_EN resets to 0: E1 off, E2 nodes floating, E2 clamp off. GRP_EN[3] is latched but not connected.
+**E3** is a geometry-set synaptic-weight cell: two ~200 fF nodes charged by copies of the array's synapse leg
+(`vbp_syn` bias, gated by the stimulus lines `sta` / `stb` = `rt_out[0]` / `[1]`). The weight is set by the layout:
+node A has 1 unit leg on sta and 3 unit legs on stb, node B 1 unit on sta and one 3× (6 / 6.4 µm) leg on stb, so a stb
+pulse moves each node 3× as far as an sta pulse of the same length. GRP_EN[3] = 1 runs the cell; 0 turns the legs off
+and holds both nodes at `vreset`. Probe (PROBE_SUB = 1 of array row 3, the F2 / F3 slots, which have no SUB = 1 tap):
+node A = SEL 8, SUB 1 (PROBE = 0x58); node B = SEL 9, SUB 1 (PROBE = 0x59). PEX tt/27 (`vreset` 1.3 V, `vbp_syn`
+2.58 V, 10 µs pulses): sta 223 / 215 mV, stb 646 / 666 mV, ratio 2.89 / 3.10 (A / B); the leg-current ratio is 3.00–3.10
+at every corner, Monte Carlo ratio σ ≈ 11 %. The dV ratio holds only while the node stays in its linear range: trim
+`vbp_syn` (or the pulse length) per die and temperature so the stb swing stays well below the rail (at ff/85 a 10 µs
+pulse saturates the node; at ss/0 use a lower `vbp_syn` code or longer pulses).
+
+GRP_EN resets to 0: E1 off, E2 nodes floating, E2 clamp off, E3 off (nodes at `vreset`).
 
 ## How to test
 
@@ -162,6 +173,10 @@ oscilloscope or ADC reads `ua[1]`.
      sta ~20 µs and fit the decay; t_ref: the flat reset segment of the sawtooth; gap: the sawtooth peak minus EL
      (read at S = 10, where the probe lag is small). Repeat at S = 10 / 1000 and a second temperature, and compare
      with S4 (SEL 16 / `uo[0]`) and S1–S3 on the same die.
+   - **E3 weight ratio:** set GRP_EN[3] = 1 with RT_EN on for stim A / B, select node A (PROBE = 0x58), pulse stim A
+     (`ui[3]`) for a fixed time and read the step on `ua[1]`; reset by clearing and setting GRP_EN[3] (nodes return to
+     `vreset`), then pulse stim B (`ui[4]`) for the same time. The ratio of the two steps is the geometric weight
+     (design 3). Repeat on node B (0x59). Adjust the pulse length or `vbp_syn` so the larger step stays < ~0.7 V.
 8. **Run the digital LIF:** write the LIF parameters with LIF_EN = 0, then set LIF_EN = 1. Drive `clk` and tick `ui[7]`,
    at least 48 clock cycles apart.
 
@@ -175,7 +190,7 @@ oscilloscope or ADC reads `ua[1]`.
   two edges nearly cancel). Switch the D1 probe while D1 is at rest, not mid-measurement.
 - **Re-configure, then wait at least 1 τ (membrane time constant) before measuring.** Writing the configuration
   kicks two neurons through their configuration lines: D1 `d1` from cfg_out[41] (≈ 6.4 mV) and AdEx `vm` from
-  cfg_out[0] / GRP_EN[0] (≈ 4.8 mV). The cfg_out lines are static latches, so the kicks happen only when the
+  cfg_out[0] / GRP_EN[0] (≈ 4.8 mV), and AdEx `vm` / `vw` from cfg_out[3] / GRP_EN[3] (≈ 3.4 / 2.9 mV). The cfg_out lines are static latches, so the kicks happen only when the
   configuration is written, never during a measurement with the configuration held (accepted, 2026-11-26).
 - **After toggling HOLD (rt_out[2]), wait at least 1 τ before reading D1.** HOLD kicks D1 `vs` by ≈ +16 mV (on) /
   −24 mV (off) through the in-cell coupling of `d1/hold` to D1's chain-select node (post-layout, typical 27 °C).
