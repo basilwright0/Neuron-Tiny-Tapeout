@@ -435,3 +435,12 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - tools/render_labeled.py (docs/images/renders, rev "submit-r2 2c019f6").
   - Fetch: gds lef mag vmr2 test logs docs/images.
 - **Then:** commit the fresh gds/lef/mag/images on submit-r2, and tag `r2-submit-1` locally.
+- **sub1 result (job 08:02:43–08:10:51Z, rc 0):**
+  - **Checks:** LVS "Circuits match uniquely", KLayout main 0, antenna 0, Magic 0, TT precheck rc 0, gate ok; cocotb 16 / 16.
+  - **VM-h:** 0.32 (resume 08:01:54Z → self-stop 08:20:56Z) + 0.01 fetch.
+  - **Renders:** render_layout.py OK on the VM. render_labeled.py failed on the VM: bay slot cells widened the array bbox ("slot F3 at r3c1: GDS cell slot_ah_h != map"). Fixed the tool to keep only slots inside the NA block and to label BY / E2 / E3, then re-rendered locally from the fresh GDS (host klayout from .renderdeps, no VM). Slot map OK.
+- **`submit-r2` @ a6c6b38, tag `r2-submit-1` (local):**
+  - fresh gds (sha256 fbe79aeb5c2a…) / lef / mag;
+  - docs/images layout*.png and renders;
+  - README links to the labelled renders.
+  - main (e1a2009) is an ancestor, so this is a fast-forward. Nothing is pushed. Main, the push and the submission are the user's.
