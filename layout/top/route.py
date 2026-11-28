@@ -189,7 +189,7 @@ def build():
                 if k < 0 or is_slot or net in SKIP or (inst, pn) in C.GEOM_TIES:
                     continue
                 if pn in ("vdd", "vss", "VDD", "VSS") and not (inst in ("d1", "ax", "tau0", "tau2") and pn == "vdd") \
-                        and inst != "e2":                         # R2: E2's side-edge vdd / vss pins are routed
+                        and inst not in ("e2", "e3"):             # R2: E2 / E3 side-edge vdd / vss pins are routed
                     continue
                 st = edge_stub(p, gg["bbox"] if gg["bbox"][0] > -0.1 else [0, 0, gg["bbox"][2], gg["bbox"][3]], x, y,
                                extra=0.5 if gg.get("placeholder") else 0.0)
@@ -294,7 +294,9 @@ BIAS_OK = set(C.COLUMN_NETS) | {"aux0", "aux1", "aux2", "aux3", "vbn_ax", "vbp_w
 # per-net keep-outs: net -> [(block, layers, margin um)].  Stim A: M2 PEX, its Metal2 run 1.1 um off D1's west edge
 # added ~206 aF on D1 vs (+ d1 128, d2 94); Metal2/3 stay 3 um off D1 (its descent over D1 is Metal4) and off the
 # array (its west join line is fixed geometry, geom.JOIN_OUTER).
-NET_KO = {"rt_out[0]": [("D1 dendrite", (0, 1), 3.0), ("NA neuron array 4x4", (0, 1), 3.0)]}
+# R2 E3: the rt_out[0] branch to E3's sta pin was routed with RT0_NA_KO=0.5 (`extend`): it runs 0.4 um over the
+# array's top edge (Metal3 y 295.6, x 6.5-18.4); with 3.0 there is no path into the strip above columns 0-1.
+NET_KO = {"rt_out[0]": [("D1 dendrite", (0, 1), 3.0), ("NA neuron array 4x4", (0, 1), float(os.environ.get("RT0_NA_KO", 3.0)))]}
 # R2 (MIL-362 item 1/3): 93e4490 put HOLD (rt_out[2]) and GRP_EN[0]/[2] on Metal4 over AdEx's west half (vm / vw /
 # vbp_w): HOLD -> ax.vm 286 -> 457 aF (+2.3 mV kick). Keep them out of AdEx west of the macro feed lines (x < 156.1).
 ADEX_W = (128.0, 139.0, 156.1, 214.0)

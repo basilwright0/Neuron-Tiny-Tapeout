@@ -391,6 +391,9 @@ def stdcells(F, VDDB, VSSB):
         F.p("via1", (X - 0.13, yl - 0.13, X + 0.13, yl + 0.13), "probe_sub")
     F.p("metal2", (xj - 0.14, yl - 0.2, max(xs) + 0.2, yl + 0.2), "probe_sub")
     F.p("metal2", (xj - 0.14, yj - 0.2, xj + 0.14, yl + 0.2), "probe_sub")
+    # R2 E3: cfg_out[3] antenna diode, a routed terminal (landing pad on its I pin)
+    _, x, _ = S["gant2"]
+    landing(F, sc, "antenna", x, ty, "I", "cfg_out[3]", (0.31, 1.76))
     # ---- glue row: rails, stacks to the macro strap-pair stripes, pin landing pads
     glue_y = {gy0 for gx0, gy0 in fp.GLUE_ROWS}
     for gx0, gy0 in fp.GLUE_ROWS:

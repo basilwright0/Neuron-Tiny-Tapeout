@@ -35,6 +35,8 @@ LIB = {
                         prefix="d1_", final=True, size=(70.0, 104.0)),
     "e2_leak":     dict(gds="layout/e2/final/e2_leak.gds", lvs="layout/e2/final/e2_leak_lvs.spice",
                         prefix="e2_", final=True),
+    "e3_syn":      dict(gds="layout/e3/final/e3_syn.gds", lvs="layout/e3/final/e3_syn_lvs.spice",
+                        prefix="e3_", final=True),
     "adex_a1":     dict(gds="layout/tier2/out/adex_a1.gds", lvs="layout/tier2/adex_a1_lvs.spice",
                         prefix="ax_", final=True, size=(38.0, 73.0)),
 }
@@ -78,6 +80,7 @@ def instances():
         x, y = fp.cell_box((r, c))[:2]
         I[f"s{r}{c}"] = (fp.slot_cell(n), x, y)
     I["e2"] = ("e2_leak", *fp.E2_XY)                 # R2 E2 leakage cells
+    I["e3"] = ("e3_syn", *fp.E3_XY)                  # R2 E3 synaptic-weight cell
     for k, n, cell, x, y, h in fp.bay_cells():        # R2 bay column (by0 at the bottom)
         I[f"by{k}"] = (cell, x, y)
     return I
@@ -142,6 +145,12 @@ def nets():
     add("probe_sub", "e2", "sub")
     for b, pn in ((0, "grp_en"), (2, "clamp_en")):
         add(f"cfg_out[{b}]", "e2", pn); add(f"cfg_out[{b}]", "ctrl", f"cfg_out[{b}]")
+    # ---- R2 E3 synaptic weight: GRP_EN[3] enable, stim A / B = rt_out[0] / [1]; taps on S0 / S1 PROBE_SUB = 1
+    for ln in ("vreset", "abus", "vbn_prb", "vbp_syn"):
+        add(ln, "e3", ln)
+    add("en_c0", "e3", "en_a"); add("en_c1", "e3", "en_b"); add("probe_rsel[3]", "e3", "rsel")
+    add("probe_sub", "e3", "sub"); add("rt_out[0]", "e3", "sta"); add("rt_out[1]", "e3", "stb")
+    add("cfg_out[3]", "e3", "grp_en"); add("cfg_out[3]", "ctrl", "cfg_out[3]"); add("cfg_out[3]", "gant2", "I")
     # ---- macro (W, S edges; N edge to TT pins)
     for c in range(4):
         add(f"en_c{c}", "ctrl", f"probe_en_c[{c}]")
@@ -265,6 +274,9 @@ def std_cells():
     x7 = S["tie7"][1]                                    # R2: 2 antenna diodes west of the first tieh
     for i in range(2):
         S[f"gant{i}"] = ("antenna", round(x7 - SC_W["antenna"] * (2 - i), 3), fp.TIE_ROW_Y)
+    # R2 E3: antenna diode on cfg_out[3] (GRP_EN[3], ~660 um from the macro's S edge to E3's one gate), east of tap0
+    # (west of gant0 the probe_sub diode line runs on Metal2 over the row)
+    S["gant2"] = ("antenna", round(S["tap0"][1] + SC_W["filltie"], 3), fp.TIE_ROW_Y)
     # glue rows (west -> east), M3: split over the two rows in H3 (fp.GLUE_ROWS); same cells and nets
     rows = [[("gtap0", "filltie"), ("g_or", "or4_1"), ("g_enb", "nor4_1"), ("g_in", "inv_1"),
              ("g_i0", "inv_1"), ("g_i1", "inv_1"), ("gtap1", "filltie")],

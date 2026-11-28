@@ -175,6 +175,11 @@ EST["BY bay column (R2)"] = SLOT_W * sum(c[5] for c in bay_cells())
 E2_XY = (72.0, 304.0)                 # pins (bottom edge) clear of cfg_out[42] at y 302.86
 BLOCKS["E2 leakage cells (R2)"] = (E2_XY[0], E2_XY[1], E2_XY[0] + 30.83, E2_XY[1] + 11.8)
 EST["E2 leakage cells (R2)"] = 30.83 * 11.8
+# R2 E3 geometry-set synaptic-weight cell (layout/e3, e3_syn 47.65 x 12.0, M1-M3 only: Metal4 stripes cross it) in
+# the free strip x 5.0-53.4 / y 303.4-317.8 above array columns 0-1 (taps on PROBE_SUB = 1 of en_c0 / en_c1)
+E3_XY = (5.7, 303.9)                  # top 315.9 < 316 (CH_TOP_A); pin stubs to 303.2; x 5.7: vss stub clear of probe_sub M2 at x 4.3
+BLOCKS["E3 synaptic weight cell (R2)"] = (E3_XY[0], E3_XY[1], E3_XY[0] + 47.65, E3_XY[1] + 12.0)
+EST["E3 synaptic weight cell (R2)"] = 47.65 * 12.0
 
 
 def row_y0(r):
@@ -365,7 +370,7 @@ def grid_col(grid, name):
 
 
 # --------------------------------------------------------------------- drawing
-COL = {"BY": "#f2c48d", "E2": "#a2d7e8", "C1": "#9aa7c7", "NA": "#f2c48d", "D1": "#b9dba0", "B1": "#e8a2a2", "R1": "#d77", "A1": "#c9b3e6",
+COL = {"BY": "#f2c48d", "E2": "#a2d7e8", "E3": "#c8e6a2", "C1": "#9aa7c7", "NA": "#f2c48d", "D1": "#b9dba0", "B1": "#e8a2a2", "R1": "#d77", "A1": "#c9b3e6",
        "TE": "#f7e08a"}
 
 
