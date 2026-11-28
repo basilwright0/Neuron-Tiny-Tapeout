@@ -1,0 +1,8 @@
+E1 (by2, ce1_fb) on the full-chip PEX, typical 27 C, S = 100, codes {'i0': 10, 'i1': 14, 'i2': 7, 'i3': 9, 'i4': 8, 'r0': 15, 'r1': 20, 'r2': 11, 'v0': 37}, glue full; probe SEL 18 (PROBE_SUB 0) throughout
+parked (GRP_EN[1] = 0, 20-60 us): vm 0.000 mV (max |vm| 0.000 mV), pad 1.1965 V
+GRP_EN[1] = 1 at 60 us: EL (vm, 100-120 us) 1.4106 V (block PEX 1.407 V), pad 1.6623 V; vm within 5 mV of EL after 11.2 us
+E1 input A   (120-520 us): 4 spikes, rate 10.17 kHz (block PEX 9.2 kHz, +10.5 %), first spike 75.6 us after sta (block 116 us), vm peak (Vth) 1.5822 V, Vth - EL 171.6 mV (block 78.6)
+   array S1-S3 in the same window (kHz): S1 17.90, S2 17.90, S3 17.89
+E1 input A+B (520-850 us): 6 spikes, rate 18.29 kHz (block PEX 17.0 kHz, +7.6 %), vm peak (Vth) 1.5806 V, Vth - EL 170.0 mV (block 78.6)
+   array S1-S3 in the same window (kHz): S1 27.09, S2 27.09, S3 27.08
+pad (SEL 18) follows vm: pad - vm at EL +251.7 mV

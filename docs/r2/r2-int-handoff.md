@@ -414,3 +414,13 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - **icur S10000 ibx2:** every block identical to c91f33e. **e3 draws 0 / 0 µA** (off at reset, full chip).
   - **gndchk:** b1 max 0.81 mV, r1 0.68 mV (M3 0.80 / 0.68).
   - **VM-h:** gate1 3.43 (resumed 01:17:50Z; job ended 04:33:44Z; self-stop 04:43:45Z) + 0.01 fetch (04:45–04:46Z).
+- **e1r: e1short rerun on fork bx_xqpnvtg3. PASS, rc 0, 04:12:40–07:18:59Z (186 min alone, ~1.6 cores; ngspice can't use more).**
+  - **Same as c91f33e:**
+    - EL 1.4106 V (identical), parked vm 0;
+    - A rate 10.17 vs 10.27 kHz (−1.0 %), A+B 18.29 vs 18.27 kHz (+0.1 %);
+    - Vth−EL 170 vs 171.5 mV;
+    - array S1–S3 within 1 %.
+  - E3 does not affect E1. Result: sim/results/top/vm_e3e1/r2blk_e1_typical_27_short.txt.
+  - **VM-h:** fork 3.43 (04:08:35 → self-stop ~07:34Z, after 900 s TTL post-job; the lifetime was extended at 05:50Z).
+- **Gate complete: 18 / 18 benches pass vs M3**, with the accepted waivers (D1 HOLD flip #43, cfg_out[3] → AdEx #59).
+  - **Total VM-h today:** pg1 0.64, gate1 3.44, fork 3.43.
