@@ -424,3 +424,14 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - **VM-h:** fork 3.43 (04:08:35 → self-stop ~07:34Z, after 900 s TTL post-job; the lifetime was extended at 05:50Z).
 - **Gate complete: 18 / 18 benches pass vs M3**, with the accepted waivers (D1 HOLD flip #43, cfg_out[3] → AdEx #59).
   - **Total VM-h today:** pg1 0.64, gate1 3.44, fork 3.43.
+
+## Submission prep (Chief, 08:00Z Nov 28): branch `submit-r2` off r2-int bf8cf33. Main is not touched and nothing is pushed.
+- **2c019f6:** merged local main (e1a2009, docs/images/renders) into submit-r2, so main → submit-r2 is a fast-forward for the user. tools/render_labeled.py: kept the R2 version (main's plus the free-area overlay).
+- **The committed gds/lef/mag were stale:** last updated at 988c8d8 (E1+E2), before AH50B / shields / E3. Boot sub1 regenerates them.
+- **Boot `r2e3/sub1`** (submitted 08:02:43Z, VM resumed 08:01:54Z):
+  - vm_r2.sh (build / LVS / DRC / antenna / precheck);
+  - cocotb (test/r2_sub1_tests.log);
+  - scripts/render_layout.py (docs/images/layout*.png);
+  - tools/render_labeled.py (docs/images/renders, rev "submit-r2 2c019f6").
+  - Fetch: gds lef mag vmr2 test logs docs/images.
+- **Then:** commit the fresh gds/lef/mag/images on submit-r2, and tag `r2-submit-1` locally.
