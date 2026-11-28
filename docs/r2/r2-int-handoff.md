@@ -403,3 +403,14 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - e1short started 04:12:40Z (TOP_THREADS 4, timeout 11400 s) via /home/user/e1r_fork.sh. At the end it writes /home/user/e1r_out.tgz and /home/user/e1r_done, then sets ttl 900 s, so the VM self-stops.
   - Fetch: `boat ssh bx_xqpnvtg3 -- cat /home/user/e1r_out.tgz > ...`.
   - The queued e1r on bx_s2uyuv76 was cancelled (jobwrap killed, q/r2e3_e1r removed). tt-m3-queue now self-stops 10 min after gate1.
+- **gate1 result (fetched 04:46Z): 17 / 18 benches rc 0.** The only failure is r2blk_e1short (timeout); its rerun is on the fork. Combined pg1 + gate1 results are in /tmp/e3all (not committed); compares are in sim/results/top/r2_vs_m3_e3gate.txt and r2_vs_c91_e3gate.txt.
+  - **vs M3 (top3):**
+    - bias DC +0.004 mV PASS; probe 0.10 mV / 1750 ns PASS;
+    - bias_spk off ≤ 1 % PASS; s10k worst −1.35 % (F2) PASS;
+    - kicks: only the accepted D1 HOLD flip (#43 / #59).
+  - **vs c91f33e (r2pex):**
+    - s10k AH400 +2.28 %. M3 0.445, c91 0.439, now 0.449 MHz, so the new value is closer to M3 (+0.90 %) and c91 was the outlier.
+    - "bias DC code 22 FAIL aux3 drv +148" is a compare artifact: the r2pex file is vth_cmp code 11 against our r2c22. Same-code rows are +0.000.
+  - **icur S10000 ibx2:** every block identical to c91f33e. **e3 draws 0 / 0 µA** (off at reset, full chip).
+  - **gndchk:** b1 max 0.81 mV, r1 0.68 mV (M3 0.80 / 0.68).
+  - **VM-h:** gate1 3.43 (resumed 01:17:50Z; job ended 04:33:44Z; self-stop 04:43:45Z) + 0.01 fetch (04:45–04:46Z).

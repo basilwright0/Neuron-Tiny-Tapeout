@@ -1,0 +1,227 @@
+R2 (/tmp/e3pg/sim/results/top) vs M3 (/home/basil/tt-m3/top3/sim/results/top) full-chip PEX regression
+
+[bias DC S=100, vth_cmp code 22 as the M3 run] bias_dc_S100.txt -> bias_dc_S100_r2c22.txt: driver value (mV) and far-end offsets (mV), old / new / delta
+  vbn_leak    drv      405.700    405.700   +0.000
+  vbn_leak    s30        0.000      0.000   +0.000
+  vbn_leak    s33        0.000      0.000   +0.000
+  vbn_leak    ax         0.000      0.000   +0.000
+  vbn_leak    d1         0.000      0.000   +0.000
+  vbn_leak    tau0       0.000      0.000   +0.000
+  vbn_leak    tau2       0.000      0.000   +0.000
+  vbn_ref     drv      495.800    495.800   +0.000
+  vbn_ref     s30        0.000      0.000   +0.000
+  vbn_ref     s33        0.000      0.000   +0.000
+  vbn_ref     ax         0.000      0.000   +0.000
+  vbn_ref     d1         0.000      0.000   +0.000
+  vbp_syn     drv     2670.100   2670.100   +0.000
+  vbp_syn     s30        0.000      0.000   +0.000
+  vbp_syn     s33        0.000      0.000   +0.000
+  vbp_syn     ax         0.000      0.000   +0.000
+  vbp_syn     d1         0.000      0.000   +0.000
+  vbp_st      drv     2409.100   2409.100   +0.000
+  vbp_st      s30        0.000      0.000   +0.000
+  vbp_st      s33        0.000      0.000   +0.000
+  vbp_st      ax         0.000      0.000   +0.000
+  vbp_st      d1         0.000      0.000   +0.000
+  vbn_prb     drv      757.600    757.600   +0.000
+  vbn_prb     s30        0.000      0.000   +0.000
+  vbn_prb     s33        0.000      0.000   +0.000
+  vbn_prb     ax         0.000      0.000   +0.000
+  vbn_prb     d1         0.000      0.000   +0.000
+  el          drv     1292.800   1292.800   +0.000
+  el          s30        0.149      0.153   +0.004
+  el          s33        0.149      0.153   +0.004
+  el          ax         0.149      0.153   +0.004
+  el          d1         0.149      0.153   +0.004
+  vreset      drv     1293.400   1293.400   +0.000
+  vreset      s30        0.000      0.000   +0.000
+  vreset      s33        0.000      0.000   +0.000
+  vreset      ax         0.000      0.000   +0.000
+  vreset      d1         0.000      0.000   +0.000
+  vreset_src  drv     1295.000   1295.000   +0.000
+  vsrc        drv      591.100    591.100   +0.000
+  vsrc        s30       -0.068     -0.068   +0.000
+  vsrc        s33       -0.067     -0.067   +0.000
+  vsrc        ax        -0.068     -0.068   +0.000
+  vsrc        d1        -0.065     -0.065   +0.000
+  vth_ref     drv      591.200    591.200   +0.000
+  aux0        drv      406.100    406.100   +0.000
+  aux0        tau0       0.000      0.000   +0.000
+  aux2        drv      406.100    406.100   +0.000
+  aux2        tau2       0.000      0.000   +0.000
+  aux3        drv     1526.100   1526.100   +0.000
+  vbn_ax      drv      429.500    429.500   +0.000
+  vbn_ax      d1         0.000      0.000   +0.000
+  vbp_w       drv     2576.800   2576.800   +0.000
+  vbp_w       ax         0.000      0.000   +0.000
+  new terminals (R2 only): vbp_st by2 +0.000, vbn_prb by2 +0.000
+=> bias DC S=100, vth_cmp code 22 as the M3 run: PASS (worst +0.004 mV, el s30)
+
+[bias DC S=100, bench default (vth_cmp code 11)] bias_dc_S100.txt -> bias_dc_S100.txt: driver value (mV) and far-end offsets (mV), old / new / delta
+  vbn_leak    drv      405.700    405.700   +0.000
+  vbn_leak    s30        0.000      0.000   +0.000
+  vbn_leak    s33        0.000      0.000   +0.000
+  vbn_leak    ax         0.000      0.000   +0.000
+  vbn_leak    d1         0.000      0.000   +0.000
+  vbn_leak    tau0       0.000      0.000   +0.000
+  vbn_leak    tau2       0.000      0.000   +0.000
+  vbn_ref     drv      495.800    495.800   +0.000
+  vbn_ref     s30        0.000      0.000   +0.000
+  vbn_ref     s33        0.000      0.000   +0.000
+  vbn_ref     ax         0.000      0.000   +0.000
+  vbn_ref     d1         0.000      0.000   +0.000
+  vbp_syn     drv     2670.100   2670.100   +0.000
+  vbp_syn     s30        0.000      0.000   +0.000
+  vbp_syn     s33        0.000      0.000   +0.000
+  vbp_syn     ax         0.000      0.000   +0.000
+  vbp_syn     d1         0.000      0.000   +0.000
+  vbp_st      drv     2409.100   2409.100   +0.000
+  vbp_st      s30        0.000      0.000   +0.000
+  vbp_st      s33        0.000      0.000   +0.000
+  vbp_st      ax         0.000      0.000   +0.000
+  vbp_st      d1         0.000      0.000   +0.000
+  vbn_prb     drv      757.600    757.600   +0.000
+  vbn_prb     s30        0.000      0.000   +0.000
+  vbn_prb     s33        0.000      0.000   +0.000
+  vbn_prb     ax         0.000      0.000   +0.000
+  vbn_prb     d1         0.000      0.000   +0.000
+  el          drv     1292.800   1292.800   +0.000
+  el          s30        0.149      0.153   +0.004
+  el          s33        0.149      0.153   +0.004
+  el          ax         0.149      0.153   +0.004
+  el          d1         0.149      0.153   +0.004
+  vreset      drv     1293.400   1293.400   +0.000
+  vreset      s30        0.000      0.000   +0.000
+  vreset      s33        0.000      0.000   +0.000
+  vreset      ax         0.000      0.000   +0.000
+  vreset      d1         0.000      0.000   +0.000
+  vreset_src  drv     1295.000   1295.000   +0.000
+  vsrc        drv      591.100    591.100   +0.000
+  vsrc        s30       -0.068     -0.068   +0.000
+  vsrc        s33       -0.067     -0.067   +0.000
+  vsrc        ax        -0.068     -0.068   +0.000
+  vsrc        d1        -0.065     -0.065   +0.000
+  vth_ref     drv      591.200    591.200   +0.000
+  aux0        drv      406.100    406.100   +0.000
+  aux0        tau0       0.000      0.000   +0.000
+  aux2        drv      406.100    406.100   +0.000
+  aux2        tau2       0.000      0.000   +0.000
+  aux3        drv     1526.100   1377.900 -148.200   (vth_cmp code differs: see the r2c22 run)
+  vbn_ax      drv      429.500    429.500   +0.000
+  vbn_ax      d1         0.000      0.000   +0.000
+  vbp_w       drv     2576.800   2576.800   +0.000
+  vbp_w       ax         0.000      0.000   +0.000
+  new terminals (R2 only): vbp_st by2 +0.000, vbn_prb by2 +0.000
+=> bias DC S=100, bench default (vth_cmp code 11): PASS (worst +0.004 mV, el s30)
+
+[bias DC S=100 r2 22] .dat missing
+
+[probe step typ 27] move: pad after (V) old / new / delta (mV); t_settle 1 % (ns) old / new
+  far F2 (3,0)    -> near H1 (0,1)   1.7945 1.7945   +0.00     1480   1477
+  near H1 (0,1)   -> far F2 (3,0)    1.3860 1.3860   +0.00     1044   1028
+  far F2 (3,0)    -> D1 soma         1.1965 1.1965   +0.00      209    324
+  D1 soma         -> AdEx vm         1.9369 1.9368   -0.10     1434   1429
+  AdEx vm         -> near H1 (0,1)   1.7945 1.7945   +0.00     1759   1750
+=> probe step levels: PASS (worst |delta| 0.10 mV)
+=> probe step settling: PASS (worst 1750 ns, M3 1759 ns)
+
+  re-baselined (Chief #43, extresist net-selection artifact): D1 vs at HOLD on M3 edge +10.97 -> baseline +16.16 mV (c91f33e)
+  re-baselined (Chief #43, extresist net-selection artifact): D1 vs at HOLD off M3 edge -19.39 -> baseline -24.32 mV (c91f33e)
+[kick typ 27] edge kick (mV), events x victims: |new - old| > 0.5 mV listed (verdict tol 3.0 mV, MRESET excluded); M3 victims 18, R2 21
+  HOLD on               D1 vs        edge  +16.16 ->  +10.99 (-5.17); step  +15.9 ->  +11.0   <-- > tol
+  HOLD off              D1 vs        edge  -24.32 ->  -19.37 (+4.95); step  -22.3 ->  -17.3   <-- > tol
+  PROBE_EN on (F2)      AdEx vm      edge   +0.42 ->   +1.32 (+0.90); step   -0.1 ->   +0.9
+  PROBE_EN off          AdEx vm      edge   -0.15 ->   -0.98 (-0.83); step   -0.0 ->   -1.0
+  SUB 0->1              AdEx vm      edge   -3.59 ->   -2.03 (+1.56); step   -3.8 ->   -2.3
+  stim A on             D1 vs        edge   +0.97 ->   +0.15 (-0.82); step   +0.8 ->   +0.2
+  stim A on             D1 d1        edge   +6.80 ->   +5.95 (-0.85); step   +4.6 ->   +3.4
+  stim A on             AdEx vm      edge  +10.36 ->   +9.07 (-1.29); step   +5.1 ->   +3.2
+  stim A off            D1 vs        edge   -0.99 ->   -0.15 (+0.84); step   -1.7 ->   -0.3
+  stim A off            D1 d1        edge   -9.06 ->   -8.12 (+0.94); step  -12.5 ->  -10.6
+  stim A off            AdEx vm      edge  -15.77 ->  -14.56 (+1.21); step  -20.6 ->  -17.9
+  SEL -> D1 (rsel off)  AdEx vm      edge   +6.63 ->   +4.96 (-1.67); step   +6.2 ->   +4.7
+  PROBE D1 on (sel_d1)  D1 vs        edge   +5.74 ->   +2.81 (-2.93); step   +4.8 ->   +2.1
+  PROBE D1 on (sel_d1)  D1 d1        edge   +2.67 ->   +1.65 (-1.02); step   +2.4 ->   +1.3
+  PROBE D1 on (sel_d1)  D1 d2        edge   +4.81 ->   +3.54 (-1.27); step   +4.1 ->   +3.1
+  PROBE D1 off          D1 vs        edge   -6.87 ->   -3.94 (+2.93); step   -5.1 ->   -2.7
+  PROBE D1 off          D1 d1        edge   -4.04 ->   -3.02 (+1.02); step   -2.8 ->   -1.8
+  PROBE D1 off          D1 d2        edge   -6.63 ->   -5.36 (+1.27); step   -4.8 ->   -3.9
+  compared 234 non-MRESET edges; worst delta -5.17 mV (D1 vs at HOLD on)
+  bay victims (R2 only), edge (step) mV: 
+    HOLD on               S4 by0:  +4.71( +4.0)  AH50B by1: +14.38(+12.5)  E1 by2:  +0.00( +0.0)
+    HOLD off              S4 by0: -15.34(-14.4)  AH50B by1: -36.05(-33.8)  E1 by2:  +0.00( +0.0)
+    MRESET on             S4 by0:  +8.13( +1.0)  AH50B by1: +13.01( +5.4)  E1 by2:  -0.00( -0.1)
+    MRESET off            S4 by0:  +0.03( +7.2)  AH50B by1:  +1.52(+17.1)  E1 by2:  +0.18( +1.1)
+    PROBE_EN on (F2)      S4 by0:  +0.05( -0.2)  AH50B by1:  +0.04( -0.9)  E1 by2:  -0.00( -0.0)
+    PROBE_EN off          S4 by0:  -0.04( +0.2)  AH50B by1:  -0.05( +0.7)  E1 by2:  +0.00( +0.0)
+    SEL row 3->0          S4 by0:  -0.01( -0.1)  AH50B by1:  -0.02( -0.3)  E1 by2:  +0.00( +0.0)
+    SUB 0->1              S4 by0:  +0.04( +0.3)  AH50B by1:  +0.08( +1.6)  E1 by2:  +0.00( -0.0)
+    LOAD: H1 trim 8->7    S4 by0:  +0.00( -0.0)  AH50B by1:  -0.00( -0.1)  E1 by2:  -0.00( -0.0)
+    LOAD: IDAC byte 2     S4 by0:  +0.01( +0.0)  AH50B by1:  +0.00( -0.0)  E1 by2:  +0.00( -0.0)
+    stim A on             S4 by0:  +6.17( +4.7)  AH50B by1: +16.68(+14.6)  E1 by2:  +0.00( -2.0)
+    stim A off            S4 by0:  -9.50(-13.9)  AH50B by1: -19.92(-30.8)  E1 by2:  -0.00( -0.0)
+    SEL -> D1 (rsel off)  S4 by0:  -0.01( -0.0)  AH50B by1:  -0.02( -0.0)  E1 by2:  +0.00( +0.0)
+    PROBE D1 on (sel_d1)  S4 by0:  +0.03( +0.0)  AH50B by1:  +0.01( -0.0)  E1 by2:  -0.00( -0.0)
+    PROBE D1 off          S4 by0:  -0.03( -0.0)  AH50B by1:  -0.01( +0.0)  E1 by2:  +0.00( +0.0)
+  M3 worst edge kick (MRESET excluded: it resets every membrane by design): -36.08 mV, AH50 s32 at HOLD off
+  R2 worst edge kick (MRESET excluded: it resets every membrane by design): -36.18 mV, AH50 s32 at HOLD off
+=> kick edges: FAIL (worst non-MRESET -5.17 mV, D1 vs at HOLD on; tol 3.0 mV, Chief #44)
+  hold drift (mV/ms) old -> new: H1 s01 -116.43 -> -118.18; P3 s02 -118.92 -> -124.32; P2 s10 -118.42 -> -119.35; H2 s11 -116.30 -> -118.12; H3 s12 -116.59 -> -118.42; CMP s13 -84.02 -> -85.39; S1 s20 -13.78 -> -13.37; S2 s21 -13.70 -> -13.31; S3 s22 -13.80 -> -13.43; F1 s23 -8.54 -> -8.20; F2 s30 -11.99 -> -11.42; F3 s31 -11.93 -> -11.39; AH50 s32 -44.27 -> -42.02; AH400 s33 -7.16 -> -6.71; D1 vs -2.51 -> -1.96; D1 d1 -24.96 -> -23.78; D1 d2 -13.98 -> -13.21; AdEx vm -29.28 -> -29.12
+  bay hold drift: S4 by0 -13.35; AH50B by1 -41.93; E1 by2 -0.00
+
+[coupling] victim: C_extr (fF) / top-added digital C (aF) / all-toggle kick (mV), old -> new
+  H1 vm (s01)              23.31   281  4.15 ->   23.56   538  7.95   <-- kick +3.80 mV
+  P3 vm (s02)              22.82   283  4.20 ->   22.96   422  6.25   <-- kick +2.05 mV
+  P2 vm (s10)              22.90   448  6.63 ->   22.97   586  8.67   <-- kick +2.04 mV
+  H2 vm (s11)              23.33   443  6.55 ->   23.33   443  6.55
+  H3 vm (s12)              22.84   452  6.70 ->   22.84   452  6.70
+  CMP vm (s13)             13.83   274  4.23 ->   13.83   262  4.05
+  S1 vm (s20)              18.33   133  2.01 ->   18.34   168  2.54   <-- kick +0.53 mV
+  S2 vm (s21)              19.19   157  2.37 ->   19.19   157  2.37
+  S3 vm (s22)              18.31   163  2.46 ->   18.31   163  2.46
+  F1 vm (s23)              18.27   119  1.79 ->   18.27   118  1.79
+  F2 vm (s30)              22.72   178  2.63 ->   22.74   215  3.19   <-- kick +0.56 mV
+  F3 vm (s31)              23.76   165  2.44 ->   23.76   165  2.44
+  AH50 vm (s32)             9.93    46  2.55 ->    9.93    46  2.55
+  AH400 vm (s33)           29.93   142  0.94 ->   29.93   140  0.92
+  D1 vs                    29.94  1081 15.51 ->   29.87  1007 14.45
+  D1 d1                    52.00  1592 34.57 ->   52.12  1633 35.42   <-- kick +0.85 mV
+  D1 d2                    16.34   752 21.34 ->   16.35   758 21.51
+  AdEx vm                  31.31   225  3.21 ->   32.99  1846 26.14   <-- kick +22.93 mV
+  AdEx vw                  16.76   155  2.36 ->   17.36   738 11.20   <-- kick +8.84 mV
+  S4 vm (by0)            (R2 only)               18.62   627  9.47
+  AH50B vm (by1)         (R2 only)               10.18   314 17.18
+  E1 vm (by2)            (R2 only)               20.03   499  7.49
+  shared line C_total (fF) / digital-coupled C (aF), old -> new (bay load on the column lines)
+  vbn_leak        316.1  35813 ->    323.1  34984   dC    +7.0 fF (+2.2 %)
+  vbn_ref         169.0  44498 ->    189.3  51096   dC   +20.3 fF (+12.0 %)
+  vbp_syn         181.1  27490 ->    244.4  41853   dC   +63.3 fF (+35.0 %)
+  vbp_st          229.1  25023 ->    259.6  25305   dC   +30.5 fF (+13.3 %)
+  vbn_prb         171.5  14974 ->    232.1  30034   dC   +60.6 fF (+35.3 %)
+  el              324.2  17425 ->    349.7  20121   dC   +25.5 fF (+7.9 %)
+  vreset          280.1  44822 ->    372.3  64636   dC   +92.2 fF (+32.9 %)
+  vsrc            386.8  29586 ->    427.3  33189   dC   +40.5 fF (+10.5 %)
+  vth_ref          20.3    572 ->     17.2   3663   dC    -3.1 fF (-15.3 %)
+  vreset_src       24.1   2169 ->     18.8   4028   dC    -5.3 fF (-22.0 %)
+  aux0             37.0   4149 ->     37.5   4623   dC    +0.5 fF (+1.4 %)
+  aux2             38.8   4456 ->     39.0   4662   dC    +0.2 fF (+0.5 %)
+  aux3             78.0   4201 ->     69.9   6370   dC    -8.1 fF (-10.4 %)
+  vbn_ax           49.9   5231 ->     53.4   7678   dC    +3.5 fF (+7.0 %)
+  vbp_w            31.0   5491 ->     32.8   6514   dC    +1.8 fF (+5.8 %)
+  abus            276.9  32458 ->    364.2  47698   dC   +87.3 fF (+31.5 %)
+  ib_r1            26.6    659 ->     23.4   1009   dC    -3.2 fF (-12.0 %)
+  M3 worst single-line top-level-added kicks: D1 d2 <- cfg_out[65] 4.86 mV; D1 d1 <- cfg_out[41] 4.82 mV; D1 vs <- probe_sel_d1 4.36 mV; P2 vm (s10) <- rt_out[1] 2.39 mV; P3 vm (s02) <- rt_out[1] 2.36 mV; H3 vm (s12) <- rt_out[1] 2.36 mV
+  R2 worst single-line top-level-added kicks: AH50B vm (by1) <- cfg_out[70] 14.07 mV; D1 d1 <- cfg_out[41] 6.42 mV; E1 vm (by2) <- cfg_out[68] 6.10 mV; D1 d2 <- cfg_out[65] 4.86 mV; AdEx vm <- cfg_out[0] 4.76 mV; H1 vm (s01) <- cfg_out[67] 3.54 mV
+
+[bias_spk off] missing
+
+[s10k] missing
+
+[icur S10000] missing
+
+[gndchk S=100] gndchk_S100.txt (no M3 file)
+  VGND rise at device terminals, magic R network, ground at the x 342.6 stripe bottom end only, S = 100:
+    b1: 259 terminals, mean 0.25 mV, max 0.81 mV
+    r1: 18 terminals, mean 0.17 mV, max 0.68 mV
+
+FAILED: kick edges
