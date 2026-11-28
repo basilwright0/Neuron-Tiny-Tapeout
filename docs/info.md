@@ -23,7 +23,7 @@ reference model, and to measure what per-neuron configurability buys in accuracy
 | B1 bias generator | Takes its reference current from `ua[0]` or an internal reference. Five 5-bit current DACs, three 5-bit voltage DACs and a 6-bit threshold DAC. The `ua[0]` current sets the operating speed, S = 10–1000× biological real time. |
 | R1 readout | Buffers one selected node (membrane, adaptation or dendrite) onto `ua[1]` with a 400 µA source follower. It also holds the reset-voltage and detector-rail buffers. |
 | Control block | Synthesized digital macro: 3-wire configuration port, 24 bytes of write-only latches, probe decoder and the digital LIF. |
-| R2 additions | Bay column (S4 and AH50B on spike channels 16–17, E1 probe-only) and the E2 leakage cell; see [R2 additions](#r2-additions). |
+| R2 additions | Bay column (S4 and AH50B on spike channels 16–17, E1 probe-only), the E2 leakage cell and the E3 synaptic-weight cell; see *R2 additions* under the register map below. |
 
 All spike outputs (channels 0–15, plus 16–17 via OUT_BANK) are plain digital levels on `uo[7:0]` and `uio[7:0]`. Spike timing and counting, stimulus
 sequencing and the LIF tick are handled off-chip by the demo board's RP2040/RP2350 (PIO).
@@ -61,7 +61,7 @@ All `uio` pins are outputs (`uio_oe` tied high). `uio_in`, `ena` and `ua[2..5]` 
 
 **Probe select:** PROBE SEL equals the spike channel for every neuron except two. SEL = 4 shows CMP's membrane and
 SEL = 12 shows S2's (CMP and S2 swapped array positions after the control block was frozen). SEL 16–18 (PROBE[7] = 1)
-probe the bay neurons; see [R2 additions](#r2-additions).
+probe the bay neurons; see *R2 additions* under the register map below.
 
 ## Register map (summary)
 
