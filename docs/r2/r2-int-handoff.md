@@ -383,3 +383,14 @@ harden configs). `main` = fdcf2ad is the fallback and is not touched. Nothing is
   - Fetch: `cd r2e3 && vmwait.sh r2e3 pg1 5`.
   - Compare: `python3 sim/tb/top/r2_compare.py /home/basil/tt-m3/top3/sim/results/top sim/results/top/vm_e3pg sim/results/top/r2_vs_m3_e3pg.txt` (check the arg form against item 3).
   - Watch the rt_out[0] / [1] edges, and S column 0 / 1 victims.
+- **pg1 result (fetched 01:15Z): green.**
+  - **Top level:** LVS unique, KLayout main 0, **antenna 0**, Magic 0, precheck rc 0, gate ok. cocotb 16 / 16.
+  - **PEX (r2_compare vs top3 M3 / vs r2shield c5adf74):**
+    - bias DC +0.004 mV;
+    - probe 0.10 mV / 1750 ns;
+    - **no array victim moved > 0.5 mV on any non-MRESET edge**, including stim A / B (rt_out[0] / [1]).
+  - **Kick FAIL flag:** the only edges over tol are D1 vs ← HOLD +16.16 → +10.99 / −24.32 → −19.37. Both kicks got smaller. It is the same extraction net-selection flip as r2shield/top1 (10.99, #43), so it is not a regression.
+  - **Coupling:** cfg_out[3] now loads AdEx vm 243 aF (3.44 mV) and vw 188 aF (2.85 mV). It is config-time (GRP_EN), so it falls under #40 and is below cfg_out[0]'s 4.76 mV.
+    - Tried the ADEX_W keep-out: the reroute (784 µm) crossed D1 for 104 µm instead, which is worse, so it was reverted.
+    - Bias lines: vbp_syn ← rt_out[0] 1.7 → 4.7 fF and vbn_prb ← cfg_out[3] 2.7 fF. Their effect on the membranes is inside the kick bench (no deltas).
+  - **VM-h:** 0.63 (resume 00:16:41Z to self-stop 00:54:30Z), plus 0.01 for the fetch resume (the VM was stopped, so vmwait could not reach it).
